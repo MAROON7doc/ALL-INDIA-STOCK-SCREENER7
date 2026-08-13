@@ -1820,6 +1820,7 @@
           const interval = btn.dataset.interval;
           if (this.mainChart) this.mainChart.setInterval(interval);
           if (this.modalChart) this.modalChart.setInterval(interval);
+          this.updateSourceLinks();
         });
       });
 
@@ -1844,6 +1845,7 @@
           document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
           this.mainChart?.setRange(btn.dataset.range);
+          this.updateSourceLinks();
         });
       });
 
@@ -2109,6 +2111,60 @@
       });
     }
 
+    updateSourceLinks() {
+      if (!this.activeMainStock) return;
+      const stock = this.activeMainStock;
+      const isNSE = this.activeExchangeMode === 'NSE';
+      const activeInterval = this.mainChart?.interval || '1D';
+
+      const getTvInterval = (intv) => {
+        switch (intv) {
+          case '1m': return '1';
+          case '5m': return '5';
+          case '15m': return '15';
+          case '1H': return '60';
+          case '1D': return 'D';
+          case '1W': return 'W';
+          case '1M': return 'M';
+          default: return 'D';
+        }
+      };
+
+      const tvInterval = getTvInterval(activeInterval);
+
+      const nseLink = document.getElementById('linkNseSource');
+      if (nseLink) {
+        if (isNSE) {
+          nseLink.href = `https://www.nseindia.com/get-quotes/equity?symbol=${encodeURIComponent(stock.symbol)}`;
+          nseLink.innerHTML = `🏛️ NSE India`;
+          nseLink.title = `View live quote for ${stock.symbol} (Series: ${stock.series || 'EQ'}) on official NSE India portal`;
+        } else {
+          nseLink.href = `https://www.bseindia.com/stock-share-price/${encodeURIComponent(stock.symbol.toLowerCase())}/${encodeURIComponent(stock.symbol.toLowerCase())}/${stock.bseCode}/`;
+          nseLink.innerHTML = `🏛️ BSE (${stock.bseCode})`;
+          nseLink.title = `View official BSE share price & announcements for ${stock.symbol} (Scrip: ${stock.bseCode})`;
+        }
+      }
+
+      const screenerLink = document.getElementById('linkScreenerSource');
+      if (screenerLink) {
+        screenerLink.href = `https://www.screener.in/company/${encodeURIComponent(stock.symbol)}/consolidated/`;
+        screenerLink.title = `View 10-year deep financials, quarterly results & shareholding for ${stock.symbol} on Screener.in`;
+      }
+
+      const tvLink = document.getElementById('linkTradingViewSource');
+      if (tvLink) {
+        const tvExch = isNSE ? 'NSE' : 'BSE';
+        tvLink.href = `https://in.tradingview.com/chart/?symbol=${tvExch}%3A${encodeURIComponent(stock.symbol)}&interval=${tvInterval}`;
+        tvLink.title = `Open interactive ${tvExch}:${stock.symbol} chart on TradingView (${activeInterval} timeframe)`;
+      }
+
+      const gfLink = document.getElementById('linkGFinanceSource');
+      if (gfLink) {
+        gfLink.href = `https://www.google.com/finance/quote/${encodeURIComponent(stock.symbol)}:${isNSE ? 'NSE' : 'BOM'}`;
+        gfLink.title = `View real-time overview & financial charts for ${stock.symbol} on Google Finance`;
+      }
+    }
+
     updateMainChart(stock) {
       if (!stock || !this.mainChart) return;
       this.activeMainStock = stock;
@@ -2153,23 +2209,7 @@
         }
       }
 
-      const nseLink = document.getElementById('linkNseSource');
-      if (nseLink) {
-        if (isNSE) {
-          nseLink.href = `https://www.nseindia.com/get-quotes/equity?symbol=${stock.symbol}`;
-          nseLink.innerHTML = `🏛️ NSE India`;
-        } else {
-          nseLink.href = `https://www.bseindia.com/stock-share-price/${stock.symbol.toLowerCase()}/${stock.symbol.toLowerCase()}/${stock.bseCode}/`;
-          nseLink.innerHTML = `🏛️ BSE India`;
-        }
-      }
-      
-      const screenerLink = document.getElementById('linkScreenerSource');
-      if (screenerLink) screenerLink.href = `https://www.screener.in/company/${stock.symbol}/`;
-
-      const tvLink = document.getElementById('linkTradingViewSource');
-      if (tvLink) tvLink.href = `https://in.tradingview.com/chart/?symbol=${isNSE ? 'NSE' : 'BSE'}%3A${stock.symbol}`;
-
+      this.updateSourceLinks();
       this.mainChart.setStock(stock, null, this.activeExchangeMode);
       this.updateGpuBadge();
     }

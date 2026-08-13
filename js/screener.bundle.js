@@ -1,8 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Rich 200+ Candle Datasets for ALL Intervals (1m, 5m, 15m, 1H, 1D, 1W, 1M),
- * Real-Time Multi-Timeframe Tick Propagation, Same-Page Fullscreen Maximize Mode,
- * and Standalone Pop-Out Window Navigation with Direct Source Links.
+ * 100% Null-Safe Initialization for Index & Standalone Pop-Out Window (chart.html),
+ * Rich Multi-Timeframe Series, Real-Time Tick Engine, and Interactive Controls.
  */
 
 (function() {
@@ -276,7 +275,6 @@
      3. RICH MULTI-TIMEFRAME GENERATORS (200+ CANDLES FOR EVERY TIMEFRAME)
      ========================================================================== */
 
-  // 1-Day Daily Swing Series (250 bars)
   function generateDailySeries(basePrice, trendType = 'cup_handle', count = 250) {
     const candles = [];
     let price = basePrice;
@@ -323,7 +321,6 @@
     return candles;
   }
 
-  // 1-Minute Intraday Series (375 bars)
   function generateIntraday1mSeries(anchorPrice, count = 375) {
     const candles = [];
     let price = anchorPrice * 0.985;
@@ -353,7 +350,6 @@
     return candles;
   }
 
-  // 15-Minute Intraday Series (250 bars)
   function generateIntraday15mSeries(anchorPrice, count = 250) {
     const candles = [];
     let price = anchorPrice * 0.94;
@@ -383,7 +379,6 @@
     return candles;
   }
 
-  // 1-Month Secular Series (120 bars)
   function generateMonthlySeries(basePrice, count = 120) {
     const candles = [];
     let price = basePrice * 0.25;
@@ -415,7 +410,6 @@
     return candles;
   }
 
-  // 1-Hour Series (250 bars)
   function generateHourlySeries(anchorPrice, count = 250) {
     const candles = [];
     let price = anchorPrice * 0.90;
@@ -1289,13 +1283,12 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH FULLSCREEN & POP-OUT CAPABILITIES
+     6. MAIN APPLICATION CONTROLLER WITH NULL-SAFE STANDALONE SUPPORT
      ========================================================================== */
   class Application {
     constructor() {
       this.universe = getStockUniverse();
       
-      // Check for URL query parameter (e.g. chart.html?symbol=DIXON)
       const urlParams = new URLSearchParams(window.location.search);
       const urlSymbol = urlParams.get('symbol');
       this.activeMainStock = (urlSymbol && this.universe.find(s => s.symbol === urlSymbol.toUpperCase())) || this.universe[0];
@@ -1326,8 +1319,12 @@
     }
 
     init() {
-      this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
-      this.modalChart = new InteractiveGPUChart('modalCanvasContainer');
+      if (document.getElementById('mainCanvasContainer')) {
+        this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
+      }
+      if (document.getElementById('modalCanvasContainer')) {
+        this.modalChart = new InteractiveGPUChart('modalCanvasContainer');
+      }
 
       this.updateGpuBadge();
       this.bindUI();
@@ -1366,7 +1363,6 @@
     }
 
     bindTradingViewToolbar() {
-      // Intervals
       document.querySelectorAll('.tv-btn[data-interval]').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tv-btn[data-interval]').forEach(b => b.classList.remove('active'));
@@ -1377,25 +1373,22 @@
         });
       });
 
-      // Chart Style
       document.getElementById('btnChartTypeCandle')?.addEventListener('click', () => {
-        document.getElementById('btnChartTypeCandle').classList.add('active');
-        document.getElementById('btnChartTypeArea').classList.remove('active');
+        document.getElementById('btnChartTypeCandle')?.classList.add('active');
+        document.getElementById('btnChartTypeArea')?.classList.remove('active');
         this.mainChart?.setChartType('candle');
       });
 
       document.getElementById('btnChartTypeArea')?.addEventListener('click', () => {
-        document.getElementById('btnChartTypeArea').classList.add('active');
-        document.getElementById('btnChartTypeCandle').classList.remove('active');
+        document.getElementById('btnChartTypeArea')?.classList.add('active');
+        document.getElementById('btnChartTypeCandle')?.classList.remove('active');
         this.mainChart?.setChartType('area');
       });
 
-      // Reset Zoom
       document.getElementById('btnResetChartZoom')?.addEventListener('click', () => {
         this.mainChart?.resetZoom();
       });
 
-      // Bottom Timeline Range Jumps
       document.querySelectorAll('.tv-range-btn').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
@@ -1404,7 +1397,6 @@
         });
       });
 
-      // MAXIMIZE / SAME-PAGE FULLSCREEN TOGGLE
       const maximizeBtn = document.getElementById('btnMaximizeChart');
       const mainChartCard = document.getElementById('mainChartCard');
       
@@ -1425,14 +1417,12 @@
 
       maximizeBtn?.addEventListener('click', toggleFullscreen);
 
-      // Escape key to exit fullscreen
       window.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.isFullscreen) {
           toggleFullscreen();
         }
       });
 
-      // POPOUT TO STANDALONE TAB/WINDOW
       document.getElementById('btnPopoutChart')?.addEventListener('click', () => {
         const symbol = this.activeMainStock?.symbol || 'TRENT';
         window.open(`chart.html?symbol=${symbol}`, '_blank', 'width=1280,height=800,menubar=no,toolbar=no,location=no');
@@ -1469,6 +1459,7 @@
     startNewsCycle() {
       if (this.newsTimer) clearInterval(this.newsTimer);
       const headlineEl = document.getElementById('breakingHeadline');
+      if (!headlineEl) return;
       
       const updateHeadline = () => {
         if (!this.newsList.length || !headlineEl) return;
@@ -1480,7 +1471,7 @@
       updateHeadline();
       this.newsTimer = setInterval(updateHeadline, 5000);
 
-      headlineEl?.addEventListener('click', () => {
+      headlineEl.addEventListener('click', () => {
         document.getElementById('newsDrawerOverlay')?.classList.add('active');
       });
     }
@@ -1570,16 +1561,20 @@
         const pill = document.getElementById('livePillIndicator');
         this.isLive = !this.isLive;
         if (this.isLive) {
-          btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>`;
-          pill.innerHTML = '<span class="live-dot"></span> LIVE';
-          pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-          pill.style.color = 'var(--accent-green)';
+          if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>`;
+          if (pill) {
+            pill.innerHTML = '<span class="live-dot"></span> LIVE';
+            pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+            pill.style.color = 'var(--accent-green)';
+          }
           this.startLiveStream();
         } else {
-          btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Resume</span>`;
-          pill.innerHTML = '<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> PAUSED';
-          pill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
-          pill.style.color = '#94a3b8';
+          if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Resume</span>`;
+          if (pill) {
+            pill.innerHTML = '<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> PAUSED';
+            pill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
+            pill.style.color = '#94a3b8';
+          }
           if (this.liveTimer) clearTimeout(this.liveTimer);
         }
       });
@@ -1813,12 +1808,19 @@
     }
 
     updateStats(stocks) {
-      document.getElementById('statMatchingCount').textContent = stocks.length;
-      document.getElementById('statMatchingSub').textContent = `Scanned universe: ${this.universe.length}`;
-      document.getElementById('statCupCount').textContent = stocks.filter(s => s.cupWithHandle?.isPattern).length;
-      document.getElementById('stat7wCount').textContent = stocks.filter(s => s.consolidation7W?.isConsolidating).length;
-      const avgRs = stocks.length ? Math.round(stocks.reduce((a, b) => a + (b.rsScore || 50), 0) / stocks.length) : 0;
-      document.getElementById('statAvgRs').textContent = avgRs;
+      const elMatch = document.getElementById('statMatchingCount');
+      if (elMatch) elMatch.textContent = stocks.length;
+      const elSub = document.getElementById('statMatchingSub');
+      if (elSub) elSub.textContent = `Scanned universe: ${this.universe.length}`;
+      const elCup = document.getElementById('statCupCount');
+      if (elCup) elCup.textContent = stocks.filter(s => s.cupWithHandle?.isPattern).length;
+      const el7w = document.getElementById('stat7wCount');
+      if (el7w) el7w.textContent = stocks.filter(s => s.consolidation7W?.isConsolidating).length;
+      const elRs = document.getElementById('statAvgRs');
+      if (elRs) {
+        const avgRs = stocks.length ? Math.round(stocks.reduce((a, b) => a + (b.rsScore || 50), 0) / stocks.length) : 0;
+        elRs.textContent = avgRs;
+      }
     }
 
     renderTable(stocks) {
@@ -2054,13 +2056,20 @@
       const sl = parseFloat(document.getElementById('calcStopLossPrice')?.value) || 93;
 
       const res = Indicators.calculatePositionSizing(entry, sl, cap, rPct);
-      document.getElementById('calcSharesOut').textContent = `${res.shares} Qty`;
-      document.getElementById('calcInvOut').textContent = `₹${res.totalInvestment.toLocaleString('en-IN')}`;
-      document.getElementById('calcRiskAmountOut').textContent = `₹${res.riskAmount.toLocaleString('en-IN')}`;
-      document.getElementById('calcSlPctOut').textContent = `-${res.stopLossPct}%`;
-      document.getElementById('calcT1').textContent = `₹${res.target1R.toLocaleString('en-IN')}`;
-      document.getElementById('calcT2').textContent = `₹${res.target2R.toLocaleString('en-IN')}`;
-      document.getElementById('calcT3').textContent = `₹${res.target3R.toLocaleString('en-IN')}`;
+      const elShares = document.getElementById('calcSharesOut');
+      if (elShares) elShares.textContent = `${res.shares} Qty`;
+      const elInv = document.getElementById('calcInvOut');
+      if (elInv) elInv.textContent = `₹${res.totalInvestment.toLocaleString('en-IN')}`;
+      const elRisk = document.getElementById('calcRiskAmountOut');
+      if (elRisk) elRisk.textContent = `₹${res.riskAmount.toLocaleString('en-IN')}`;
+      const elSl = document.getElementById('calcSlPctOut');
+      if (elSl) elSl.textContent = `-${res.stopLossPct}%`;
+      const elT1 = document.getElementById('calcT1');
+      if (elT1) elT1.textContent = `₹${res.target1R.toLocaleString('en-IN')}`;
+      const elT2 = document.getElementById('calcT2');
+      if (elT2) elT2.textContent = `₹${res.target2R.toLocaleString('en-IN')}`;
+      const elT3 = document.getElementById('calcT3');
+      if (elT3) elT3.textContent = `₹${res.target3R.toLocaleString('en-IN')}`;
     }
 
     exportCSV() {

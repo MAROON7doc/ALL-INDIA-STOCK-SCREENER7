@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSE/BSE Live Stock Screener | 9 Quantitative CANSLIM Protocols & Market Wire</title>
-  <meta name="description" content="Live Real-time NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Live Financial News Feeds.">
+  <title>NSE/BSE Live Stock Screener | GPU Accelerated & 9 Interactive Protocol Layers</title>
+  <meta name="description" content="GPU-Accelerated Live NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Live Financial News Feeds.">
   <link rel="stylesheet" href="css/styles.css">
   <!-- Universal bundle script: runs seamlessly via file:// and http:// -->
   <script defer src="js/screener.bundle.js"></script>
@@ -36,11 +36,6 @@
         <span class="ticker-chg pos">+680.50 (+1.17%)</span>
       </div>
       <div class="ticker-item">
-        <span class="ticker-name">NIFTY IT</span>
-        <span class="ticker-val">41,890.30</span>
-        <span class="ticker-chg neg">-85.40 (-0.20%)</span>
-      </div>
-      <div class="ticker-item">
         <span class="ticker-name">INDIA VIX</span>
         <span class="ticker-val">12.85</span>
         <span class="ticker-chg neg">-0.45 (-3.38%)</span>
@@ -69,6 +64,9 @@
             <h1 class="brand-title">NSE/BSE Quantitative Stock Screener</h1>
             <span class="live-pill" id="livePillIndicator">
               <span class="live-dot"></span> LIVE STREAMING
+            </span>
+            <span class="gpu-badge" id="gpuStatusBadge">
+              <span class="gpu-dot"></span> ⚡ GPU ACCELERATED (WebGL 2.0 • 60 FPS)
             </span>
           </div>
           <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7-Week Bases • Relative Strength • Live News Wire</div>
@@ -143,15 +141,15 @@
       <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 8px; font-size:10.5px; margin-left:auto;">Read Feed</button>
     </div>
 
-    <!-- Live Market Breadth & Sector Heatmap Strip -->
+    <!-- Live Market Breadth Strip -->
     <div class="market-breadth-strip">
       <div style="display:flex; align-items:center; gap:12px;">
         <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
         <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-family:var(--font-mono);">
-          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 15 Advances</span>
+          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 11 Advances</span>
           <span style="color:var(--text-muted);">:</span>
           <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 1 Declines</span>
-          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (94%)</span>
+          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (92%)</span>
         </div>
       </div>
 
@@ -162,7 +160,7 @@
         <span class="sector-badge pos">Defence +2.85%</span>
         <span class="sector-badge pos">Fintech +2.60%</span>
         <span class="sector-badge pos">Retail +2.45%</span>
-        <span class="sector-badge pos">Cables +1.80%</span>
+        <span class="sector-badge pos">Wires +1.80%</span>
       </div>
     </div>
 
@@ -386,10 +384,23 @@
     <!-- Main Content Area -->
     <main class="content-area">
       
-      <!-- Live Interactive Candlestick Chart Panel directly on Dashboard -->
+      <!-- Live Interactive Candlestick Chart Panel with 9-Protocol Visual Layer Switches -->
       <div class="main-chart-card" id="mainChartCard">
+        
+        <!-- Interactive Protocol Layer Switcher Ribbon -->
+        <div class="protocol-layer-ribbon">
+          <span class="protocol-layer-label">Interactive Protocol Layers:</span>
+          <button class="layer-toggle active" data-layer="p1_growth" title="P1: EPS & Sales Beat Pins">✓ P1 Growth</button>
+          <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI Momentum Oscillator Panel">✓ P2 RSI Sub-Chart</button>
+          <button class="layer-toggle active" data-layer="p3_vol" title="P3: Volume Burst Glow Beacons">✓ P3 Vol Burst</button>
+          <button class="layer-toggle active" data-layer="p4_base7w" title="P4: 7-Week Consolidation Box">✓ P4 7W Base</button>
+          <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup with Handle Golden Arc & Pivot">✓ P5 Cup & Handle</button>
+          <button class="layer-toggle active" data-layer="p6_sl" title="P6: Stop Loss & R:R Ladder">✓ P6 Stop Loss</button>
+          <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield RS Momentum Curve">✓ P9 RS Curve</button>
+        </div>
+
         <div class="chart-toolbar">
-          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
             <div style="font-weight:700; font-size:14px; color:var(--text-primary);" id="mainChartStockTitle">
               TRENT <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
             </div>
@@ -408,8 +419,8 @@
           </div>
         </div>
 
-        <div class="chart-container-box" id="mainCanvasContainer" style="height: 380px;">
-          <!-- Main Canvas rendered by JS -->
+        <div class="chart-container-box" id="mainCanvasContainer" style="height: 440px;">
+          <!-- GPU-Accelerated Canvas rendered by JS -->
         </div>
       </div>
 
@@ -418,7 +429,7 @@
         <div class="stat-card">
           <div class="stat-header">Matching Stocks</div>
           <div class="stat-value" id="statMatchingCount">0</div>
-          <div class="stat-sub" id="statMatchingSub">Scanned universe: 16</div>
+          <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
         </div>
         <div class="stat-card">
           <div class="stat-header">Cup & Handle Breakouts</div>
@@ -556,10 +567,8 @@
 
       <!-- Modal Tabs -->
       <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="chart">📊 Candlestick Chart & Pattern Overlay</div>
-        <div class="modal-tab" data-tab="fundamentals">📑 Fundamentals & 3-5Y EPS CAGR</div>
+        <div class="modal-tab active" data-tab="chart">📊 GPU-Accelerated Candlestick Chart & Pattern Overlay</div>
         <div class="modal-tab" data-tab="calculator">🧮 Risk Management & Position Sizing</div>
-        <div class="modal-tab" data-tab="overview">🏢 Company Profile & Protocols Checklist</div>
       </div>
 
       <!-- Modal Body -->
@@ -567,66 +576,12 @@
         
         <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
-          <div class="chart-container-box" id="modalCanvasContainer" style="height: 400px;">
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 440px;">
             <!-- Canvas rendered by JS -->
           </div>
         </div>
 
-        <!-- Tab 2: Fundamentals & EPS 3-5Y CAGR -->
-        <div class="tab-content" id="tab_fundamentals" style="display:none;">
-          <h3 style="font-size:14px; font-weight:600; margin-bottom:10px;">Fundamental & Multi-Year Growth Metrics</h3>
-          <div class="fund-grid">
-            <div class="fund-card">
-              <div class="fund-label">Quarterly Sales Growth (YoY)</div>
-              <div class="fund-val" id="fundSalesYoY">+53.2%</div>
-              <span class="fund-badge tag-cwh">High Momentum</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">Quarterly EPS Growth (YoY)</div>
-              <div class="fund-val" id="fundEpsYoY">+67.8%</div>
-              <span class="fund-badge tag-cwh">CANSLIM Top Tier</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">3-Year EPS CAGR</div>
-              <div class="fund-val" id="fundEps3Y">+54.2%</div>
-              <span class="fund-badge tag-7w">Multi-Year Compounder</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">5-Year EPS CAGR</div>
-              <div class="fund-val" id="fundEps5Y">+42.8%</div>
-              <span class="fund-badge tag-7w">5Y Earnings Trajectory</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">Return on Equity (ROE)</div>
-              <div class="fund-val" id="fundRoe">28.6%</div>
-              <span class="fund-badge" style="color:var(--accent-green);">Target > 17% Met</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">Return on Capital Employed (ROCE)</div>
-              <div class="fund-val" id="fundRoce">31.4%</div>
-              <span class="fund-badge" style="color:var(--accent-green);">High Capital Efficiency</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">Debt to Equity</div>
-              <div class="fund-val" id="fundDebt">0.12</div>
-              <span class="fund-badge" style="color:var(--accent-blue);">Low Leverage</span>
-            </div>
-            <div class="fund-card">
-              <div class="fund-label">P/E vs Industry P/E</div>
-              <div class="fund-val" id="fundPE">98.4 / 45.2</div>
-              <span class="fund-badge" style="color:var(--text-muted);">Leader Valuation</span>
-            </div>
-          </div>
-
-          <div style="margin-top:20px; background:var(--bg-card); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-            <div style="font-size:13px; font-weight:600; margin-bottom:8px;">Historical 5-Year EPS Progression (₹ per share)</div>
-            <div id="epsHistoryBar" style="display:flex; align-items:flex-end; gap:20px; height:120px; padding-top:20px;">
-              <!-- Dynamic EPS history bars -->
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: Risk Management & Position Sizing Calculator -->
+        <!-- Tab 2: Risk Management & Position Sizing Calculator -->
         <div class="tab-content" id="tab_calculator" style="display:none;">
           <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Risk Management & Exact Position Sizing</h3>
           <div class="calc-grid">
@@ -676,19 +631,6 @@
                 <div style="color:var(--accent-green);">🎯 Target 3 (1:3 R/R): <span id="calcT3">₹8,620</span></div>
               </div>
             </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: Company Profile & Protocol Checklist -->
-        <div class="tab-content" id="tab_overview" style="display:none;">
-          <h3 style="font-size:14px; font-weight:600; margin-bottom:8px;">Business Profile & Sector Outlook</h3>
-          <p id="modalDescription" style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:16px;">
-            High-growth retail powerhouse operating Westside, Zudio, Star Bazaar, and Zara in India. Demonstrating immense EPS acceleration and store expansion.
-          </p>
-
-          <h4 style="font-size:13px; font-weight:600; margin-bottom:10px;">Protocol Compliance Breakdown (9 Rules)</h4>
-          <div id="protocolComplianceList" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-            <!-- Generated by JS -->
           </div>
         </div>
 

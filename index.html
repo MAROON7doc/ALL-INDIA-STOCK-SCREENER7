@@ -41,11 +41,11 @@
         <span class="ticker-chg neg">-0.45 (-3.38%)</span>
       </div>
       <div class="ticker-item" style="border-left: 1px solid var(--border-subtle); padding-left:12px;">
-        <span class="ticker-name" style="color:var(--accent-green);">FII NET:</span>
+        <span class="ticker-name" style="color:var(--accent-green);">FII:</span>
         <span class="ticker-val" style="color:var(--accent-green);">+₹2,480 Cr</span>
       </div>
       <div class="ticker-item">
-        <span class="ticker-name" style="color:var(--accent-blue);">DII NET:</span>
+        <span class="ticker-name" style="color:var(--accent-blue);">DII:</span>
         <span class="ticker-val" style="color:var(--accent-blue);">+₹3,150 Cr</span>
       </div>
     </div>
@@ -54,59 +54,65 @@
     <div class="header-main">
       <div class="brand-section">
         <div class="brand-logo">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
             <polyline points="16 7 22 7 22 13"></polyline>
           </svg>
         </div>
         <div>
-          <div style="display:flex; align-items:center; gap:8px;">
-            <h1 class="brand-title">NSE/BSE Quantitative Stock Screener</h1>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <h1 class="brand-title">NSE/BSE Screener</h1>
             <span class="live-pill" id="livePillIndicator">
-              <span class="live-dot"></span> LIVE STREAMING
+              <span class="live-dot"></span> LIVE
             </span>
             <span class="gpu-badge" id="gpuStatusBadge">
-              <span class="gpu-dot"></span> ⚡ GPU ACCELERATED (WebGL 2.0 • 60 FPS)
+              <span class="gpu-dot"></span> GPU WebGL
             </span>
           </div>
-          <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7-Week Bases • Relative Strength • Live News Wire</div>
+          <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7W Bases • RS > 80</div>
         </div>
       </div>
 
       <div class="header-actions">
         <!-- Live Stream Speed Controls -->
-        <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); padding:4px 8px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+        <div style="display:flex; align-items:center; gap:5px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
           <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
-          <select id="selStreamSpeed" class="btn btn-sm" style="padding:2px 6px; font-size:11px; border:none; background:transparent;">
-            <option value="2000">2s (Fast)</option>
-            <option value="3000" selected>3s (Normal)</option>
+          <select id="selStreamSpeed" style="padding:2px 20px 2px 6px; font-size:11px;">
+            <option value="1000">1s (Fast)</option>
+            <option value="2000" selected>2s (Normal)</option>
             <option value="5000">5s (Medium)</option>
             <option value="10000">10s (Relaxed)</option>
           </select>
-          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 8px; font-size:11px;">⏸ Pause</button>
+          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:11px;">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <span>Pause</span>
+          </button>
         </div>
 
         <button class="btn btn-sm" id="btnToggleMainChart" title="Toggle Live Chart Panel">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M3 3v18h18"></path>
             <path d="M18 9l-5 5-4-4-6 6"></path>
           </svg>
-          📈 Live Chart
+          Live Chart
         </button>
 
-        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News & Market Wire">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
             <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
             <circle cx="9" cy="9" r="1"></circle>
             <path d="M7 13h6"></path>
             <path d="M7 17h4"></path>
           </svg>
-          📰 Live News
+          Live News
         </button>
 
         <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
             <line x1="12" y1="15" x2="12" y2="3"></line>
@@ -115,7 +121,7 @@
         </button>
 
         <button class="btn btn-sm" id="btnCopyTickers" title="Copy Ticker List">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
             <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
           </svg>
@@ -123,9 +129,9 @@
         </button>
 
         <button class="btn btn-primary btn-sm" id="btnRunScan">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="12" cy="12" r="10"></circle>
-            <polyline points="12 6 12 12 16 14"></polyline>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
           </svg>
           Re-Run Scan
         </button>
@@ -134,27 +140,27 @@
 
     <!-- Breaking News Ticker Ribbon -->
     <div class="breaking-news-ribbon" id="breakingNewsRibbon">
-      <span class="breaking-tag">⚡ LIVE WIRE</span>
+      <span class="breaking-tag">LIVE WIRE</span>
       <div class="breaking-content" id="breakingHeadline">
         Loading live Indian equity news & market intelligence...
       </div>
-      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 8px; font-size:10.5px; margin-left:auto;">Read Feed</button>
+      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Feed</button>
     </div>
 
     <!-- Live Market Breadth Strip -->
     <div class="market-breadth-strip">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
-        <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-family:var(--font-mono);">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
+        <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono);">
           <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 11 Advances</span>
           <span style="color:var(--text-muted);">:</span>
           <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 1 Declines</span>
-          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (92%)</span>
+          <span class="val-pill" style="font-size:10px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (92%)</span>
         </div>
       </div>
 
       <div class="sector-strip-group">
-        <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
+        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
         <span class="sector-badge pos">EMS +3.92%</span>
         <span class="sector-badge pos">Renewable +3.10%</span>
         <span class="sector-badge pos">Defence +2.85%</span>
@@ -168,9 +174,9 @@
     <div class="protocol-ribbon">
       <div class="preset-group">
         <span class="preset-label">Active Presets:</span>
-        <button class="preset-chip active" data-preset="user_master">🌟 User Master Protocol (All 9)</button>
-        <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle Breakouts</button>
-        <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Tight Bases</button>
+        <button class="preset-chip active" data-preset="user_master">🌟 User Master (All 9)</button>
+        <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle</button>
+        <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Bases</button>
         <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
       </div>
       <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
@@ -184,7 +190,7 @@
     <aside class="filter-sidebar">
       <div class="filter-section-title">
         <span>Protocol Engine (9 Rules)</span>
-        <button class="btn btn-sm" id="btnResetFilters" style="padding:2px 6px; font-size:10px;">Reset</button>
+        <button class="btn btn-sm" id="btnResetFilters" style="padding:1px 5px; font-size:9.5px;">Reset</button>
       </div>
 
       <!-- Protocol 1: EPS & Sales Growth -->
@@ -290,8 +296,8 @@
             <span class="slider"></span>
           </label>
         </div>
-        <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
-          Detects Left Rim, Rounded U-Bottom (12-35% depth), Right Rim recovery & tight handle breakout.
+        <div style="font-size:10.5px; color:var(--text-muted); margin-top:3px;">
+          Detects Left Rim, Rounded U-Bottom, Right Rim recovery & tight breakout.
         </div>
       </div>
 
@@ -389,22 +395,22 @@
         
         <!-- Interactive Protocol Layer Switcher Ribbon -->
         <div class="protocol-layer-ribbon">
-          <span class="protocol-layer-label">Interactive Protocol Layers:</span>
-          <button class="layer-toggle active" data-layer="p1_growth" title="P1: EPS & Sales Beat Pins">✓ P1 Growth</button>
-          <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI Momentum Oscillator Panel">✓ P2 RSI Sub-Chart</button>
-          <button class="layer-toggle active" data-layer="p3_vol" title="P3: Volume Burst Glow Beacons">✓ P3 Vol Burst</button>
-          <button class="layer-toggle active" data-layer="p4_base7w" title="P4: 7-Week Consolidation Box">✓ P4 7W Base</button>
-          <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup with Handle Golden Arc & Pivot">✓ P5 Cup & Handle</button>
-          <button class="layer-toggle active" data-layer="p6_sl" title="P6: Stop Loss & R:R Ladder">✓ P6 Stop Loss</button>
-          <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield RS Momentum Curve">✓ P9 RS Curve</button>
+          <span class="protocol-layer-label">Interactive Layers:</span>
+          <button class="layer-toggle active" data-layer="p1_growth" title="P1: EPS & Sales Beat Pins">P1 Growth</button>
+          <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI Momentum Oscillator Panel">P2 RSI Sub-Chart</button>
+          <button class="layer-toggle active" data-layer="p3_vol" title="P3: Volume Burst Glow Beacons">P3 Vol Burst</button>
+          <button class="layer-toggle active" data-layer="p4_base7w" title="P4: 7-Week Consolidation Box">P4 7W Base</button>
+          <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup with Handle Golden Arc & Pivot">P5 Cup & Handle</button>
+          <button class="layer-toggle active" data-layer="p6_sl" title="P6: Stop Loss & R:R Ladder">P6 Stop Loss</button>
+          <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield RS Momentum Curve">P9 RS Curve</button>
         </div>
 
         <div class="chart-toolbar">
           <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
-            <div style="font-weight:700; font-size:14px; color:var(--text-primary);" id="mainChartStockTitle">
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">
               TRENT <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
             </div>
-            <span class="tag tag-cwh" id="mainChartPatternBadge">☕ Cup & Handle (Score 95)</span>
+            <span class="tag tag-cwh" id="mainChartPatternBadge">Cup & Handle (95)</span>
             <div class="stock-pill-selector" id="stockPillSelector">
               <!-- Dynamically populated stock selection pills -->
             </div>
@@ -419,7 +425,7 @@
           </div>
         </div>
 
-        <div class="chart-container-box" id="mainCanvasContainer" style="height: 440px;">
+        <div class="chart-container-box" id="mainCanvasContainer" style="height: 420px;">
           <!-- GPU-Accelerated Canvas rendered by JS -->
         </div>
       </div>
@@ -450,22 +456,22 @@
 
       <!-- Table Filter Bar -->
       <div class="table-header-bar">
-        <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <div class="search-box-wrap">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
             <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector...">
           </div>
 
-          <select class="btn btn-sm" id="selExchange" style="background:var(--bg-card);">
+          <select id="selExchange">
             <option value="ALL">All Exchanges (NSE & BSE)</option>
             <option value="NSE">NSE Only</option>
             <option value="BSE">BSE Only</option>
           </select>
 
-          <select class="btn btn-sm" id="selSector" style="background:var(--bg-card);">
+          <select id="selSector">
             <option value="ALL">All Sectors</option>
             <option value="Defence">Defence & Aerospace</option>
             <option value="Retail">Retail & Consumer</option>
@@ -473,13 +479,13 @@
             <option value="IT">IT & Software</option>
             <option value="Wires">Wires & Cables</option>
             <option value="Renewable">Renewable Energy</option>
-            <option value="Financial">Financial Infrastructure / Fintech</option>
+            <option value="Financial">Financial Infrastructure</option>
           </select>
         </div>
 
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:12px; color:var(--text-muted);">Sort By:</span>
-          <select class="btn btn-sm" id="selSortBy" style="background:var(--bg-card);">
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:11.5px; color:var(--text-muted);">Sort By:</span>
+          <select id="selSortBy">
             <option value="matchCount">Protocol Match Count (9/9)</option>
             <option value="rsScore">RS Score (Highest First)</option>
             <option value="volumeBurst">Volume Burst %</option>
@@ -524,11 +530,17 @@
   <div class="news-drawer-overlay" id="newsDrawerOverlay">
     <div class="news-drawer">
       <div class="news-drawer-header">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <span style="font-size:18px;">📰</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-blue);">
+            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+            <circle cx="9" cy="9" r="1"></circle>
+            <path d="M7 13h6"></path>
+            <path d="M7 17h4"></path>
+          </svg>
           <div>
-            <div style="font-weight:700; font-size:15px; color:var(--text-primary);">Live Financial News & Market Wire</div>
-            <div style="font-size:11px; color:var(--text-muted);">Livemint • Economic Times • Moneycontrol • NSE Block Deals</div>
+            <div style="font-weight:700; font-size:14px; color:var(--text-primary);">Live Financial News & Market Wire</div>
+            <div style="font-size:10.5px; color:var(--text-muted);">Livemint • Economic Times • Moneycontrol • NSE Block Deals</div>
           </div>
         </div>
         <button class="modal-close-btn" id="btnCloseNewsDrawer">&times;</button>
@@ -548,18 +560,18 @@
           <div class="brand-logo" id="modalLogo">₹</div>
           <div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <h2 id="modalStockSymbol" style="font-size:18px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
+              <h2 id="modalStockSymbol" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
               <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
               <span class="val-pill" id="modalExchangeTag">NSE</span>
             </div>
-            <div id="modalStockName" style="font-size:12px; color:var(--text-muted);">Trent Ltd (Westside & Zudio)</div>
+            <div id="modalStockName" style="font-size:11.5px; color:var(--text-muted);">Trent Ltd (Westside & Zudio)</div>
           </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:16px;">
           <div style="text-align:right;">
-            <div id="modalLTP" style="font-size:18px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
-            <div id="modalDayChg" style="font-size:11.5px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+            <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
+            <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
           </div>
           <button class="modal-close-btn" id="btnCloseModal">&times;</button>
         </div>
@@ -567,8 +579,8 @@
 
       <!-- Modal Tabs -->
       <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="chart">📊 GPU-Accelerated Candlestick Chart & Pattern Overlay</div>
-        <div class="modal-tab" data-tab="calculator">🧮 Risk Management & Position Sizing</div>
+        <div class="modal-tab active" data-tab="chart">Candlestick Chart & Pattern Overlay</div>
+        <div class="modal-tab" data-tab="calculator">Risk Management & Position Sizing</div>
       </div>
 
       <!-- Modal Body -->
@@ -576,16 +588,16 @@
         
         <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
-          <div class="chart-container-box" id="modalCanvasContainer" style="height: 440px;">
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 420px;">
             <!-- Canvas rendered by JS -->
           </div>
         </div>
 
         <!-- Tab 2: Risk Management & Position Sizing Calculator -->
         <div class="tab-content" id="tab_calculator" style="display:none;">
-          <h3 style="font-size:14px; font-weight:600; margin-bottom:14px;">Risk Management & Exact Position Sizing</h3>
+          <h3 style="font-size:13.5px; font-weight:600; margin-bottom:12px;">Risk Management & Exact Position Sizing</h3>
           <div class="calc-grid">
-            <div style="background:var(--bg-card); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
               <div class="calc-input-group">
                 <label class="calc-label">Total Trading Capital (₹)</label>
                 <input type="number" class="calc-input" id="calcCapital" value="500000" step="50000">
@@ -604,9 +616,9 @@
               </div>
             </div>
 
-            <div style="background:var(--bg-card); padding:16px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-              <div style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">Sizing Execution Output</div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">Sizing Execution Output</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 <div class="fund-card">
                   <div class="fund-label">Shares to Buy</div>
                   <div class="fund-val" id="calcSharesOut" style="color:var(--accent-blue);">10 Qty</div>
@@ -625,9 +637,9 @@
                 </div>
               </div>
 
-              <div style="margin-top:14px; padding:10px; background:#0a1120; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11.5px; font-family:var(--font-mono);">
-                <div style="color:var(--accent-green); margin-bottom:4px;">🎯 Target 1 (1:1 R/R): <span id="calcT1">₹7,620</span></div>
-                <div style="color:var(--accent-green); margin-bottom:4px;">🎯 Target 2 (1:2 R/R): <span id="calcT2">₹8,120</span></div>
+              <div style="margin-top:12px; padding:8px; background:#0a1120; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11px; font-family:var(--font-mono);">
+                <div style="color:var(--accent-green); margin-bottom:3px;">🎯 Target 1 (1:1 R/R): <span id="calcT1">₹7,620</span></div>
+                <div style="color:var(--accent-green); margin-bottom:3px;">🎯 Target 2 (1:2 R/R): <span id="calcT2">₹8,120</span></div>
                 <div style="color:var(--accent-green);">🎯 Target 3 (1:3 R/R): <span id="calcT3">₹8,620</span></div>
               </div>
             </div>

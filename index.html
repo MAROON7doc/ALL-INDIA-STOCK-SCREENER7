@@ -6,6 +6,8 @@
   <title>NSE/BSE Live Stock Screener | 9 Quantitative CANSLIM Protocols & Market Wire</title>
   <meta name="description" content="Live Real-time NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Live Financial News Feeds.">
   <link rel="stylesheet" href="css/styles.css">
+  <!-- Universal bundle script: runs seamlessly via file:// and http:// -->
+  <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
 
@@ -102,7 +104,7 @@
             <path d="M7 13h6"></path>
             <path d="M7 17h4"></path>
           </svg>
-          📰 Live News (<span id="newsCountBadge">6</span>)
+          📰 Live News
         </button>
 
         <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
@@ -146,10 +148,10 @@
       <div style="display:flex; align-items:center; gap:12px;">
         <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
         <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-family:var(--font-mono);">
-          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 18 Advances</span>
+          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 15 Advances</span>
           <span style="color:var(--text-muted);">:</span>
-          <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 2 Declines</span>
-          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (90%)</span>
+          <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 1 Declines</span>
+          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (94%)</span>
         </div>
       </div>
 
@@ -171,8 +173,6 @@
         <button class="preset-chip active" data-preset="user_master">🌟 User Master Protocol (All 9)</button>
         <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle Breakouts</button>
         <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Tight Bases</button>
-        <button class="preset-chip" data-preset="high_rs_rsi">⚡ High RS (>80) & RSI Momentum</button>
-        <button class="preset-chip" data-preset="fundamental_growth">💎 High Growth (EPS/Sales + ROE>17%)</button>
         <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
       </div>
       <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
@@ -253,21 +253,21 @@
         <div class="range-wrap">
           <div class="control-row">
             <span>Volume vs 20-Day SMA</span>
-            <span class="val-pill" id="val_volumeBurst">+50%</span>
+            <span class="val-pill" id="val_volumeBurst">+40%</span>
           </div>
-          <input type="range" class="range-input" id="rng_volumeBurst" min="20" max="200" value="50" step="10">
+          <input type="range" class="range-input" id="rng_volumeBurst" min="20" max="200" value="40" step="10">
         </div>
       </div>
 
       <!-- Protocol 4: 7-Week Consolidation Base -->
-      <div class="protocol-card active" id="card_p4">
+      <div class="protocol-card" id="card_p4">
         <div class="protocol-header">
           <div class="protocol-title-wrap">
             <span class="protocol-badge">P4</span>
             <span class="protocol-name">7-Week Consolidation Base</span>
           </div>
           <label class="switch">
-            <input type="checkbox" id="chk_p4" checked>
+            <input type="checkbox" id="chk_p4">
             <span class="slider"></span>
           </label>
         </div>
@@ -281,14 +281,14 @@
       </div>
 
       <!-- Protocol 5: Cup with Handle Candle Pattern -->
-      <div class="protocol-card active" id="card_p5">
+      <div class="protocol-card" id="card_p5">
         <div class="protocol-header">
           <div class="protocol-title-wrap">
             <span class="protocol-badge">P5</span>
             <span class="protocol-name">Cup with Handle Pattern</span>
           </div>
           <label class="switch">
-            <input type="checkbox" id="chk_p5" checked>
+            <input type="checkbox" id="chk_p5">
             <span class="slider"></span>
           </label>
         </div>
@@ -418,7 +418,7 @@
         <div class="stat-card">
           <div class="stat-header">Matching Stocks</div>
           <div class="stat-value" id="statMatchingCount">0</div>
-          <div class="stat-sub" id="statMatchingSub">Scanned universe: 20</div>
+          <div class="stat-sub" id="statMatchingSub">Scanned universe: 16</div>
         </div>
         <div class="stat-card">
           <div class="stat-header">Cup & Handle Breakouts</div>
@@ -460,7 +460,7 @@
             <option value="Retail">Retail & Consumer</option>
             <option value="EMS">EMS & Electronics</option>
             <option value="IT">IT & Software</option>
-            <option value="Cables">Wires & Cables</option>
+            <option value="Wires">Wires & Cables</option>
             <option value="Renewable">Renewable Energy</option>
             <option value="Financial">Financial Infrastructure / Fintech</option>
           </select>
@@ -529,9 +529,6 @@
     </div>
   </div>
 
-  <!-- Dynamic Live Alert Toast -->
-  <div class="toast-container" id="toastContainer"></div>
-
   <!-- Detail Modal & Full Analysis Visualizer -->
   <div class="modal-overlay" id="stockModal">
     <div class="modal-container">
@@ -570,19 +567,6 @@
         
         <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
-          <div class="chart-toolbar">
-            <div style="font-size:12px; color:var(--text-muted);" id="chartPatternSummary">
-              Annotated: Cup with Handle (Rounded bottom, pivot line, target & stop loss)
-            </div>
-            <div class="range-btn-group">
-              <button class="btn btn-sm modal-range-btn" data-range="1M">1M</button>
-              <button class="btn btn-sm modal-range-btn" data-range="3M">3M</button>
-              <button class="btn btn-sm modal-range-btn btn-primary" data-range="6M">6M</button>
-              <button class="btn btn-sm modal-range-btn" data-range="1Y">1Y</button>
-              <button class="btn btn-sm modal-range-btn" data-range="ALL">ALL</button>
-            </div>
-          </div>
-
           <div class="chart-container-box" id="modalCanvasContainer" style="height: 400px;">
             <!-- Canvas rendered by JS -->
           </div>
@@ -712,7 +696,5 @@
     </div>
   </div>
 
-  <!-- Main Application Script -->
-  <script type="module" src="js/app.js"></script>
 </body>
 </html>

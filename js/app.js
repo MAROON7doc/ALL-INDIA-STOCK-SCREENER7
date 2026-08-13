@@ -1,20 +1,25 @@
 /**
- * Main Application Orchestrator
- * Connects UI, Filter Engine, Candlestick Chart Visualizer, and Position Sizing Calculator.
+ * Main Application Orchestrator with Live Streamer & News Wire
+ * Connects UI, Filter Engine, Candlestick Chart, Live Market Stream, and Real-time News Feeds.
  */
 
 import { getInitialStockUniverse } from './data.js';
 import { StockScanner } from './scanner.js';
 import { StockChart } from './chart.js';
 import { Indicators } from './indicators.js';
+import { LiveStreamEngine } from './liveEngine.js';
+import { NewsEngine } from './newsEngine.js';
 
 class App {
   constructor() {
     this.rawUniverse = getInitialStockUniverse();
     this.scanner = new StockScanner(this.rawUniverse);
+    this.newsEngine = new NewsEngine();
     this.chart = null;
     this.currentStock = null;
     this.activePreset = 'user_master';
+    this.newsItems = [];
+    this.activeNewsIdx = 0;
 
     this.filters = {
       searchTerm: '',
@@ -52,6 +57,17 @@ class App {
     this.bindEvents();
     this.applyPreset('user_master');
     this.runScan();
+
+    // Start Live Market Stream Engine
+    this.liveEngine = new LiveStreamEngine(
+      this.rawUniverse,
+      (updatedTicks) => this.handleLiveTicks(updatedTicks),
+      (alertData) => this.handleLiveAlert(alertData)
+    );
+    this.liveEngine.start();
+
+    // Load Live Financial News
+    this.loadNews();
   }
 
   bindEvents() {
@@ -106,6 +122,49 @@ class App {
         this.applyPreset(chip.dataset.preset);
         this.runScan();
       });
+    });
+
+    // Live Stream Controls
+    document.getElementById('btnToggleLive')?.addEventListener('click', () => {
+      const btn = document.getElementById('btnToggleLive');
+      const pill = document.getElementById('livePillIndicator');
+      if (this.liveEngine.isRunning) {
+        this.liveEngine.stop();
+        btn.textContent = '▶ Resume';
+        pill.innerHTML = '<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> STREAM PAUSED';
+        pill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
+        pill.style.color = '#94a3b8';
+      } else {
+        this.liveEngine.start();
+        btn.textContent = '⏸ Pause';
+        pill.innerHTML = '<span class="live-dot"></span> LIVE STREAMING';
+        pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+        pill.style.color = 'var(--accent-green)';
+      }
+    });
+
+    document.getElementById('selStreamSpeed')?.addEventListener('change', (e) => {
+      const ms = parseInt(e.target.value, 10);
+      if (this.liveEngine) this.liveEngine.setIntervalMs(ms);
+    });
+
+    // News Drawer Controls
+    document.getElementById('btnOpenNewsDrawer')?.addEventListener('click', () => {
+      document.getElementById('newsDrawerOverlay')?.classList.add('active');
+    });
+
+    document.getElementById('btnReadMoreNews')?.addEventListener('click', () => {
+      document.getElementById('newsDrawerOverlay')?.classList.add('active');
+    });
+
+    document.getElementById('btnCloseNewsDrawer')?.addEventListener('click', () => {
+      document.getElementById('newsDrawerOverlay')?.classList.remove('active');
+    });
+
+    document.getElementById('newsDrawerOverlay')?.addEventListener('click', (e) => {
+      if (e.target.id === 'newsDrawerOverlay') {
+        document.getElementById('newsDrawerOverlay')?.classList.remove('active');
+      }
     });
 
     // Action Buttons
@@ -189,6 +248,105 @@ class App {
     });
   }
 
+  async loadNews() {
+    this.newsItems = await this.newsEngine.fetchLiveNews();
+    document.getElementById('newsCountBadge').textContent = this.newsItems.length;
+    this.renderNewsFeed(this.newsItems);
+    this.startBreakingNewsCycle();
+  }
+
+  renderNewsFeed(items) {
+    const list = document.getElementById('newsFeedList');
+    if (!list) return;
+
+    list.innerHTML = items.map(item => `
+      <div class="news-card" data-ticker="${item.ticker || ''}">
+        <div class="news-card-header">
+          <span class="news-tag">${item.category}</span>
+          <span class="news-time">${item.pubDate} • ${item.source}</span>
+        </div>
+        <div class="news-title">${item.title}</div>
+        <div class="news-snippet">${item.snippet}</div>
+        ${item.ticker ? `<div style="margin-top:6px;"><span class="val-pill" style="font-size:10px;">Symbol: ${item.ticker}</span></div>` : ''}
+      </div>
+    `).join('');
+
+    // Clicking news card focuses on ticker if present
+    list.querySelectorAll('.news-card').forEach(card => {
+      card.addEventListener('click', () => {
+        const ticker = card.dataset.ticker;
+        if (ticker) {
+          document.getElementById('txtSearch').value = ticker;
+          this.filters.searchTerm = ticker;
+          this.runScan();
+          document.getElementById('newsDrawerOverlay')?.classList.remove('active');
+        }
+      });
+    });
+  }
+
+  startBreakingNewsCycle() {
+    if (!this.newsItems.length) return;
+    const headline = document.getElementById('breakingHeadline');
+    
+    const updateHeadline = () => {
+      const item = this.newsItems[this.activeNewsIdx % this.newsItems.length];
+      if (headline) {
+        headline.innerHTML = `<strong>${item.source}</strong>: ${item.title} <span style="color:var(--text-muted); font-size:11px;">(${item.pubDate})</span>`;
+      }
+      this.activeNewsIdx++;
+    };
+
+    updateHeadline();
+    setInterval(updateHeadline, 8000);
+  }
+
+  handleLiveTicks(updatedTicks) {
+    this.scanner.analyzeUniverse();
+    this.runScan(false); // Update without resetting view
+
+    // Apply flash animations to updated rows
+    updatedTicks.forEach(tick => {
+      const row = document.querySelector(`tr[data-symbol="${tick.symbol}"]`);
+      if (row) {
+        const flashClass = tick.tickDirection === 'up' ? 'flash-up' : 'flash-down';
+        row.classList.add(flashClass);
+        setTimeout(() => row.classList.remove(flashClass), 600);
+      }
+    });
+
+    // Update Market Breadth UI
+    if (this.liveEngine) {
+      const breadth = this.liveEngine.getMarketBreadth();
+      document.getElementById('breadthAdvances').textContent = `▲ ${breadth.advances} Advances`;
+      document.getElementById('breadthDeclines').textContent = `▼ ${breadth.declines} Declines`;
+      document.getElementById('breadthSentiment').textContent = `${breadth.sentiment} (${breadth.advancePct}%)`;
+    }
+  }
+
+  handleLiveAlert(alert) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast-alert';
+    toast.innerHTML = `
+      <div style="font-size:18px;">💥</div>
+      <div>
+        <div style="font-weight:700; color:var(--accent-amber);">VOLUME BURST ALERT: ${alert.symbol}</div>
+        <div style="font-size:11px; color:var(--text-secondary);">Volume +${alert.burstPct}% vs SMA20 at ₹${alert.price} (${alert.dayChangePct > 0 ? '+' : ''}${alert.dayChangePct}%)</div>
+      </div>
+      <div style="font-size:10px; color:var(--text-muted); margin-left:auto;">${alert.time}</div>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transition = 'opacity 0.3s ease';
+      setTimeout(() => toast.remove(), 300);
+    }, 4500);
+  }
+
   applyPreset(presetKey) {
     this.activePreset = presetKey;
     const setChk = (id, checked) => {
@@ -205,13 +363,12 @@ class App {
     };
 
     if (presetKey === 'user_master') {
-      // User's master protocol with all 9 criteria
       this.filters.requireGrowth = true;
       this.filters.requireRsi = true;
-      this.filters.minRsi = 70; // High RSI momentum zone
+      this.filters.minRsi = 70;
       this.filters.requireVolumeBurst = true;
       this.filters.minBurstPct = 40;
-      this.filters.require7WeekConsolidation = false; // Optional base
+      this.filters.require7WeekConsolidation = false;
       this.filters.requireCupWithHandle = false;
       this.filters.requireStopLossLimit = true;
       this.filters.maxStopLossPct = 8.0;
@@ -304,7 +461,6 @@ class App {
       setChk('chk_p8', true);
       setChk('chk_p9', false);
     } else if (presetKey === 'all') {
-      // Turn all off to inspect universe
       ['chk_p1','chk_p2','chk_p3','chk_p4','chk_p5','chk_p6','chk_p7','chk_p8','chk_p9'].forEach(id => {
         setChk(id, false);
       });
@@ -320,7 +476,7 @@ class App {
     }
   }
 
-  runScan() {
+  runScan(fullRebuild = true) {
     const filtered = this.scanner.filterStocks(this.filters);
     const sorted = this.scanner.sortStocks(filtered, this.filters.sortBy, this.filters.sortDir);
     this.currentResults = sorted;
@@ -362,7 +518,6 @@ class App {
       const dayChgClass = stock.dayChangePct >= 0 ? 'color:var(--accent-green);' : 'color:var(--accent-red);';
       const daySign = stock.dayChangePct > 0 ? '+' : '';
 
-      // Pattern label
       let patternBadge = `<span style="color:var(--text-muted); font-size:11px;">Consolidating</span>`;
       if (stock.cupWithHandle.isPattern) {
         patternBadge = `<span class="tag tag-cwh" title="Cup & Handle Score: ${stock.cupWithHandle.score}">☕ Cup & Handle (${stock.cupWithHandle.score})</span>`;
@@ -370,13 +525,12 @@ class App {
         patternBadge = `<span class="tag tag-7w" title="7-Week Base Range: ${stock.consolidation7W.rangePct}%">🧱 7W Base (${stock.consolidation7W.rangePct}%)</span>`;
       }
 
-      // Volume burst badge
       const volBurstDisplay = stock.volumeBurst.burstPct > 0 
         ? `<span style="color:var(--accent-amber); font-weight:600;">+${stock.volumeBurst.burstPct}%</span>`
         : `<span style="color:var(--text-muted);">${stock.volumeBurst.ratio}x</span>`;
 
       html += `
-        <tr>
+        <tr data-symbol="${stock.symbol}">
           <td>
             <div class="stock-cell">
               <span class="stock-symbol">${stock.symbol}</span>
@@ -429,9 +583,8 @@ class App {
 
     tbody.innerHTML = html;
 
-    // Attach click listeners to analyze buttons
     tbody.querySelectorAll('.btn-analyze').forEach(btn => {
-      btn.addEventListener('click', (e) => {
+      btn.addEventListener('click', () => {
         const symbol = btn.dataset.symbol;
         const stock = this.rawUniverse.find(s => s.symbol === symbol) || stocks.find(s => s.symbol === symbol);
         if (stock) this.openModal(stock);
@@ -444,7 +597,6 @@ class App {
     const modal = document.getElementById('stockModal');
     if (!modal) return;
 
-    // Header info
     document.getElementById('modalStockSymbol').textContent = stock.symbol;
     document.getElementById('modalStockName').textContent = stock.name;
     document.getElementById('modalLTP').textContent = `₹${stock.ltp ? stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 }) : stock.currentPrice}`;
@@ -463,14 +615,12 @@ class App {
       patternTag.className = 'tag';
     }
 
-    // Chart tab
     document.getElementById('chartPatternSummary').textContent = stock.cupWithHandle.isPattern
       ? `Annotated: Cup with Handle (Cup Depth: -${stock.cupWithHandle.cupDepthPct}%, Pivot: ₹${stock.cupWithHandle.pivotPrice}, Target: ₹${stock.cupWithHandle.targetPrice})`
       : (stock.consolidation7W.isConsolidating
           ? `Annotated: 7-Week Consolidation Box (Base High: ₹${stock.consolidation7W.baseHigh}, Base Low: ₹${stock.consolidation7W.baseLow})`
           : `Annotated: Candlestick Price Action with Volume Bursts & 20-Day Moving Average`);
 
-    // Fundamentals tab
     document.getElementById('fundSalesYoY').textContent = `+${stock.salesGrowthYoY}%`;
     document.getElementById('fundEpsYoY').textContent = `+${stock.epsGrowthYoY}%`;
     document.getElementById('fundEps3Y').textContent = `+${stock.eps3Y_CAGR}%`;
@@ -480,7 +630,6 @@ class App {
     document.getElementById('fundDebt').textContent = `${stock.debtToEquity}`;
     document.getElementById('fundPE').textContent = `${stock.peRatio} / ${stock.industryPE}`;
 
-    // EPS 5-Year History Bars
     const barWrap = document.getElementById('epsHistoryBar');
     if (barWrap && stock.epsHistory) {
       const maxVal = Math.max(...stock.epsHistory, 10);
@@ -500,7 +649,6 @@ class App {
       barWrap.innerHTML = barHtml;
     }
 
-    // Company Description & Checklist
     document.getElementById('modalDescription').textContent = stock.description || '';
     const compList = document.getElementById('protocolComplianceList');
     if (compList && stock.protocolMatch) {
@@ -526,14 +674,12 @@ class App {
       `).join('');
     }
 
-    // Initialize Calculator fields with stock prices
     const entry = stock.ltp || stock.currentPrice;
     const sl = stock.recommendedSL || (entry * 0.93);
     document.getElementById('calcEntryPrice').value = entry;
     document.getElementById('calcStopLossPrice').value = sl;
     this.updateCalculator();
 
-    // Show modal and render chart
     modal.classList.add('active');
     setTimeout(() => {
       if (this.chart) {
@@ -619,7 +765,6 @@ class App {
   }
 }
 
-// Instantiate on DOM ready
 document.addEventListener('DOMContentLoaded', () => {
   window.screenerApp = new App();
 });

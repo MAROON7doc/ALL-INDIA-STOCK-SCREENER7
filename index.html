@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSE/BSE Professional Stock Screener | CANSLIM & Technical Protocols</title>
-  <meta name="description" content="Advanced NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Multi-Year EPS Growth.">
+  <title>NSE/BSE Live Stock Screener | 9 Quantitative CANSLIM Protocols & Market Wire</title>
+  <meta name="description" content="Live Real-time NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Live Financial News Feeds.">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -15,13 +15,13 @@
     <div class="market-ticker-tape" id="marketTickerTape">
       <div class="ticker-item">
         <span class="ticker-name">NIFTY 50</span>
-        <span class="ticker-val">24,835.10</span>
-        <span class="ticker-chg pos">+142.50 (+0.58%)</span>
+        <span class="ticker-val" id="valNifty">24,835.10</span>
+        <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
       </div>
       <div class="ticker-item">
         <span class="ticker-name">BSE SENSEX</span>
-        <span class="ticker-val">81,380.40</span>
-        <span class="ticker-chg pos">+410.20 (+0.51%)</span>
+        <span class="ticker-val" id="valSensex">81,380.40</span>
+        <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
       </div>
       <div class="ticker-item">
         <span class="ticker-name">NIFTY BANK</span>
@@ -43,6 +43,14 @@
         <span class="ticker-val">12.85</span>
         <span class="ticker-chg neg">-0.45 (-3.38%)</span>
       </div>
+      <div class="ticker-item" style="border-left: 1px solid var(--border-subtle); padding-left:12px;">
+        <span class="ticker-name" style="color:var(--accent-green);">FII NET:</span>
+        <span class="ticker-val" style="color:var(--accent-green);">+₹2,480 Cr</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name" style="color:var(--accent-blue);">DII NET:</span>
+        <span class="ticker-val" style="color:var(--accent-blue);">+₹3,150 Cr</span>
+      </div>
     </div>
 
     <!-- Main Header -->
@@ -55,12 +63,40 @@
           </svg>
         </div>
         <div>
-          <h1 class="brand-title">NSE/BSE Quantitative Stock Screener</h1>
-          <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7-Week Bases • Relative Strength</div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h1 class="brand-title">NSE/BSE Quantitative Stock Screener</h1>
+            <span class="live-pill" id="livePillIndicator">
+              <span class="live-dot"></span> LIVE STREAMING
+            </span>
+          </div>
+          <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7-Week Bases • Relative Strength • Live News Wire</div>
         </div>
       </div>
 
       <div class="header-actions">
+        <!-- Live Stream Controls -->
+        <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); padding:4px 8px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+          <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
+          <select id="selStreamSpeed" class="btn btn-sm" style="padding:2px 6px; font-size:11px; border:none; background:transparent;">
+            <option value="2000">2s (Fast)</option>
+            <option value="3000" selected>3s (Normal)</option>
+            <option value="5000">5s (Medium)</option>
+            <option value="10000">10s (Relaxed)</option>
+          </select>
+          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 8px; font-size:11px;">⏸ Pause</button>
+        </div>
+
+        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News & Market Wire">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+            <circle cx="9" cy="9" r="1"></circle>
+            <path d="M7 13h6"></path>
+            <path d="M7 17h4"></path>
+          </svg>
+          📰 Live News (<span id="newsCountBadge">6</span>)
+        </button>
+
         <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -69,6 +105,7 @@
           </svg>
           Export CSV
         </button>
+
         <button class="btn btn-sm" id="btnCopyTickers" title="Copy Ticker List">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -76,6 +113,7 @@
           </svg>
           Copy Tickers
         </button>
+
         <button class="btn btn-primary btn-sm" id="btnRunScan">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <circle cx="12" cy="12" r="10"></circle>
@@ -83,6 +121,38 @@
           </svg>
           Re-Run Scan
         </button>
+      </div>
+    </div>
+
+    <!-- Breaking News Ticker Ribbon -->
+    <div class="breaking-news-ribbon" id="breakingNewsRibbon">
+      <span class="breaking-tag">⚡ LIVE WIRE</span>
+      <div class="breaking-content" id="breakingHeadline">
+        Loading live Indian equity news & market intelligence...
+      </div>
+      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 8px; font-size:10.5px; margin-left:auto;">Read Feed</button>
+    </div>
+
+    <!-- Live Market Breadth & Sector Heatmap Strip -->
+    <div class="market-breadth-strip">
+      <div style="display:flex; align-items:center; gap:12px;">
+        <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
+        <div style="display:flex; align-items:center; gap:6px; font-size:11.5px; font-family:var(--font-mono);">
+          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 18 Advances</span>
+          <span style="color:var(--text-muted);">:</span>
+          <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 2 Declines</span>
+          <span class="val-pill" style="font-size:10.5px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (90%)</span>
+        </div>
+      </div>
+
+      <div class="sector-strip-group">
+        <span style="font-size:11px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
+        <span class="sector-badge pos">EMS +3.92%</span>
+        <span class="sector-badge pos">Renewable +3.10%</span>
+        <span class="sector-badge pos">Defence +2.85%</span>
+        <span class="sector-badge pos">Fintech +2.60%</span>
+        <span class="sector-badge pos">Retail +2.45%</span>
+        <span class="sector-badge pos">Cables +1.80%</span>
       </div>
     </div>
 
@@ -97,7 +167,7 @@
         <button class="preset-chip" data-preset="fundamental_growth">💎 High Growth (EPS/Sales + ROE>17%)</button>
         <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
       </div>
-      <div id="scanStatusBadge" class="val-pill">Live Scanner Ready</div>
+      <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
     </div>
   </header>
 
@@ -381,7 +451,7 @@
           <thead>
             <tr>
               <th>Stock / Exchange</th>
-              <th>LTP (₹) & Day Chg</th>
+              <th>Live LTP (₹) & Day Chg</th>
               <th>RS Score</th>
               <th>RSI (14)</th>
               <th>Vol Burst</th>
@@ -402,6 +472,29 @@
       </div>
     </main>
   </div>
+
+  <!-- Live Financial News & Market Wire Side Drawer -->
+  <div class="news-drawer-overlay" id="newsDrawerOverlay">
+    <div class="news-drawer">
+      <div class="news-drawer-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <span style="font-size:18px;">📰</span>
+          <div>
+            <div style="font-weight:700; font-size:15px; color:var(--text-primary);">Live Financial News & Market Wire</div>
+            <div style="font-size:11px; color:var(--text-muted);">Livemint • Economic Times • Moneycontrol • NSE Block Deals</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseNewsDrawer">&times;</button>
+      </div>
+
+      <div class="news-feed-list" id="newsFeedList">
+        <!-- Dynamically rendered news cards -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Dynamic Live Alert Toast -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <!-- Detail Modal & Chart Visualizer -->
   <div class="modal-overlay" id="stockModal">

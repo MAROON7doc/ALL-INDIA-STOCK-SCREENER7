@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Unified Zero-Ambiguity Timeframe System (1m Live, 5m, 15m, 1M, 3M, 6M Base, 1Y, 1W),
- * GPU-Accelerated 60FPS Live Motion, Direct Exchange & News Wire Pinpoints.
+ * TradingView-Grade Interactive Pan/Zoom Canvas Engine, Multi-Timeframe Timeline (1m-1M),
+ * Fully Functional 9-Protocol Visual Overlays, and Direct Source Financial Wire.
  */
 
 (function() {
@@ -175,7 +175,7 @@
     },
 
     detectCupWithHandle(candles) {
-      if (!candles || candles.length < 50) return { isPattern: false, score: 0, stage: 'None' };
+      if (!candles || candles.length < 40) return { isPattern: false, score: 0, stage: 'None' };
       const total = candles.length;
       const lookback = Math.min(total, 90);
       const window = candles.slice(-lookback);
@@ -183,24 +183,19 @@
       let leftPeakIdx = -1, leftPeakPrice = -Infinity;
       const firstThird = Math.floor(window.length * 0.45);
 
-      for (let i = 5; i < firstThird; i++) {
+      for (let i = 3; i < firstThird; i++) {
         if (window[i].high > leftPeakPrice) {
-          const isLocalMax = window[i].high >= window[i - 1].high &&
-                             window[i].high >= window[i - 2].high &&
-                             window[i].high >= (window[i + 1]?.high || 0);
-          if (isLocalMax && window[i].high > leftPeakPrice) {
-            leftPeakPrice = window[i].high;
-            leftPeakIdx = i;
-          }
+          leftPeakPrice = window[i].high;
+          leftPeakIdx = i;
         }
       }
 
       if (leftPeakIdx === -1 || leftPeakPrice <= 0) return { isPattern: false, score: 0 };
 
       let cupBottomIdx = -1, cupBottomPrice = Infinity;
-      const handleStartSearch = window.length - 12;
+      const handleStartSearch = window.length - 10;
 
-      for (let i = leftPeakIdx + 4; i < handleStartSearch; i++) {
+      for (let i = leftPeakIdx + 3; i < handleStartSearch; i++) {
         if (window[i].low < cupBottomPrice) {
           cupBottomPrice = window[i].low;
           cupBottomIdx = i;
@@ -210,10 +205,10 @@
       if (cupBottomIdx === -1) return { isPattern: false, score: 0 };
 
       const cupDepthPct = ((leftPeakPrice - cupBottomPrice) / leftPeakPrice) * 100;
-      if (cupDepthPct < 10 || cupDepthPct > 45) return { isPattern: false, score: 0 };
+      if (cupDepthPct < 8 || cupDepthPct > 45) return { isPattern: false, score: 0 };
 
       let rightPeakIdx = -1, rightPeakPrice = -Infinity;
-      for (let i = cupBottomIdx + 4; i < window.length - 2; i++) {
+      for (let i = cupBottomIdx + 3; i < window.length - 2; i++) {
         if (window[i].high > rightPeakPrice) {
           rightPeakPrice = window[i].high;
           rightPeakIdx = i;
@@ -234,7 +229,7 @@
 
       return {
         isPattern: true,
-        score: Math.min(99, Math.round(75 + (cupDepthPct <= 30 ? 12 : 0) + (handleDepthPct <= 10 ? 12 : 0))),
+        score: Math.min(99, Math.round(75 + (cupDepthPct <= 30 ? 12 : 0) + (handleDepthPct <= 12 ? 12 : 0))),
         stage: currentCandle.close >= pivotPrice * 0.99 ? 'At Pivot Breakout' : 'Forming Handle',
         pivotPrice,
         targetPrice,
@@ -274,9 +269,9 @@
   };
 
   /* ==========================================================================
-     3. MULTI-TIMEFRAME CANDLE ENGINE (1m, 5m, 15m, 1D, 1W)
+     3. MULTI-TIMEFRAME DATASET GENERATOR
      ========================================================================== */
-  function generateDailyCandles(basePrice, trendType = 'cup_handle', days = 160) {
+  function generateDailyCandles(basePrice, trendType = 'cup_handle', days = 180) {
     const candles = [];
     let price = basePrice;
     const now = new Date();
@@ -323,7 +318,7 @@
     return candles;
   }
 
-  function generateIntraday1mCandles(lastDailyCandle, count = 80) {
+  function generateIntraday1mCandles(lastDailyCandle, count = 120) {
     const candles = [];
     let price = lastDailyCandle.open;
     const now = new Date();
@@ -413,7 +408,7 @@
   ];
 
   /* ==========================================================================
-     4. LIVE FINANCIAL NEWS & DIRECT SOURCE ARTICLES DATABASE
+     4. LIVE FINANCIAL NEWS WIRE DATABASE
      ========================================================================== */
   const LIVE_NEWS_DATABASE = [
     {
@@ -500,14 +495,16 @@
 
   function getStockUniverse() {
     return RAW_DATABASE.map(stock => {
-      const dailyCandles = generateDailyCandles(stock.basePrice, stock.patternType, 160);
+      const dailyCandles = generateDailyCandles(stock.basePrice, stock.patternType, 180);
       const initialDayClose = dailyCandles[dailyCandles.length - 1].close;
       const initialDayVol = dailyCandles[dailyCandles.length - 1].volume;
       
-      const intraday1m = generateIntraday1mCandles(dailyCandles[dailyCandles.length - 1], 80);
+      const intraday1m = generateIntraday1mCandles(dailyCandles[dailyCandles.length - 1], 120);
       const intraday5m = resampleCandles(intraday1m, 5);
       const intraday15m = resampleCandles(intraday1m, 15);
+      const intraday1H = resampleCandles(intraday1m, 60);
       const weekly = resampleWeeklyCandles(dailyCandles);
+      const monthly = resampleCandles(dailyCandles, 20);
 
       return {
         ...stock,
@@ -515,9 +512,11 @@
         intraday1m,
         intraday5m,
         intraday15m,
+        intraday1H,
         weekly,
-        activeTF: '1m',
-        candles: intraday1m,
+        monthly,
+        activeInterval: '1D',
+        candles: dailyCandles,
         closes: dailyCandles.map(c => c.close),
         volumes: dailyCandles.map(c => c.volume),
         ltp: initialDayClose,
@@ -531,7 +530,7 @@
   }
 
   /* ==========================================================================
-     5. REAL-TIME 60FPS CANDLESTICK & MULTI-LAYER GPU CANVAS CHART
+     5. TRADINGVIEW-GRADE INTERACTIVE PAN/ZOOM CANVAS CHART ENGINE
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -544,14 +543,22 @@
       this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
 
       this.stock = null;
-      this.candles = [];
-      this.visibleCandles = [];
-      this.timeframeKey = '1m';
-      this.crosshair = { x: -1, y: -1, active: false, candle: null };
+      this.allCandles = [];
+      this.interval = '1D';
+      this.chartType = 'candle'; // 'candle' or 'area'
+      
+      // Pan & Zoom state
+      this.viewOffset = 0; // Number of candles scrolled back from rightmost
+      this.viewCount = 90; // Number of visible candles on screen
+      this.isDragging = false;
+      this.dragStartX = 0;
+      this.dragStartOffset = 0;
 
+      this.crosshair = { x: -1, y: -1, active: false, candle: null };
       this.pulsePhase = 0;
       this.animReqId = null;
 
+      // 9 Protocol Visual Layers Flags (All default to TRUE)
       this.layers = {
         p1_growth: true,
         p2_rsi: true,
@@ -581,13 +588,24 @@
       this.layers[layerKey] = active;
     }
 
+    setChartType(type) {
+      this.chartType = type;
+    }
+
+    resetZoom() {
+      this.viewOffset = 0;
+      if (this.interval === '1m') this.viewCount = 75;
+      else if (this.interval === '5m' || this.interval === '15m' || this.interval === '1H') this.viewCount = 50;
+      else this.viewCount = 90;
+    }
+
     resize() {
       if (!this.container || !this.canvas) return;
       const rect = this.container.getBoundingClientRect();
       const dpr = window.devicePixelRatio || 1;
 
       this.width = Math.max(320, rect.width || this.container.clientWidth || 800);
-      this.height = Math.max(240, rect.height || this.container.clientHeight || 420);
+      this.height = Math.max(240, rect.height || this.container.clientHeight || 440);
 
       this.canvas.width = Math.floor(this.width * dpr);
       this.canvas.height = Math.floor(this.height * dpr);
@@ -598,66 +616,95 @@
       this.ctx.scale(dpr, dpr);
     }
 
-    setTimeframe(tfKey) {
-      this.timeframeKey = tfKey;
+    setInterval(interval) {
+      this.interval = interval;
       if (!this.stock) return;
 
-      if (tfKey === '1m') {
-        this.candles = this.stock.intraday1m;
-        this.visibleCandles = this.candles.slice(-80);
-      } else if (tfKey === '5m') {
-        this.candles = this.stock.intraday5m;
-        this.visibleCandles = this.candles.slice(-60);
-      } else if (tfKey === '15m') {
-        this.candles = this.stock.intraday15m;
-        this.visibleCandles = this.candles.slice(-40);
-      } else if (tfKey === '1D_1M') {
-        this.candles = this.stock.dailyCandles;
-        this.visibleCandles = this.candles.slice(-22);
-      } else if (tfKey === '1D_3M') {
-        this.candles = this.stock.dailyCandles;
-        this.visibleCandles = this.candles.slice(-65);
-      } else if (tfKey === '1D_6M') {
-        this.candles = this.stock.dailyCandles;
-        this.visibleCandles = this.candles.slice(-130);
-      } else if (tfKey === '1D_1Y') {
-        this.candles = this.stock.dailyCandles;
-        this.visibleCandles = this.candles.slice(-260);
-      } else if (tfKey === '1W') {
-        this.candles = this.stock.weekly;
-        this.visibleCandles = this.candles.slice(-32);
-      } else {
-        this.candles = this.stock.intraday1m;
-        this.visibleCandles = this.candles.slice(-80);
-      }
+      if (interval === '1m') this.allCandles = this.stock.intraday1m;
+      else if (interval === '5m') this.allCandles = this.stock.intraday5m;
+      else if (interval === '15m') this.allCandles = this.stock.intraday15m;
+      else if (interval === '1H') this.allCandles = this.stock.intraday1H;
+      else if (interval === '1D') this.allCandles = this.stock.dailyCandles;
+      else if (interval === '1W') this.allCandles = this.stock.weekly;
+      else if (interval === '1M') this.allCandles = this.stock.monthly;
+      else this.allCandles = this.stock.dailyCandles;
+
+      this.resetZoom();
     }
 
-    setStock(stock, tfKey = null) {
+    setRange(range) {
+      if (!this.allCandles.length) return;
+      this.viewOffset = 0;
+      if (range === '1D') { this.setInterval('1m'); this.viewCount = 75; }
+      else if (range === '5D') { this.setInterval('15m'); this.viewCount = 65; }
+      else if (range === '1M') { this.setInterval('1D'); this.viewCount = 22; }
+      else if (range === '3M') { this.setInterval('1D'); this.viewCount = 65; }
+      else if (range === '6M') { this.setInterval('1D'); this.viewCount = 130; }
+      else if (range === '1Y') { this.setInterval('1D'); this.viewCount = 260; }
+      else if (range === 'ALL') { this.setInterval('1W'); this.viewCount = this.allCandles.length; }
+    }
+
+    setStock(stock, interval = null) {
       if (!stock) return;
       this.stock = stock;
-      if (tfKey) this.timeframeKey = tfKey;
-      this.setTimeframe(this.timeframeKey);
+      if (interval) this.interval = interval;
+      this.setInterval(this.interval);
       this.resize();
     }
 
     setupListeners() {
       window.addEventListener('resize', () => this.resize());
 
+      // Interactive Wheel Zoom (TradingView Style)
+      this.canvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const zoomDelta = e.deltaY < 0 ? -6 : 6;
+        this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
+      }, { passive: false });
+
+      // Interactive Mouse Drag to Pan Time Horizon
+      this.canvas.addEventListener('mousedown', (e) => {
+        this.isDragging = true;
+        this.dragStartX = e.clientX;
+        this.dragStartOffset = this.viewOffset;
+        this.container.classList.add('panning');
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (this.isDragging) {
+          this.isDragging = false;
+          this.container.classList.remove('panning');
+        }
+      });
+
       this.canvas.addEventListener('mousemove', (e) => {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+
+        if (this.isDragging) {
+          const deltaX = e.clientX - this.dragStartX;
+          const paddingRight = 75, paddingLeft = 10;
+          const plotWidth = this.width - paddingLeft - paddingRight;
+          const candleWidth = plotWidth / this.viewCount;
+          const candleShift = Math.round(deltaX / candleWidth);
+          
+          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
+          this.viewOffset = Math.max(0, Math.min(maxOffset, this.dragStartOffset + candleShift));
+        }
+
         this.crosshair.x = x;
         this.crosshair.y = y;
         this.crosshair.active = true;
 
-        if (this.visibleCandles.length) {
+        const visibleCandles = this.getVisibleCandles();
+        if (visibleCandles.length) {
           const paddingRight = 75, paddingLeft = 10;
           const plotWidth = this.width - paddingLeft - paddingRight;
-          const candleWidth = plotWidth / this.visibleCandles.length;
+          const candleWidth = plotWidth / visibleCandles.length;
           const idx = Math.floor((x - paddingLeft) / candleWidth);
-          if (idx >= 0 && idx < this.visibleCandles.length) {
-            this.crosshair.candle = this.visibleCandles[idx];
+          if (idx >= 0 && idx < visibleCandles.length) {
+            this.crosshair.candle = visibleCandles[idx];
           } else {
             this.crosshair.candle = null;
           }
@@ -670,27 +717,39 @@
       });
     }
 
+    getVisibleCandles() {
+      if (!this.allCandles || !this.allCandles.length) return [];
+      const end = this.allCandles.length - this.viewOffset;
+      const start = Math.max(0, end - this.viewCount);
+      return this.allCandles.slice(start, end);
+    }
+
     render() {
-      if (!this.ctx || !this.visibleCandles.length || !this.stock) return;
+      if (!this.ctx || !this.stock) return;
+      const visibleCandles = this.getVisibleCandles();
+      if (!visibleCandles.length) return;
+
       const ctx = this.ctx;
       const w = this.width;
       const h = this.height;
 
+      // Dark background
       ctx.fillStyle = '#070c17';
       ctx.fillRect(0, 0, w, h);
 
       const paddingRight = 75, paddingBottom = 20, paddingLeft = 10, paddingTop = 26;
       const plotWidth = w - paddingLeft - paddingRight;
       
-      const pricePlotHeight = (h - paddingTop - paddingBottom) * 0.60;
+      const hasRsiPanel = this.layers.p2_rsi;
+      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.58 : (h - paddingTop - paddingBottom) * 0.76;
       const volumeHeight = (h - paddingTop - paddingBottom) * 0.16;
-      const rsiHeight = (h - paddingTop - paddingBottom) * 0.18;
+      const rsiHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.18 : 0;
       
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
 
       let minPrice = Infinity, maxPrice = -Infinity, maxVol = 0;
-      for (const c of this.visibleCandles) {
+      for (const c of visibleCandles) {
         if (c.low < minPrice) minPrice = c.low;
         if (c.high > maxPrice) maxPrice = c.high;
         if (c.volume > maxVol) maxVol = c.volume;
@@ -701,12 +760,12 @@
       minPrice = Math.max(0, minPrice - priceMargin);
       const priceRange = maxPrice - minPrice || 1;
 
-      const getX = (idx) => paddingLeft + (idx + 0.5) * (plotWidth / this.visibleCandles.length);
+      const getX = (idx) => paddingLeft + (idx + 0.5) * (plotWidth / visibleCandles.length);
       const getY = (price) => paddingTop + pricePlotHeight - ((price - minPrice) / priceRange) * pricePlotHeight;
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
       const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
 
-      // Grid Lines
+      // 1. Grid Lines
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 4; i++) {
@@ -723,18 +782,19 @@
         ctx.fillText(`₹${priceVal.toFixed(1)}`, w - paddingRight + 6, y + 3);
       }
 
-      const closes = this.candles.map(c => c.close);
-      const visibleCount = this.visibleCandles.length;
-      const startIdx = this.candles.length - visibleCount;
+      const allCloses = this.allCandles.map(c => c.close);
+      const allVolumes = this.allCandles.map(c => c.volume);
+      const visibleCount = visibleCandles.length;
+      const startGlobalIdx = this.allCandles.length - this.viewOffset - visibleCount;
 
-      // 20-Period Moving Average
-      const sma20 = gpu.computeMovingAverageGPU(new Float32Array(closes), 20);
+      // 2. 20-Period Moving Average (GPU-Accelerated)
+      const sma20 = gpu.computeMovingAverageGPU(new Float32Array(allCloses), 20);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
       ctx.lineWidth = 1.5;
       ctx.beginPath();
       let startedSMA = false;
       for (let i = 0; i < visibleCount; i++) {
-        const gIdx = startIdx + i;
+        const gIdx = startGlobalIdx + i;
         if (sma20[gIdx] > 0) {
           const x = getX(i), y = getY(sma20[gIdx]);
           if (!startedSMA) { ctx.moveTo(x, y); startedSMA = true; }
@@ -743,71 +803,82 @@
       }
       ctx.stroke();
 
-      const isIntraday = (this.timeframeKey === '1m' || this.timeframeKey === '5m' || this.timeframeKey === '15m');
-
-      // Protocol 4: 7-Week Consolidation Box (Rendered on Swing/Weekly timeframes)
-      if (this.layers.p4_base7w && !isIntraday && this.stock.consolidation7W?.isConsolidating) {
-        const days = this.stock.consolidation7W.baseLengthDays || 35;
-        const baseStart = Math.max(0, visibleCount - days);
+      // ==========================================
+      // PROTOCOL 4: 7-WEEK CONSOLIDATION BASE BOX
+      // ==========================================
+      if (this.layers.p4_base7w && this.stock.consolidation7W?.isConsolidating) {
+        const baseSessions = Math.min(visibleCount, this.stock.consolidation7W.baseLengthDays || 35);
+        const baseStart = Math.max(0, visibleCount - baseSessions);
         const boxX = getX(baseStart) - (plotWidth / visibleCount) * 0.5;
         const boxW = (w - paddingRight) - boxX;
         const boxHighY = getY(this.stock.consolidation7W.baseHigh);
         const boxLowY = getY(this.stock.consolidation7W.baseLow);
         const boxH = boxLowY - boxHighY;
 
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.09)';
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.12)';
         ctx.fillRect(boxX, boxHighY, boxW, boxH);
-        ctx.strokeStyle = '#38bdf8';
+        ctx.strokeStyle = '#06b6d4';
         ctx.setLineDash([4, 4]);
         ctx.strokeRect(boxX, boxHighY, boxW, boxH);
         ctx.setLineDash([]);
 
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9px Inter, sans-serif';
+        ctx.fillStyle = '#06b6d4';
+        ctx.font = 'bold 9.5px Inter, sans-serif';
         ctx.textAlign = 'right';
-        ctx.fillText(`P4: 7W Base (${this.stock.consolidation7W.rangePct}%)`, w - paddingRight - 8, boxHighY + 12);
+        ctx.fillText(`P4: 7-Week Base (${this.stock.consolidation7W.rangePct}% Tightness)`, w - paddingRight - 8, boxHighY + 12);
       }
 
-      // Protocol 5: Cup with Handle Golden Arc & Multi-Timeframe Level Lines
+      // ==========================================
+      // PROTOCOL 5: CUP WITH HANDLE GOLDEN ARC & PIVOT
+      // ==========================================
       if (this.layers.p5_cup && this.stock.cupWithHandle?.isPattern) {
         const cwh = this.stock.cupWithHandle;
-        const leftIdx = cwh.leftPeak?.index - startIdx;
-        const botIdx = cwh.bottom?.index - startIdx;
-        const rightIdx = cwh.rightPeak?.index - startIdx;
+        const leftIdx = cwh.leftPeak?.index - startGlobalIdx;
+        const botIdx = cwh.bottom?.index - startGlobalIdx;
+        const rightIdx = cwh.rightPeak?.index - startGlobalIdx;
 
-        if (!isIntraday && leftIdx >= 0 && rightIdx < visibleCount) {
-          const p1x = getX(leftIdx), p1y = getY(cwh.leftPeak.price);
+        // Golden Arc
+        if (leftIdx >= -20 && rightIdx < visibleCount + 20) {
+          const p1x = getX(Math.max(0, leftIdx)), p1y = getY(cwh.leftPeak.price);
           const p2x = getX(botIdx), p2y = getY(cwh.bottom.price);
-          const p3x = getX(rightIdx), p3y = getY(cwh.rightPeak.price);
+          const p3x = getX(Math.min(visibleCount - 1, rightIdx)), p3y = getY(cwh.rightPeak.price);
 
           ctx.beginPath();
           ctx.moveTo(p1x, p1y);
-          ctx.quadraticCurveTo(p2x, p2y + 18, p3x, p3y);
+          ctx.quadraticCurveTo(p2x, p2y + 20, p3x, p3y);
           ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 2.5;
+          ctx.lineWidth = 2.8;
           ctx.stroke();
 
+          // Cup Fill
+          ctx.lineTo(p3x, p1y);
+          ctx.lineTo(p1x, p1y);
+          ctx.fillStyle = 'rgba(251, 191, 36, 0.06)';
+          ctx.fill();
+
           ctx.fillStyle = '#fbbf24';
-          ctx.font = 'bold 9px Inter, sans-serif';
+          ctx.font = 'bold 9.5px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`P5: Cup (-${cwh.cupDepthPct}%)`, p2x, p2y + 18);
+          ctx.fillText(`P5: Cup & Handle (${cwh.score}/100)`, p2x, p2y + 18);
         }
 
+        // Pivot Breakout Line
         const pivotY = getY(cwh.pivotPrice);
         ctx.beginPath();
         ctx.moveTo(paddingLeft, pivotY);
         ctx.lineTo(w - paddingRight, pivotY);
         ctx.strokeStyle = '#10b981';
         ctx.setLineDash([5, 3]);
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.6;
         ctx.stroke();
         ctx.setLineDash([]);
 
         ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.font = 'bold 10px JetBrains Mono, monospace';
         ctx.textAlign = 'right';
         ctx.fillText(`Pivot ₹${cwh.pivotPrice}`, w - paddingRight - 6, pivotY - 4);
 
+        // Target Line
         const targetY = getY(cwh.targetPrice);
         if (targetY > paddingTop) {
           ctx.beginPath();
@@ -820,42 +891,67 @@
           ctx.setLineDash([]);
 
           ctx.fillStyle = '#34d399';
-          ctx.font = 'bold 9px JetBrains Mono, monospace';
+          ctx.font = 'bold 9.5px JetBrains Mono, monospace';
           ctx.textAlign = 'right';
           ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
         }
       }
 
-      // Protocol 6: Stop Loss Line
+      // ==========================================
+      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW POSITION TOOL
+      // ==========================================
       if (this.layers.p6_sl && this.stock.recommendedSL) {
-        const slY = getY(this.stock.recommendedSL);
+        const entryPrice = this.stock.ltp;
+        const slPrice = this.stock.recommendedSL;
+        const entryY = getY(entryPrice);
+        const slY = getY(slPrice);
+        const target2RY = getY(entryPrice + (entryPrice - slPrice) * 2);
+
+        // Position Box: Shaded Green Target Zone
+        const boxX = w - paddingRight - 160;
+        const boxW = 150;
+        ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
+        ctx.fillRect(boxX, target2RY, boxW, entryY - target2RY);
+        ctx.strokeStyle = '#10b981';
+        ctx.strokeRect(boxX, target2RY, boxW, entryY - target2RY);
+
+        // Position Box: Shaded Red Risk Zone
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.14)';
+        ctx.fillRect(boxX, entryY, boxW, slY - entryY);
+        ctx.strokeStyle = '#ef4444';
+        ctx.strokeRect(boxX, entryY, boxW, slY - entryY);
+
+        // SL Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, slY);
         ctx.lineTo(w - paddingRight, slY);
         ctx.strokeStyle = '#ef4444';
         ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1.4;
+        ctx.lineWidth = 1.5;
         ctx.stroke();
         ctx.setLineDash([]);
 
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`P6: Stop Loss ₹${this.stock.recommendedSL} (-${this.stock.slPct}%)`, paddingLeft + 6, slY - 4);
+        ctx.fillText(`P6: Stop Loss ₹${slPrice} (-${this.stock.slPct}%) | R:R 1:2.5`, paddingLeft + 6, slY - 4);
       }
 
-      // Protocol 9: Mansfield Relative Strength
+      // ==========================================
+      // PROTOCOL 9: MANSFIELD RELATIVE STRENGTH CURVE
+      // ==========================================
       if (this.layers.p9_rs) {
-        const dummyNifty = closes.map((c, i) => c * (0.94 + Math.sin(i * 0.1) * 0.03));
-        const rsCurve = gpu.computeMansfieldRsGPU(closes, dummyNifty);
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.75)';
-        ctx.lineWidth = 1.4;
+        const dummyNifty = allCloses.map((c, i) => c * (0.94 + Math.sin(i * 0.08) * 0.04));
+        const rsCurve = gpu.computeMansfieldRsGPU(allCloses, dummyNifty);
+        
+        ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)';
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
         let startedRS = false;
         for (let i = 0; i < visibleCount; i++) {
-          const gIdx = startIdx + i;
+          const gIdx = startGlobalIdx + i;
           const rsVal = rsCurve[gIdx];
-          const rsScaledY = (paddingTop + pricePlotHeight / 2) - (rsVal * 2.5);
+          const rsScaledY = (paddingTop + pricePlotHeight / 2) - (rsVal * 3);
           const x = getX(i);
           if (!startedRS) { ctx.moveTo(x, rsScaledY); startedRS = true; }
           else ctx.lineTo(x, rsScaledY);
@@ -863,55 +959,99 @@
         ctx.stroke();
       }
 
-      // Candlesticks & Volumes
+      // 3. CANDLESTICK / AREA RENDERING
       const candleWidth = Math.max(2.5, (plotWidth / visibleCount) * 0.72);
       const lastCandleIdx = visibleCount - 1;
       let lastCandleX = 0, lastCandleY = 0;
 
-      this.visibleCandles.forEach((c, idx) => {
+      // Compute 20-period SMA Volume for P3 Volume Bursts across all candles
+      const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
+
+      // Area Chart Mode
+      if (this.chartType === 'area') {
+        const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + pricePlotHeight);
+        grad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+        ctx.beginPath();
+        ctx.moveTo(getX(0), paddingTop + pricePlotHeight);
+        for (let i = 0; i < visibleCount; i++) {
+          ctx.lineTo(getX(i), getY(visibleCandles[i].close));
+        }
+        ctx.lineTo(getX(visibleCount - 1), paddingTop + pricePlotHeight);
+        ctx.fillStyle = grad;
+        ctx.fill();
+
+        ctx.beginPath();
+        for (let i = 0; i < visibleCount; i++) {
+          const x = getX(i), y = getY(visibleCandles[i].close);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        }
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+
+      // Candlesticks & Volumes
+      visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
         const isBullish = c.close >= c.open;
         const color = isBullish ? '#10b981' : '#ef4444';
+        const gIdx = startGlobalIdx + idx;
 
-        // Volume
+        // ==========================================
+        // PROTOCOL 3: VOLUME BURST HIGHLIGHTING
+        // ==========================================
+        const avgVol = volSMA20[gIdx] || 1;
+        const isBurst = (c.volume >= avgVol * 1.45 && avgVol > 0);
+        const burstRatio = ((c.volume / avgVol) - 1) * 100;
+
         const vy = getVolY(c.volume);
         const vh = (volumeTop + volumeHeight) - vy;
-        const isBurst = (idx === lastCandleIdx && this.stock.volumeBurst?.isBurst);
-        
+
         ctx.fillStyle = (this.layers.p3_vol && isBurst) ? '#f59e0b' : (isBullish ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)');
         ctx.fillRect(cx - candleWidth / 2, vy, candleWidth, Math.max(1.5, vh));
 
-        if (this.layers.p3_vol && isBurst) {
+        if (this.layers.p3_vol && isBurst && (idx % 3 === 0 || idx === lastCandleIdx)) {
           ctx.fillStyle = '#f59e0b';
-          ctx.font = 'bold 9px JetBrains Mono, monospace';
+          ctx.font = 'bold 8.5px JetBrains Mono, monospace';
           ctx.textAlign = 'center';
-          ctx.fillText(`+${this.stock.volumeBurst.burstPct}%`, cx, vy - 3);
+          ctx.fillText(`+${Math.round(burstRatio)}%`, cx, vy - 3);
         }
 
-        // Wicks
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(cx, getY(c.high));
-        ctx.lineTo(cx, getY(c.low));
-        ctx.stroke();
+        // Draw Candlestick Bars
+        if (this.chartType === 'candle') {
+          // Wicks
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 1.2;
+          ctx.beginPath();
+          ctx.moveTo(cx, getY(c.high));
+          ctx.lineTo(cx, getY(c.low));
+          ctx.stroke();
 
-        // Body
-        const oy = getY(c.open), cy = getY(c.close);
-        ctx.fillStyle = color;
-        ctx.fillRect(cx - candleWidth / 2, Math.min(oy, cy), candleWidth, Math.max(1.5, Math.abs(cy - oy)));
+          // Body
+          const oy = getY(c.open), cy = getY(c.close);
+          ctx.fillStyle = color;
+          ctx.fillRect(cx - candleWidth / 2, Math.min(oy, cy), candleWidth, Math.max(1.5, Math.abs(cy - oy)));
+        }
 
         if (idx === lastCandleIdx) {
           lastCandleX = cx;
-          lastCandleY = cy;
+          lastCandleY = getY(c.close);
         }
 
-        // Protocol 1: Milestone Pin
-        if (this.layers.p1_growth && !isIntraday && idx === Math.floor(visibleCount * 0.75) && this.stock.earningsEvent) {
+        // ==========================================
+        // PROTOCOL 1: GROWTH MILESTONE PINS
+        // ==========================================
+        if (this.layers.p1_growth && (idx === Math.floor(visibleCount * 0.4) || idx === Math.floor(visibleCount * 0.8)) && this.stock.earningsEvent) {
+          const pinY = getY(c.high) - 12;
           ctx.fillStyle = '#38bdf8';
+          ctx.fillRect(cx - 3, pinY - 12, 6, 12);
+          ctx.fillStyle = '#ffffff';
           ctx.font = 'bold 9px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`📌 P1: ${this.stock.earningsEvent}`, cx, getY(c.high) - 10);
+          ctx.fillText(`📌 P1: ${this.stock.earningsEvent}`, cx, pinY - 16);
         }
       });
 
@@ -952,19 +1092,29 @@
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
 
-      // Protocol 2: RSI Oscillator Panel (Computed on current timeframe closes)
+      // ==========================================
+      // PROTOCOL 2: RSI(14) MOMENTUM OSCILLATOR PANEL
+      // ==========================================
       if (this.layers.p2_rsi) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
         ctx.fillRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
 
+        // 70 & 30 Lines
         const rsi70Y = getRsiY(70);
+        const rsi30Y = getRsiY(30);
+
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.06)';
+        ctx.fillRect(paddingLeft, rsi70Y, plotWidth, rsi30Y - rsi70Y);
+
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
         ctx.setLineDash([2, 2]);
         ctx.beginPath();
         ctx.moveTo(paddingLeft, rsi70Y);
         ctx.lineTo(w - paddingRight, rsi70Y);
+        ctx.moveTo(paddingLeft, rsi30Y);
+        ctx.lineTo(w - paddingRight, rsi30Y);
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -972,14 +1122,15 @@
         ctx.font = '9px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
         ctx.fillText('70 RSI', w - paddingRight + 4, rsi70Y + 3);
+        ctx.fillText('30 RSI', w - paddingRight + 4, rsi30Y + 3);
 
-        const rsiGPUArr = gpu.computeRsiGPU(new Float32Array(closes), 14);
+        const rsiGPUArr = gpu.computeRsiGPU(new Float32Array(allCloses), 14);
         ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.6;
         ctx.beginPath();
         let startedRsi = false;
         for (let i = 0; i < visibleCount; i++) {
-          const gIdx = startIdx + i;
+          const gIdx = startGlobalIdx + i;
           const rVal = rsiGPUArr[gIdx];
           const x = getX(i), y = getRsiY(rVal);
           if (!startedRsi) { ctx.moveTo(x, y); startedRsi = true; }
@@ -987,35 +1138,28 @@
         }
         ctx.stroke();
 
-        const curRsi = rsiGPUArr[rsiGPUArr.length - 1] || 75;
+        const curRsi = rsiGPUArr[allCloses.length - 1 - this.viewOffset] || 75;
         ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 9px JetBrains Mono, monospace';
-        ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)}`, paddingLeft + 6, rsiTop + 12);
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Legend with Active Timeframe Tag
-      let tfName = '1-Min Live Intraday';
-      if (this.timeframeKey === '5m') tfName = '5-Min Intraday';
-      else if (this.timeframeKey === '15m') tfName = '15-Min Intraday';
-      else if (this.timeframeKey === '1D_1M') tfName = '1-Month Daily';
-      else if (this.timeframeKey === '1D_3M') tfName = '3-Month Daily';
-      else if (this.timeframeKey === '1D_6M') tfName = '6-Month Daily Base';
-      else if (this.timeframeKey === '1D_1Y') tfName = '1-Year Daily Swing';
-      else if (this.timeframeKey === '1W') tfName = 'Weekly Positional Base';
-
+      // Top Header Legend
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';
       ctx.font = '11px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`${this.stock.symbol} [${tfName}] ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
+      ctx.fillText(`${this.stock.symbol} (${this.interval}) ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
 
       ctx.fillStyle = '#38bdf8';
-      ctx.fillText('— 20 SMA', paddingLeft + 270, 17);
+      ctx.fillText('— 20 SMA', paddingLeft + 190, 17);
       ctx.fillStyle = '#10b981';
-      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 345, 17);
+      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 265, 17);
+      ctx.fillStyle = '#c084fc';
+      ctx.fillText(`P7: ROE ${this.stock.roe}% | ROCE ${this.stock.roce}%`, paddingLeft + 365, 17);
 
-      // Tooltip
+      // Tooltip Crosshair
       if (this.crosshair.active && this.crosshair.candle) {
         const c = this.crosshair.candle;
         const timeTag = c.time ? `${c.date} ${c.time}` : c.date;
@@ -1032,7 +1176,7 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH UNIFIED TIMEFRAME HANDLERS
+     6. MAIN APPLICATION CONTROLLER WITH TRADINGVIEW INTERFACES
      ========================================================================== */
   class Application {
     constructor() {
@@ -1069,7 +1213,7 @@
       this.updateGpuBadge();
       this.bindUI();
       this.bindLayerToggles();
-      this.bindUnifiedTimeframeBar();
+      this.bindTradingViewToolbar();
       this.renderStockPills();
       this.renderNewsFeed();
       this.startNewsCycle();
@@ -1102,14 +1246,42 @@
       });
     }
 
-    bindUnifiedTimeframeBar() {
-      document.querySelectorAll('.unified-tf-btn').forEach(btn => {
+    bindTradingViewToolbar() {
+      // Intervals
+      document.querySelectorAll('.tv-btn[data-interval]').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.unified-tf-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.tv-btn[data-interval]').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const tfKey = btn.dataset.tf;
-          if (this.mainChart) this.mainChart.setTimeframe(tfKey);
-          if (this.modalChart) this.modalChart.setTimeframe(tfKey);
+          const interval = btn.dataset.interval;
+          if (this.mainChart) this.mainChart.setInterval(interval);
+          if (this.modalChart) this.modalChart.setInterval(interval);
+        });
+      });
+
+      // Chart Style
+      document.getElementById('btnChartTypeCandle')?.addEventListener('click', () => {
+        document.getElementById('btnChartTypeCandle').classList.add('active');
+        document.getElementById('btnChartTypeArea').classList.remove('active');
+        this.mainChart?.setChartType('candle');
+      });
+
+      document.getElementById('btnChartTypeArea')?.addEventListener('click', () => {
+        document.getElementById('btnChartTypeArea').classList.add('active');
+        document.getElementById('btnChartTypeCandle').classList.remove('active');
+        this.mainChart?.setChartType('area');
+      });
+
+      // Reset Zoom
+      document.getElementById('btnResetChartZoom')?.addEventListener('click', () => {
+        this.mainChart?.resetZoom();
+      });
+
+      // Bottom Timeline Range Jumps
+      document.querySelectorAll('.tv-range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.mainChart?.setRange(btn.dataset.range);
         });
       });
     }
@@ -1688,7 +1860,7 @@
       modal.classList.add('active');
       setTimeout(() => {
         if (this.modalChart) {
-          this.modalChart.setStock(stock, '1D_6M');
+          this.modalChart.setStock(stock, '1D');
         }
       }, 50);
     }

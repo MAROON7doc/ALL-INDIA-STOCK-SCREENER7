@@ -1,6 +1,6 @@
 /* ==========================================================================
-   NSE/BSE Professional Stock Screener Design System
-   Tailored Dark Financial Terminal Aesthetics + Unified Timeframe System
+   NSE/BSE Professional Stock Screener - TradingView Terminal Design System
+   Full Pan/Zoom Interactive Canvas + Complete 9-Protocol Visual Layer Overlays
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -23,11 +23,11 @@
   --accent-blue: #38bdf8;
   --accent-cyan: #06b6d4;
   --accent-green: #10b981;
-  --accent-green-bg: rgba(16, 185, 129, 0.12);
+  --accent-green-bg: rgba(16, 185, 129, 0.14);
   --accent-red: #ef4444;
-  --accent-red-bg: rgba(239, 68, 68, 0.12);
+  --accent-red-bg: rgba(239, 68, 68, 0.14);
   --accent-amber: #f59e0b;
-  --accent-amber-bg: rgba(245, 158, 11, 0.12);
+  --accent-amber-bg: rgba(245, 158, 11, 0.14);
   --accent-purple: #a855f7;
   --accent-gold: #fbbf24;
 
@@ -58,6 +58,7 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  user-select: none;
 }
 
 /* Universal Select Dropdown Styling */
@@ -413,7 +414,9 @@ select option {
   font-weight: 600;
 }
 
-/* Main Interactive Chart Section & UNIFIED TIMEFRAME CONTROLS */
+/* ==========================================================================
+   TRADINGVIEW-GRADE INTERACTIVE CHART SECTION
+   ========================================================================== */
 .main-chart-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -423,26 +426,26 @@ select option {
   box-shadow: var(--shadow-sm);
 }
 
-.chart-toolbar-main {
+.tv-top-toolbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
 
-.unified-tf-bar {
+.tv-btn-group {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: #080e1c;
-  padding: 3px 5px;
+  padding: 2px 4px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
 }
 
-.tf-group-tag {
+.tv-group-label {
   font-size: 9px;
   font-weight: 700;
   color: var(--text-muted);
@@ -451,15 +454,8 @@ select option {
   padding: 0 4px;
 }
 
-.tf-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-subtle);
-  margin: 0 2px;
-}
-
-.unified-tf-btn {
-  padding: 2px 7px;
+.tv-btn {
+  padding: 2px 6px;
   font-size: 10.5px;
   font-family: var(--font-mono);
   font-weight: 600;
@@ -471,15 +467,22 @@ select option {
   transition: all 0.15s ease;
 }
 
-.unified-tf-btn:hover {
+.tv-btn:hover {
   color: var(--text-primary);
   background: var(--bg-card);
 }
 
-.unified-tf-btn.active {
+.tv-btn.active {
   background: #0284c7;
   color: #ffffff;
   border-color: #38bdf8;
+}
+
+.tv-divider {
+  width: 1px;
+  height: 14px;
+  background: var(--border-subtle);
+  margin: 0 2px;
 }
 
 .source-link-pill {
@@ -503,11 +506,12 @@ select option {
   background: var(--bg-card-hover);
 }
 
+/* 9 Protocol Visual Layer Switches Ribbon */
 .protocol-layer-ribbon {
   display: flex;
   align-items: center;
   gap: 5px;
-  padding: 4px 8px;
+  padding: 5px 8px;
   background: #080e1c;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
@@ -528,9 +532,9 @@ select option {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 6px;
+  padding: 3px 7px;
   border-radius: 4px;
-  font-size: 9.5px;
+  font-size: 10px;
   font-family: var(--font-mono);
   font-weight: 600;
   background: var(--bg-card);
@@ -547,37 +551,43 @@ select option {
 }
 
 .layer-toggle.active {
-  background: rgba(56, 189, 248, 0.15);
+  background: rgba(56, 189, 248, 0.18);
   border-color: var(--accent-blue);
   color: var(--accent-blue);
 }
 
 .layer-toggle.active[data-layer="p2_rsi"] {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.18);
   border-color: var(--accent-amber);
   color: var(--accent-amber);
 }
 
 .layer-toggle.active[data-layer="p3_vol"] {
-  background: rgba(245, 158, 11, 0.15);
+  background: rgba(245, 158, 11, 0.18);
   border-color: var(--accent-amber);
   color: var(--accent-amber);
 }
 
+.layer-toggle.active[data-layer="p4_base7w"] {
+  background: rgba(6, 182, 212, 0.18);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
 .layer-toggle.active[data-layer="p5_cup"] {
-  background: rgba(251, 191, 36, 0.18);
+  background: rgba(251, 191, 36, 0.2);
   border-color: var(--accent-gold);
   color: var(--accent-gold);
 }
 
 .layer-toggle.active[data-layer="p6_sl"] {
-  background: rgba(239, 68, 68, 0.15);
+  background: rgba(239, 68, 68, 0.18);
   border-color: var(--accent-red);
   color: var(--accent-red);
 }
 
 .layer-toggle.active[data-layer="p9_rs"] {
-  background: rgba(16, 185, 129, 0.15);
+  background: rgba(16, 185, 129, 0.18);
   border-color: var(--accent-green);
   color: var(--accent-green);
 }
@@ -622,6 +632,63 @@ select option {
   background: rgba(56, 189, 248, 0.15);
   border-color: var(--accent-blue);
   color: var(--accent-blue);
+}
+
+/* TradingView Interactive Canvas Container with Pan/Zoom Cursor */
+.chart-container-box {
+  width: 100%;
+  height: 440px;
+  background: #070c17;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  position: relative;
+  overflow: hidden;
+  cursor: crosshair;
+}
+
+.chart-container-box.panning {
+  cursor: grabbing !important;
+}
+
+/* TradingView Quick Range Jump Bar at Bottom */
+.tv-bottom-range-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 4px 0 4px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  font-size: 10.5px;
+}
+
+.tv-range-pills {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.tv-range-btn {
+  padding: 2px 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tv-range-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.tv-range-btn.active {
+  color: var(--accent-blue);
+  background: rgba(56, 189, 248, 0.15);
+  font-weight: 700;
 }
 
 /* App Grid */
@@ -1205,15 +1272,6 @@ input:checked + .slider:before {
   padding: 14px 16px;
   overflow-y: auto;
   flex: 1;
-}
-
-.chart-container-box {
-  width: 100%;
-  height: 420px;
-  background: #070c17;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  position: relative;
 }
 
 /* Calculator Grid */

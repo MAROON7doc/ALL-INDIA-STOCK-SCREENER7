@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Fully Dynamic Protocol Engine (%tage Manipulation & Live Slider Bindings),
- * Synchronized Preset Engine, Responsive Visual Protocols, and Hardware WebGL Compute.
+ * Full 2-Axis Interactive TradingView Engine (Seamless Horizontal & Vertical Scrolling,
+ * Y-Axis Scale Dragging, Dynamic Vertical Zoom/Pan, and WebGL Accelerated Compute).
  */
 
 (function() {
@@ -628,7 +628,7 @@
   }
 
   /* ==========================================================================
-     5. CRISP PROPORTIONAL TRADINGVIEW CANVAS ENGINE (STABLE & CLIPPED)
+     5. 2-AXIS TRADINGVIEW CANVAS ENGINE (HORIZONTAL & VERTICAL PAN/ZOOM)
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -645,13 +645,24 @@
       this.interval = '1D';
       this.chartType = 'candle';
       
+      // Horizontal Pan/Zoom State
       this.viewOffset = 0;
       this.viewCount = 80;
-      this.isDragging = false;
-      this.dragStartX = 0;
-      this.dragStartOffset = 0;
 
-      this.crosshair = { x: -1, y: -1, active: false, candle: null };
+      // Vertical Pan/Zoom State (TradingView Dual-Axis Engine)
+      this.priceScaleFactor = 1.0; // Multiplier: >1 expands candles vertically, <1 flattens
+      this.pricePanOffset = 0;     // Price shift in rupees
+      this.autoScale = true;
+
+      this.isDragging = false;
+      this.isDraggingScale = false;
+      this.dragStartX = 0;
+      this.dragStartY = 0;
+      this.dragStartOffset = 0;
+      this.dragStartPanOffset = 0;
+      this.dragStartScaleFactor = 1.0;
+
+      this.crosshair = { x: -1, y: -1, active: false, candle: null, price: null };
       this.pulsePhase = 0;
       this.animReqId = null;
 
@@ -690,6 +701,10 @@
 
     resetZoom() {
       this.viewOffset = 0;
+      this.priceScaleFactor = 1.0;
+      this.pricePanOffset = 0;
+      this.autoScale = true;
+
       if (this.interval === '1m') this.viewCount = 90;
       else if (this.interval === '5m' || this.interval === '15m') this.viewCount = 75;
       else if (this.interval === '1H') this.viewCount = 65;
@@ -756,40 +771,119 @@
         requestAnimationFrame(() => this.resize());
       });
 
+      // DUAL-AXIS MOUSE WHEEL (Vertical Zoom on Shift/Right Scale, Horizontal Zoom on Canvas)
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const zoomDelta = e.deltaY < 0 ? -5 : 5;
-        this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const paddingRight = 75;
+        const isOverScale = mouseX >= (this.width - paddingRight);
+
+        if (isOverScale || e.shiftKey || e.ctrlKey || e.altKey) {
+          // Vertical Scale Zoom (Stretches or flattens candle height)
+          const factor = e.deltaY < 0 ? 1.10 : 0.90;
+          this.priceScaleFactor = Math.max(0.2, Math.min(6.0, this.priceScaleFactor * factor));
+          this.autoScale = false;
+        } else {
+          // Horizontal Time-Axis Zoom
+          const zoomDelta = e.deltaY < 0 ? -5 : 5;
+          this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
+        }
       }, { passive: false });
 
+      // MOUSE DOWN (Detects Price Scale Drag vs Chart 2-Axis Pan)
       this.canvas.addEventListener('mousedown', (e) => {
-        this.isDragging = true;
-        this.dragStartX = e.clientX;
-        this.dragStartOffset = this.viewOffset;
-        this.container.classList.add('panning');
-      });
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const paddingRight = 75;
 
-      window.addEventListener('mouseup', () => {
-        if (this.isDragging) {
-          this.isDragging = false;
-          this.container.classList.remove('panning');
+        if (mouseX >= (this.width - paddingRight)) {
+          // Dragging right vertical price scale
+          this.isDraggingScale = true;
+          this.dragStartY = e.clientY;
+          this.dragStartScaleFactor = this.priceScaleFactor;
+          this.canvas.style.cursor = 'ns-resize';
+        } else {
+          // 2-Axis Horizontal & Vertical Pan on chart area
+          this.isDragging = true;
+          this.dragStartX = e.clientX;
+          this.dragStartY = e.clientY;
+          this.dragStartOffset = this.viewOffset;
+          this.dragStartPanOffset = this.pricePanOffset;
+          this.container.classList.add('panning');
+          this.canvas.style.cursor = 'grabbing';
         }
       });
 
+      // DOUBLE CLICK ON PRICE SCALE OR CHART TO RESET AUTOSCALE
+      this.canvas.addEventListener('dblclick', (e) => {
+        this.priceScaleFactor = 1.0;
+        this.pricePanOffset = 0;
+        this.autoScale = true;
+      });
+
+      window.addEventListener('mouseup', () => {
+        if (this.isDragging || this.isDraggingScale) {
+          this.isDragging = false;
+          this.isDraggingScale = false;
+          this.container.classList.remove('panning');
+          this.canvas.style.cursor = 'crosshair';
+        }
+      });
+
+      // MOUSE MOVE (Dual-Axis Dragging & Crosshair Coordinates)
       this.canvas.addEventListener('mousemove', (e) => {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
+        const paddingRight = 75, paddingLeft = 10, paddingTop = 26;
+        const plotWidth = this.width - paddingLeft - paddingRight;
 
+        // Dynamic Cursor Hinting
+        if (!this.isDragging && !this.isDraggingScale) {
+          if (x >= (this.width - paddingRight)) {
+            this.canvas.style.cursor = 'ns-resize';
+          } else {
+            this.canvas.style.cursor = 'crosshair';
+          }
+        }
+
+        // VERTICAL PRICE SCALE DRAGGING
+        if (this.isDraggingScale) {
+          const deltaY = e.clientY - this.dragStartY;
+          // Dragging up expands scale, dragging down compresses scale
+          const multiplier = Math.exp(-deltaY * 0.008);
+          this.priceScaleFactor = Math.max(0.2, Math.min(6.0, this.dragStartScaleFactor * multiplier));
+          this.autoScale = false;
+          return;
+        }
+
+        // 2-AXIS HORIZONTAL + VERTICAL CHART DRAGGING
         if (this.isDragging) {
+          // 1. Horizontal Shift
           const deltaX = e.clientX - this.dragStartX;
-          const paddingRight = 75, paddingLeft = 10;
-          const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = Math.round(deltaX / candleWidth);
-          
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
           this.viewOffset = Math.max(0, Math.min(maxOffset, this.dragStartOffset + candleShift));
+
+          // 2. Vertical Shift (Pan Price Up/Down)
+          const deltaY = e.clientY - this.dragStartY;
+          const hasRsi = this.layers.p2_rsi;
+          const pricePlotH = hasRsi ? (this.height - paddingTop - 22) * 0.62 : (this.height - paddingTop - 22) * 0.80;
+          const visible = this.getVisibleCandles();
+          if (visible.length) {
+            let minP = Infinity, maxP = -Infinity;
+            for (const c of visible) {
+              if (c.low < minP) minP = c.low;
+              if (c.high > maxP) maxP = c.high;
+            }
+            const baseSpan = (maxP - minP) || (minP * 0.02) || 1;
+            const effectiveSpan = baseSpan / this.priceScaleFactor;
+            const pricePerPx = effectiveSpan / pricePlotH;
+            this.pricePanOffset = this.dragStartPanOffset + (deltaY * pricePerPx);
+            this.autoScale = false;
+          }
         }
 
         this.crosshair.x = x;
@@ -798,8 +892,6 @@
 
         const visibleCandles = this.getVisibleCandles();
         if (visibleCandles.length) {
-          const paddingRight = 75, paddingLeft = 10;
-          const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = plotWidth / visibleCandles.length;
           const idx = Math.floor((x - paddingLeft) / candleWidth);
           if (idx >= 0 && idx < visibleCandles.length) {
@@ -847,29 +939,42 @@
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
 
-      let minPrice = Infinity, maxPrice = -Infinity, maxVol = 0;
+      // Base Candlestick Extents
+      let baseMinPrice = Infinity, baseMaxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
-        if (c.low < minPrice) minPrice = c.low;
-        if (c.high > maxPrice) maxPrice = c.high;
+        if (c.low < baseMinPrice) baseMinPrice = c.low;
+        if (c.high > baseMaxPrice) baseMaxPrice = c.high;
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      const candleSpan = (maxPrice - minPrice) || (minPrice * 0.02) || 1;
-      const priceMargin = candleSpan * 0.08;
-      maxPrice += priceMargin;
-      minPrice = Math.max(0, minPrice - priceMargin);
+      // Add headroom
+      const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
+      const margin = baseSpan * 0.08;
+      const fullBaseMin = Math.max(0, baseMinPrice - margin);
+      const fullBaseMax = baseMaxPrice + margin;
+      const centerPrice = (fullBaseMax + fullBaseMin) / 2;
+
+      // =========================================================================
+      // DYNAMIC 2-AXIS PRICE RANGE (With priceScaleFactor & pricePanOffset)
+      // =========================================================================
+      const effectiveSpan = (fullBaseMax - fullBaseMin) / this.priceScaleFactor;
+      const adjustedCenter = centerPrice - this.pricePanOffset;
+
+      const minPrice = Math.max(0, adjustedCenter - effectiveSpan / 2);
+      const maxPrice = adjustedCenter + effectiveSpan / 2;
       const priceRange = maxPrice - minPrice || 1;
 
       const getX = (idx) => paddingLeft + (idx + 0.5) * (plotWidth / visibleCandles.length);
       const getY = (price) => paddingTop + pricePlotHeight - ((price - minPrice) / priceRange) * pricePlotHeight;
+      const getPriceFromY = (y) => minPrice + ((paddingTop + pricePlotHeight - y) / pricePlotHeight) * priceRange;
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
       const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
 
       // 1. Grid Lines & Right Price Scale
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
-      for (let i = 0; i <= 4; i++) {
-        const priceVal = minPrice + (priceRange / 4) * i;
+      for (let i = 0; i <= 5; i++) {
+        const priceVal = minPrice + (priceRange / 5) * i;
         const y = getY(priceVal);
         ctx.beginPath();
         ctx.moveTo(paddingLeft, y);
@@ -880,6 +985,18 @@
         ctx.font = '10px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
         ctx.fillText(`₹${priceVal.toFixed(1)}`, w - paddingRight + 6, y + 3.5);
+      }
+
+      // Vertical Scale Auto-Reset Indicator (TradingView Style)
+      if (!this.autoScale) {
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.fillRect(w - paddingRight + 4, paddingTop + 2, paddingRight - 8, 16);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
+        ctx.strokeRect(w - paddingRight + 4, paddingTop + 2, paddingRight - 8, 16);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 9px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('Auto (Reset)', w - paddingRight / 2, paddingTop + 13);
       }
 
       const allCloses = this.allCandles.map(c => c.close);
@@ -904,7 +1021,7 @@
       ctx.stroke();
 
       // =========================================================================
-      // CLIPPED PRICE PLOT REGION
+      // CLIPPED PRICE PLOT REGION (Bounded perfectly inside price panel)
       // =========================================================================
       ctx.save();
       ctx.beginPath();
@@ -1178,15 +1295,38 @@
       ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
       ctx.fill();
 
+      // Dynamic Horizontal Crosshair Line
+      if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, this.crosshair.y);
+        ctx.lineTo(w - paddingRight, this.crosshair.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+      }
+
       ctx.restore(); // END CLIPPING
 
-      // Right Scale Price Badge
+      // Right Scale Live Price Badge
       ctx.fillStyle = liveColor;
       ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 10px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
+
+      // Right Scale Hover Price Badge
+      if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
+        const hoverPrice = getPriceFromY(this.crosshair.y);
+        ctx.fillStyle = '#334155';
+        ctx.fillRect(w - paddingRight + 2, this.crosshair.y - 8, paddingRight - 4, 16);
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`₹${hoverPrice.toFixed(1)}`, w - paddingRight + 5, this.crosshair.y + 3.5);
+      }
 
       // Volumes & P3 Volume Bursts
       const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
@@ -1799,7 +1939,6 @@
 
         const slPct = parseFloat((((ltp - recommendedSL) / ltp) * 100).toFixed(2));
 
-        // 100% Dynamic Protocol Verification (Directly Bound to User-Adjusted %tage Sliders)
         const protocolMatch = {
           p1_growth: (stock.salesGrowthYoY >= this.filters.minSalesGrowth && stock.epsGrowthYoY >= this.filters.minEpsGrowth),
           p2_rsi: (rsi >= this.filters.minRsi),
@@ -1830,23 +1969,19 @@
       });
 
       const filtered = analyzed.filter(stock => {
-        // Search Term Filter
         if (this.filters.searchTerm) {
           const t = this.filters.searchTerm.toLowerCase();
           if (!stock.symbol.toLowerCase().includes(t) && !stock.name.toLowerCase().includes(t)) return false;
         }
 
-        // Exchange Filter (NSE, BSE, or ALL)
         if (this.filters.exchange && this.filters.exchange !== 'ALL') {
           if (!stock.exchange.includes(this.filters.exchange)) return false;
         }
 
-        // Sector Filter (Defence, Retail, EMS, IT, Wires, Renewable, Financial, or ALL)
         if (this.filters.sector && this.filters.sector !== 'ALL') {
           if (stock.sector !== this.filters.sector) return false;
         }
 
-        // Active Checkbox Rules Evaluated with Exact Slider Thresholds
         if (this.filters.requireGrowth && !stock.protocolMatch.p1_growth) return false;
         if (this.filters.requireRsi && !stock.protocolMatch.p2_rsi) return false;
         if (this.filters.requireVolumeBurst && !stock.protocolMatch.p3_volumeBurst) return false;
@@ -1860,7 +1995,6 @@
         return true;
       });
 
-      // Dynamic Sorting Engine
       if (this.filters.sortBy === 'rsScore') {
         filtered.sort((a, b) => b.rsScore - a.rsScore);
       } else if (this.filters.sortBy === 'volumeBurst') {

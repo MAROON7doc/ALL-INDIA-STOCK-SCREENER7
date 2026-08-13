@@ -2785,15 +2785,42 @@
     }
 
     openModal(stock) {
+      if (!stock) return;
       this.currentModalStock = stock;
       const modal = document.getElementById('stockModal');
       if (!modal) return;
 
-      document.getElementById('modalStockSymbol').textContent = stock.symbol;
-      document.getElementById('modalStockName').textContent = `${stock.name} • ${stock.indexCategory}`;
-      document.getElementById('modalLTP').textContent = `₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
-      document.getElementById('modalDayChg').textContent = `${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%`;
-      document.getElementById('modalExchangeTag').textContent = `${stock.exchange}: ${stock.series || 'EQ'} | BSE: ${stock.bseCode}`;
+      const symEl = document.getElementById('modalStockSymbol');
+      if (symEl) symEl.textContent = stock.symbol;
+
+      const nameEl = document.getElementById('modalStockName');
+      if (nameEl) nameEl.textContent = `${stock.name} • ${stock.indexCategory}`;
+
+      const ltpEl = document.getElementById('modalLTP');
+      if (ltpEl) ltpEl.textContent = `₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+      const chgEl = document.getElementById('modalDayChg');
+      if (chgEl) {
+        chgEl.textContent = `${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%`;
+        chgEl.style.color = stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+      }
+
+      const exchEl = document.getElementById('modalExchangeTag');
+      if (exchEl) exchEl.textContent = `${stock.exchange}: ${stock.series || 'EQ'} | BSE: ${stock.bseCode}`;
+
+      const patTag = document.getElementById('modalPatternTag');
+      if (patTag) {
+        if (stock.cupWithHandle?.isPattern) {
+          patTag.textContent = `Cup & Handle (${stock.cupWithHandle.score})`;
+          patTag.className = 'tag tag-cwh';
+        } else if (stock.consolidation7W?.isConsolidating) {
+          patTag.textContent = `7W Base (${stock.consolidation7W.rangePct}%)`;
+          patTag.className = 'tag tag-7w';
+        } else {
+          patTag.textContent = `Leader (${stock.rsScore})`;
+          patTag.className = 'tag';
+        }
+      }
 
       const entry = stock.ltp;
       const sl = stock.recommendedSL || (entry * 0.93);
@@ -2808,7 +2835,7 @@
         if (this.modalChart) {
           this.modalChart.setStock(stock, '1D', this.activeExchangeMode);
         }
-      }, 50);
+      }, 60);
     }
 
     closeModal() {
@@ -2816,10 +2843,25 @@
     }
 
     updateCalculator() {
-      const cap = parseFloat(document.getElementById('calcCapital')?.value) || 500000;
-      const rPct = parseFloat(document.getElementById('calcRiskPct')?.value) || 1.0;
-      const entry = parseFloat(document.getElementById('calcEntryPrice')?.value) || 100;
-      const sl = parseFloat(document.getElementById('calcStopLossPrice')?.value) || 93;
+      const cap = Math.max(1000, parseFloat(document.getElementById('calcCapital')?.value) || 500000);
+      const rPct = Math.max(0.1, parseFloat(document.getElementById('calcRiskPct')?.value) || 1.0);
+      const entry = Math.max(0.01, parseFloat(document.getElementById('calcEntryPrice')?.value) || 100);
+      const sl = Math.max(0.01, parseFloat(document.getElementById('calcStopLossPrice')?.value) || 93);
+
+      const alertBox = document.getElementById('calcAlertBox');
+      const alertMsg = document.getElementById('calcAlertMsg');
+
+      if (sl >= entry) {
+        if (alertBox) alertBox.className = 'calc-alert warn';
+        if (alertMsg) alertMsg.textContent = '⚠️ Invalid Stop Loss: Stop loss must be placed strictly below Entry Price.';
+        const elShares = document.getElementById('calcSharesOut');
+        if (elShares) elShares.textContent = '0 Qty';
+        const elInv = document.getElementById('calcInvOut');
+        if (elInv) elInv.textContent = '₹0';
+        const elRisk = document.getElementById('calcRiskAmountOut');
+        if (elRisk) elRisk.textContent = '₹0';
+        return;
+      }
 
       const res = Indicators.calculatePositionSizing(entry, sl, cap, rPct);
       const elShares = document.getElementById('calcSharesOut');
@@ -2836,38 +2878,89 @@
       if (elT2) elT2.textContent = `₹${res.target2R.toLocaleString('en-IN')}`;
       const elT3 = document.getElementById('calcT3');
       if (elT3) elT3.textContent = `₹${res.target3R.toLocaleString('en-IN')}`;
+
+      if (alertBox) {
+        if (res.stopLossPct > 8.5) {
+          alertBox.className = 'calc-alert warn';
+          if (alertMsg) alertMsg.textContent = `⚠️ Wide Stop Loss (-${res.stopLossPct}%): Position sized down to ${res.shares} Qty to strictly limit total risk to ₹${res.riskAmount.toLocaleString('en-IN')}.`;
+        } else {
+          alertBox.className = 'calc-alert ok';
+          if (alertMsg) alertMsg.textContent = `🛡️ Safe CANSLIM Position Allocation: Max risk is safely capped at ₹${res.riskAmount.toLocaleString('en-IN')} (${rPct}% of capital).`;
+        }
+      }
     }
 
     exportCSV() {
-      if (!this.currentResults?.length) { alert('No stocks.'); return; }
-      const headers = ['Symbol', 'Name', 'NSE Series', 'BSE Scrip Code', 'ISIN', 'Index Category', 'Sector', 'LTP', 'Day Change %', 'RS Score', 'RSI', 'Vol Burst %', 'Sales YoY %', 'EPS YoY %', '3Y EPS CAGR %', '5Y EPS CAGR %', 'ROE %', 'ROCE %', 'Stop Loss', 'SL %', 'Match Count'];
-      const rows = this.currentResults.map(s => [
-        s.symbol, `"${s.name}"`, s.series || 'EQ', s.bseCode, s.isin, `"${s.indexCategory}"`, `"${s.sector}"`, s.ltp, s.dayChangePct, s.rsScore, s.rsi,
-        s.volumeBurst?.burstPct || 0, s.salesGrowthYoY, s.epsGrowthYoY, s.eps3Y_CAGR, s.eps5Y_CAGR, s.roe, s.roce,
-        s.recommendedSL, s.slPct, s.matchCount
-      ]);
-      const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-      const link = document.createElement('a');
-      link.setAttribute('href', encodeURI(csv));
-      link.setAttribute('download', `NSE_BSE_Screener_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      if (!this.currentResults?.length) { alert('No stocks to export.'); return; }
+      try {
+        const headers = ['Symbol', 'Name', 'NSE Series', 'BSE Scrip Code', 'ISIN', 'Index Category', 'Sector', 'LTP', 'Day Change %', 'RS Score', 'RSI', 'Vol Burst %', 'Sales YoY %', 'EPS YoY %', '3Y EPS CAGR %', '5Y EPS CAGR %', 'ROE %', 'ROCE %', 'Stop Loss', 'SL %', 'Match Count'];
+        const rows = this.currentResults.map(s => [
+          s.symbol, `"${s.name}"`, s.series || 'EQ', s.bseCode, s.isin, `"${s.indexCategory}"`, `"${s.sector}"`, s.ltp, s.dayChangePct, s.rsScore, s.rsi,
+          s.volumeBurst?.burstPct || 0, s.salesGrowthYoY, s.epsGrowthYoY, s.eps3Y_CAGR, s.eps5Y_CAGR, s.roe, s.roce,
+          s.recommendedSL, s.slPct, s.matchCount
+        ]);
+        const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
+        const link = document.createElement('a');
+        link.setAttribute('href', encodeURI(csv));
+        link.setAttribute('download', `NSE_BSE_CANSLIM_Screener_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      } catch (err) {
+        console.error('CSV Export Error:', err);
+      }
     }
 
     copyTickers() {
-      if (!this.currentResults?.length) { alert('No tickers.'); return; }
-      const txt = this.currentResults.map(s => s.symbol).join(', ');
-      navigator.clipboard.writeText(txt).then(() => {
-        const btn = document.getElementById('btnCopyTickers');
-        if (btn) {
-          const old = btn.innerHTML;
-          btn.innerHTML = '✓ Copied!';
-          setTimeout(() => btn.innerHTML = old, 2000);
-        }
-      });
+      if (!this.currentResults?.length) { return; }
+      try {
+        const txt = this.currentResults.map(s => s.symbol).join(', ');
+        navigator.clipboard.writeText(txt).then(() => {
+          const btn = document.getElementById('btnCopyTickers');
+          if (btn) {
+            const old = btn.innerHTML;
+            btn.innerHTML = '✓ Copied!';
+            setTimeout(() => btn.innerHTML = old, 2000);
+          }
+        }).catch(() => {
+          prompt('Copy tickers to clipboard:', txt);
+        });
+      } catch (e) {
+        console.warn('Clipboard Error:', e);
+      }
     }
   }
+
+  // GLOBAL KEYBOARD SHORTCUTS ENGINE
+  window.addEventListener('keydown', (e) => {
+    // If typing inside an input or select, skip global hotkeys
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.key === 'Escape') {
+      window.screener?.closeModal();
+      document.getElementById('newsDrawerOverlay')?.classList.remove('active');
+    } else if (e.key === 'ArrowLeft') {
+      if (window.screener?.mainChart) {
+        window.screener.mainChart.viewOffset = Math.min(window.screener.mainChart.allCandles.length - window.screener.mainChart.viewCount, window.screener.mainChart.viewOffset + 4);
+      }
+    } else if (e.key === 'ArrowRight') {
+      if (window.screener?.mainChart) {
+        window.screener.mainChart.viewOffset = Math.max(0, window.screener.mainChart.viewOffset - 4);
+      }
+    } else if (e.key === 'ArrowUp') {
+      if (window.screener?.mainChart) {
+        window.screener.mainChart.priceScaleFactor = Math.min(8.0, window.screener.mainChart.priceScaleFactor * 1.1);
+        window.screener.mainChart.autoScale = false;
+      }
+    } else if (e.key === 'ArrowDown') {
+      if (window.screener?.mainChart) {
+        window.screener.mainChart.priceScaleFactor = Math.max(0.2, window.screener.mainChart.priceScaleFactor * 0.9);
+        window.screener.mainChart.autoScale = false;
+      }
+    } else if (e.key.toLowerCase() === 'f' || e.key.toLowerCase() === 'r') {
+      window.screener?.mainChart?.resetZoom();
+    }
+  });
 
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => { window.screener = new Application(); });

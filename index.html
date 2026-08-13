@@ -409,12 +409,21 @@
             <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">
               TRENT <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
             </div>
+
+            <!-- Primary/Secondary Exchange Selector (NSE vs BSE variant) -->
+            <div class="tv-btn-group" id="exchangeVariantGroup">
+              <button class="exch-pill-btn active" id="btnExchNSE" data-exch="NSE" title="Switch to National Stock Exchange (NSE: EQ)">NSE: EQ</button>
+              <button class="exch-pill-btn" id="btnExchBSE" data-exch="BSE" title="Switch to Bombay Stock Exchange (BSE: Scrip Code)">BSE: 500251</button>
+            </div>
+
+            <!-- Sub-Categorization & Index Membership Tag -->
+            <span class="tag-index" id="mainChartIndexBadge">NIFTY 50 • Large Cap</span>
             <span class="tag tag-cwh" id="mainChartPatternBadge">Cup & Handle (95)</span>
             
             <!-- Direct Exchange & Source Pinpoint Links -->
             <div style="display:flex; align-items:center; gap:4px;" id="mainChartSourceLinks">
-              <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" class="source-link-pill" id="linkNseSource" title="View live quote on NSE India Official Portal">
-                🏛️ NSE India
+              <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" class="source-link-pill" id="linkNseSource" title="View live quote on NSE/BSE official portal">
+                🏛️ NSE/BSE
               </a>
               <a href="https://www.screener.in/company/TRENT/" target="_blank" class="source-link-pill" id="linkScreenerSource" title="View deep fundamental financials on Screener.in">
                 📊 Screener.in

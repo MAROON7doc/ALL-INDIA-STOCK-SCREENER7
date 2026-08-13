@@ -1,7 +1,8 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Full 2-Axis Interactive TradingView Engine (Seamless Horizontal & Vertical Scrolling,
- * Y-Axis Scale Dragging, Dynamic Vertical Zoom/Pan, and WebGL Accelerated Compute).
+ * Full Stock Variant & Exchange Disambiguation (NSE: EQ vs BSE: Scrip Code),
+ * Sub-Categorization Index Badges (NIFTY 50, NIFTY NEXT 50, NIFTY MIDCAP 100, etc.),
+ * 2-Axis Interactive TradingView Engine, and WebGL Accelerated Compute.
  */
 
 (function() {
@@ -461,23 +462,326 @@
     return res;
   }
 
+  /* ==========================================================================
+     4. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION
+     ========================================================================== */
   const RAW_DATABASE = [
-    { symbol: 'TRENT', name: 'Trent Ltd (Westside & Zudio)', exchange: 'NSE', sector: 'Retail', basePrice: 5200, patternType: 'cup_handle', salesGrowthYoY: 53.2, epsGrowthYoY: 67.8, eps3Y_CAGR: 54.2, eps5Y_CAGR: 42.8, roe: 28.6, roce: 31.4, debtToEquity: 0.12, peRatio: 98.4, industryPE: 45.2, epsHistory: [18.4, 26.8, 39.5, 62.1, 104.2], earningsEvent: 'Q1 EPS +67.8% YoY Beat' },
-    { symbol: 'DIXON', name: 'Dixon Technologies Ltd', exchange: 'NSE', sector: 'EMS', basePrice: 11200, patternType: 'cup_handle', salesGrowthYoY: 101.4, epsGrowthYoY: 82.5, eps3Y_CAGR: 46.8, eps5Y_CAGR: 38.5, roe: 29.4, roce: 34.2, debtToEquity: 0.18, peRatio: 94.6, industryPE: 62.0, epsHistory: [26.8, 32.5, 43.4, 61.2, 111.6], earningsEvent: 'PLI Mobile Volume +101%' },
-    { symbol: 'BEL', name: 'Bharat Electronics Ltd', exchange: 'NSE', sector: 'Defence', basePrice: 240, patternType: 'cup_handle', salesGrowthYoY: 28.5, epsGrowthYoY: 38.4, eps3Y_CAGR: 29.6, eps5Y_CAGR: 24.1, roe: 26.5, roce: 35.8, debtToEquity: 0.0, peRatio: 48.2, industryPE: 52.1, epsHistory: [2.8, 3.2, 4.1, 5.4, 7.5], earningsEvent: 'Defence Order Book ₹76k Cr' },
-    { symbol: 'HAL', name: 'Hindustan Aeronautics Ltd', exchange: 'NSE', sector: 'Defence', basePrice: 3950, patternType: 'consolidation_7w', salesGrowthYoY: 18.2, epsGrowthYoY: 29.5, eps3Y_CAGR: 33.4, eps5Y_CAGR: 26.8, roe: 29.1, roce: 38.5, debtToEquity: 0.0, peRatio: 38.6, industryPE: 52.1, epsHistory: [48.5, 76.2, 87.4, 113.8, 147.2], earningsEvent: 'Tejas Fighter Contract' },
-    { symbol: 'POLYCAB', name: 'Polycab India Ltd', exchange: 'NSE', sector: 'Wires', basePrice: 5600, patternType: 'cup_handle', salesGrowthYoY: 25.1, epsGrowthYoY: 34.2, eps3Y_CAGR: 36.5, eps5Y_CAGR: 28.2, roe: 24.8, roce: 31.2, debtToEquity: 0.05, peRatio: 52.4, industryPE: 44.0, epsHistory: [49.8, 56.4, 85.2, 118.6, 159.2], earningsEvent: 'Cables & FMEG Margin +240bps' },
-    { symbol: 'SOLARINDS', name: 'Solar Industries India', exchange: 'NSE', sector: 'Defence', basePrice: 8500, patternType: 'cup_handle', salesGrowthYoY: 31.4, epsGrowthYoY: 41.2, eps3Y_CAGR: 44.1, eps5Y_CAGR: 35.6, roe: 27.2, roce: 32.8, debtToEquity: 0.28, peRatio: 78.5, industryPE: 48.0, epsHistory: [31.5, 48.2, 83.1, 108.4, 153.5], earningsEvent: 'Pinaka Rocket Propellants' },
-    { symbol: 'KAYNES', name: 'Kaynes Technology Ltd', exchange: 'NSE', sector: 'EMS', basePrice: 4200, patternType: 'cup_handle', salesGrowthYoY: 72.1, epsGrowthYoY: 79.4, eps3Y_CAGR: 62.4, eps5Y_CAGR: 48.9, roe: 19.8, roce: 22.4, debtToEquity: 0.14, peRatio: 112.0, industryPE: 62.0, epsHistory: [4.2, 9.8, 18.2, 28.5, 51.0], earningsEvent: 'OSAT Semi-Conductor Plant' },
-    { symbol: 'PERSISTENT', name: 'Persistent Systems Ltd', exchange: 'NSE', sector: 'IT', basePrice: 4500, patternType: 'consolidation_7w', salesGrowthYoY: 19.8, epsGrowthYoY: 23.4, eps3Y_CAGR: 31.8, eps5Y_CAGR: 27.5, roe: 25.4, roce: 32.1, debtToEquity: 0.08, peRatio: 58.2, industryPE: 34.0, epsHistory: [44.6, 60.1, 87.2, 108.5, 134.0], earningsEvent: 'Dollar Revenue +18% YoY' },
-    { symbol: 'CDSL', name: 'Central Depository Services', exchange: 'NSE', sector: 'Financial', basePrice: 1250, patternType: 'cup_handle', salesGrowthYoY: 52.1, epsGrowthYoY: 61.3, eps3Y_CAGR: 38.2, eps5Y_CAGR: 34.5, roe: 31.8, roce: 42.5, debtToEquity: 0.0, peRatio: 59.4, industryPE: 42.0, epsHistory: [7.2, 9.8, 14.2, 19.4, 31.2], earningsEvent: '130 Million Demat Accounts' },
-    { symbol: 'BDL', name: 'Bharat Dynamics Ltd', exchange: 'NSE', sector: 'Defence', basePrice: 890, patternType: 'consolidation_7w', salesGrowthYoY: 62.4, epsGrowthYoY: 74.1, eps3Y_CAGR: 32.5, eps5Y_CAGR: 22.8, roe: 18.9, roce: 24.6, debtToEquity: 0.0, peRatio: 64.2, industryPE: 52.1, epsHistory: [14.1, 16.4, 20.8, 25.1, 38.4], earningsEvent: 'Akash Missile Export Orders' },
-    { symbol: 'PREMIERENE', name: 'Premier Energies Ltd', exchange: 'BSE/NSE', sector: 'Renewable', basePrice: 780, patternType: 'cup_handle', salesGrowthYoY: 124.0, epsGrowthYoY: 145.2, eps3Y_CAGR: 88.4, eps5Y_CAGR: 64.2, roe: 34.5, roce: 39.8, debtToEquity: 0.32, peRatio: 48.6, industryPE: 55.0, epsHistory: [2.1, 4.5, 8.9, 14.8, 28.5], earningsEvent: 'Solar Cell Capacity 2.8GW' },
-    { symbol: 'ANGELONE', name: 'Angel One Ltd', exchange: 'NSE', sector: 'Financial', basePrice: 2450, patternType: 'consolidation_7w', salesGrowthYoY: 45.8, epsGrowthYoY: 38.7, eps3Y_CAGR: 44.5, eps5Y_CAGR: 49.2, roe: 38.4, roce: 46.2, debtToEquity: 0.45, peRatio: 22.8, industryPE: 28.5, epsHistory: [38.2, 74.8, 107.5, 131.2, 178.4], earningsEvent: 'Monthly Orders > 120 Million' }
+    {
+      symbol: 'TRENT',
+      name: 'Trent Ltd (Westside & Zudio)',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '500251',
+      isin: 'INE849A01020',
+      indexCategory: 'NIFTY 50 • Large Cap',
+      bseIndex: 'BSE 100 • S&P BSE 500',
+      sector: 'Retail',
+      subSector: 'Consumer Discretionary • Tata Group',
+      basePrice: 5200,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 53.2,
+      epsGrowthYoY: 67.8,
+      eps3Y_CAGR: 54.2,
+      eps5Y_CAGR: 42.8,
+      roe: 28.6,
+      roce: 31.4,
+      debtToEquity: 0.12,
+      peRatio: 98.4,
+      industryPE: 45.2,
+      epsHistory: [18.4, 26.8, 39.5, 62.1, 104.2],
+      earningsEvent: 'Q1 EPS +67.8% YoY Beat'
+    },
+    {
+      symbol: 'DIXON',
+      name: 'Dixon Technologies Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '540699',
+      isin: 'INE935N01020',
+      indexCategory: 'NIFTY NEXT 50 • Large Cap',
+      bseIndex: 'BSE 100 • S&P BSE 200',
+      sector: 'EMS',
+      subSector: 'EMS & Consumer Electronics',
+      basePrice: 11200,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 101.4,
+      epsGrowthYoY: 82.5,
+      eps3Y_CAGR: 46.8,
+      eps5Y_CAGR: 38.5,
+      roe: 29.4,
+      roce: 34.2,
+      debtToEquity: 0.18,
+      peRatio: 94.6,
+      industryPE: 62.0,
+      epsHistory: [26.8, 32.5, 43.4, 61.2, 111.6],
+      earningsEvent: 'PLI Mobile Volume +101%'
+    },
+    {
+      symbol: 'BEL',
+      name: 'Bharat Electronics Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '500049',
+      isin: 'INE263A01024',
+      indexCategory: 'NIFTY 50 • Large Cap (Navratna PSU)',
+      bseIndex: 'BSE 100 • BSE PSU',
+      sector: 'Defence',
+      subSector: 'Defence Radars, EW & Avionics',
+      basePrice: 240,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 28.5,
+      epsGrowthYoY: 38.4,
+      eps3Y_CAGR: 29.6,
+      eps5Y_CAGR: 24.1,
+      roe: 26.5,
+      roce: 35.8,
+      debtToEquity: 0.0,
+      peRatio: 48.2,
+      industryPE: 52.1,
+      epsHistory: [2.8, 3.2, 4.1, 5.4, 7.5],
+      earningsEvent: 'Defence Order Book ₹76k Cr'
+    },
+    {
+      symbol: 'HAL',
+      name: 'Hindustan Aeronautics Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '541154',
+      isin: 'INE066F01012',
+      indexCategory: 'NIFTY NEXT 50 • Large Cap (Maharatna PSU)',
+      bseIndex: 'BSE 100 • BSE PSU',
+      sector: 'Defence',
+      subSector: 'Fighter Jets & Military Helicopters',
+      basePrice: 3950,
+      patternType: 'consolidation_7w',
+      salesGrowthYoY: 18.2,
+      epsGrowthYoY: 29.5,
+      eps3Y_CAGR: 33.4,
+      eps5Y_CAGR: 26.8,
+      roe: 29.1,
+      roce: 38.5,
+      debtToEquity: 0.0,
+      peRatio: 38.6,
+      industryPE: 52.1,
+      epsHistory: [48.5, 76.2, 87.4, 113.8, 147.2],
+      earningsEvent: 'Tejas Fighter Contract'
+    },
+    {
+      symbol: 'POLYCAB',
+      name: 'Polycab India Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '542652',
+      isin: 'INE455K01017',
+      indexCategory: 'NIFTY NEXT 50 • Large Cap',
+      bseIndex: 'BSE 100 • S&P BSE 200',
+      sector: 'Wires',
+      subSector: 'Power Cables, Wires & FMEG',
+      basePrice: 5600,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 25.1,
+      epsGrowthYoY: 34.2,
+      eps3Y_CAGR: 36.5,
+      eps5Y_CAGR: 28.2,
+      roe: 24.8,
+      roce: 31.2,
+      debtToEquity: 0.05,
+      peRatio: 52.4,
+      industryPE: 44.0,
+      epsHistory: [49.8, 56.4, 85.2, 118.6, 159.2],
+      earningsEvent: 'Cables & FMEG Margin +240bps'
+    },
+    {
+      symbol: 'SOLARINDS',
+      name: 'Solar Industries India',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '532725',
+      isin: 'INE343H01029',
+      indexCategory: 'NIFTY MIDCAP 50 • Mid Cap',
+      bseIndex: 'BSE 200 • S&P BSE 500',
+      sector: 'Defence',
+      subSector: 'Industrial Explosives & Rocket Propellants',
+      basePrice: 8500,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 31.4,
+      epsGrowthYoY: 41.2,
+      eps3Y_CAGR: 44.1,
+      eps5Y_CAGR: 35.6,
+      roe: 27.2,
+      roce: 32.8,
+      debtToEquity: 0.28,
+      peRatio: 78.5,
+      industryPE: 48.0,
+      epsHistory: [31.5, 48.2, 83.1, 108.4, 153.5],
+      earningsEvent: 'Pinaka Rocket Propellants'
+    },
+    {
+      symbol: 'KAYNES',
+      name: 'Kaynes Technology Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '543664',
+      isin: 'INE918Z01012',
+      indexCategory: 'NIFTY MIDCAP 100 • Mid Cap',
+      bseIndex: 'BSE 500',
+      sector: 'EMS',
+      subSector: 'Semiconductor OSAT & Smart EMS',
+      basePrice: 4200,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 72.1,
+      epsGrowthYoY: 79.4,
+      eps3Y_CAGR: 62.4,
+      eps5Y_CAGR: 48.9,
+      roe: 19.8,
+      roce: 22.4,
+      debtToEquity: 0.14,
+      peRatio: 112.0,
+      industryPE: 62.0,
+      epsHistory: [4.2, 9.8, 18.2, 28.5, 51.0],
+      earningsEvent: 'OSAT Semi-Conductor Plant'
+    },
+    {
+      symbol: 'PERSISTENT',
+      name: 'Persistent Systems Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '533179',
+      isin: 'INE262H01013',
+      indexCategory: 'NIFTY MIDCAP 50 • IT Services',
+      bseIndex: 'BSE 200 • BSE IT',
+      sector: 'IT',
+      subSector: 'Digital Engineering & AI Software',
+      basePrice: 4500,
+      patternType: 'consolidation_7w',
+      salesGrowthYoY: 19.8,
+      epsGrowthYoY: 23.4,
+      eps3Y_CAGR: 31.8,
+      eps5Y_CAGR: 27.5,
+      roe: 25.4,
+      roce: 32.1,
+      debtToEquity: 0.08,
+      peRatio: 58.2,
+      industryPE: 34.0,
+      epsHistory: [44.6, 60.1, 87.2, 108.5, 134.0],
+      earningsEvent: 'Dollar Revenue +18% YoY'
+    },
+    {
+      symbol: 'CDSL',
+      name: 'Central Depository Services',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '540515',
+      isin: 'INE736A01011',
+      indexCategory: 'NIFTY MIDCAP 100 • Market Monopoly',
+      bseIndex: 'BSE 500 • BSE Financials',
+      sector: 'Financial',
+      subSector: 'Depository Infrastructure Monopoly',
+      basePrice: 1250,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 52.1,
+      epsGrowthYoY: 61.3,
+      eps3Y_CAGR: 38.2,
+      eps5Y_CAGR: 34.5,
+      roe: 31.8,
+      roce: 42.5,
+      debtToEquity: 0.0,
+      peRatio: 59.4,
+      industryPE: 42.0,
+      epsHistory: [7.2, 9.8, 14.2, 19.4, 31.2],
+      earningsEvent: '130 Million Demat Accounts'
+    },
+    {
+      symbol: 'BDL',
+      name: 'Bharat Dynamics Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '541143',
+      isin: 'INE171Z01018',
+      indexCategory: 'NIFTY MIDCAP 100 • Defence PSU',
+      bseIndex: 'BSE 500 • BSE PSU',
+      sector: 'Defence',
+      subSector: 'Guided Missiles & Torpedoes',
+      basePrice: 890,
+      patternType: 'consolidation_7w',
+      salesGrowthYoY: 62.4,
+      epsGrowthYoY: 74.1,
+      eps3Y_CAGR: 32.5,
+      eps5Y_CAGR: 22.8,
+      roe: 18.9,
+      roce: 24.6,
+      debtToEquity: 0.0,
+      peRatio: 64.2,
+      industryPE: 52.1,
+      epsHistory: [14.1, 16.4, 20.8, 25.1, 38.4],
+      earningsEvent: 'Akash Missile Export Orders'
+    },
+    {
+      symbol: 'PREMIERENE',
+      name: 'Premier Energies Ltd',
+      exchange: 'BSE/NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '544238',
+      isin: 'INE112V01018',
+      indexCategory: 'NIFTY SMALLCAP 250 • Renewable Energy',
+      bseIndex: 'BSE 500',
+      sector: 'Renewable',
+      subSector: 'Solar Cells & TOPCon PV Modules',
+      basePrice: 780,
+      patternType: 'cup_handle',
+      salesGrowthYoY: 124.0,
+      epsGrowthYoY: 145.2,
+      eps3Y_CAGR: 88.4,
+      eps5Y_CAGR: 64.2,
+      roe: 34.5,
+      roce: 39.8,
+      debtToEquity: 0.32,
+      peRatio: 48.6,
+      industryPE: 55.0,
+      epsHistory: [2.1, 4.5, 8.9, 14.8, 28.5],
+      earningsEvent: 'Solar Cell Capacity 2.8GW'
+    },
+    {
+      symbol: 'ANGELONE',
+      name: 'Angel One Ltd',
+      exchange: 'NSE',
+      secondaryExchange: 'BSE',
+      series: 'EQ',
+      bseCode: '543235',
+      isin: 'INE732I01013',
+      indexCategory: 'NIFTY MIDCAP 100 • Fintech Brokerage',
+      bseIndex: 'BSE 500 • BSE Financials',
+      sector: 'Financial',
+      subSector: 'Fintech & Digital Retail Brokerage',
+      basePrice: 2450,
+      patternType: 'consolidation_7w',
+      salesGrowthYoY: 45.8,
+      epsGrowthYoY: 38.7,
+      eps3Y_CAGR: 44.5,
+      eps5Y_CAGR: 49.2,
+      roe: 38.4,
+      roce: 46.2,
+      debtToEquity: 0.45,
+      peRatio: 22.8,
+      industryPE: 28.5,
+      epsHistory: [38.2, 74.8, 107.5, 131.2, 178.4],
+      earningsEvent: 'Monthly Orders > 120 Million'
+    }
   ];
 
   /* ==========================================================================
-     4. LIVE FINANCIAL NEWS WIRE DATABASE
+     5. LIVE FINANCIAL NEWS WIRE DATABASE
      ========================================================================== */
   const LIVE_NEWS_DATABASE = [
     {
@@ -628,7 +932,7 @@
   }
 
   /* ==========================================================================
-     5. 2-AXIS TRADINGVIEW CANVAS ENGINE (HORIZONTAL & VERTICAL PAN/ZOOM)
+     6. 2-AXIS TRADINGVIEW CANVAS ENGINE (HORIZONTAL & VERTICAL PAN/ZOOM)
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -644,14 +948,13 @@
       this.allCandles = [];
       this.interval = '1D';
       this.chartType = 'candle';
+      this.exchangeMode = 'NSE'; // 'NSE' or 'BSE'
       
-      // Horizontal Pan/Zoom State
       this.viewOffset = 0;
       this.viewCount = 80;
 
-      // Vertical Pan/Zoom State (TradingView Dual-Axis Engine)
-      this.priceScaleFactor = 1.0; // Multiplier: >1 expands candles vertically, <1 flattens
-      this.pricePanOffset = 0;     // Price shift in rupees
+      this.priceScaleFactor = 1.0;
+      this.pricePanOffset = 0;
       this.autoScale = true;
 
       this.isDragging = false;
@@ -662,7 +965,7 @@
       this.dragStartPanOffset = 0;
       this.dragStartScaleFactor = 1.0;
 
-      this.crosshair = { x: -1, y: -1, active: false, candle: null, price: null };
+      this.crosshair = { x: -1, y: -1, active: false, candle: null };
       this.pulsePhase = 0;
       this.animReqId = null;
 
@@ -697,6 +1000,10 @@
 
     setChartType(type) {
       this.chartType = type;
+    }
+
+    setExchangeMode(mode) {
+      this.exchangeMode = mode;
     }
 
     resetZoom() {
@@ -758,10 +1065,11 @@
       else if (range === 'ALL') { this.setInterval('1W'); this.viewCount = this.allCandles.length; }
     }
 
-    setStock(stock, interval = null) {
+    setStock(stock, interval = null, exchangeMode = null) {
       if (!stock) return;
       this.stock = stock;
       if (interval) this.interval = interval;
+      if (exchangeMode) this.exchangeMode = exchangeMode;
       this.setInterval(this.interval);
       this.resize();
     }
@@ -771,7 +1079,6 @@
         requestAnimationFrame(() => this.resize());
       });
 
-      // DUAL-AXIS MOUSE WHEEL (Vertical Zoom on Shift/Right Scale, Horizontal Zoom on Canvas)
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const rect = this.canvas.getBoundingClientRect();
@@ -780,31 +1087,26 @@
         const isOverScale = mouseX >= (this.width - paddingRight);
 
         if (isOverScale || e.shiftKey || e.ctrlKey || e.altKey) {
-          // Vertical Scale Zoom (Stretches or flattens candle height)
           const factor = e.deltaY < 0 ? 1.10 : 0.90;
           this.priceScaleFactor = Math.max(0.2, Math.min(6.0, this.priceScaleFactor * factor));
           this.autoScale = false;
         } else {
-          // Horizontal Time-Axis Zoom
           const zoomDelta = e.deltaY < 0 ? -5 : 5;
           this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
         }
       }, { passive: false });
 
-      // MOUSE DOWN (Detects Price Scale Drag vs Chart 2-Axis Pan)
       this.canvas.addEventListener('mousedown', (e) => {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
         const paddingRight = 75;
 
         if (mouseX >= (this.width - paddingRight)) {
-          // Dragging right vertical price scale
           this.isDraggingScale = true;
           this.dragStartY = e.clientY;
           this.dragStartScaleFactor = this.priceScaleFactor;
           this.canvas.style.cursor = 'ns-resize';
         } else {
-          // 2-Axis Horizontal & Vertical Pan on chart area
           this.isDragging = true;
           this.dragStartX = e.clientX;
           this.dragStartY = e.clientY;
@@ -815,8 +1117,7 @@
         }
       });
 
-      // DOUBLE CLICK ON PRICE SCALE OR CHART TO RESET AUTOSCALE
-      this.canvas.addEventListener('dblclick', (e) => {
+      this.canvas.addEventListener('dblclick', () => {
         this.priceScaleFactor = 1.0;
         this.pricePanOffset = 0;
         this.autoScale = true;
@@ -831,7 +1132,6 @@
         }
       });
 
-      // MOUSE MOVE (Dual-Axis Dragging & Crosshair Coordinates)
       this.canvas.addEventListener('mousemove', (e) => {
         const rect = this.canvas.getBoundingClientRect();
         const x = e.clientX - rect.left;
@@ -839,35 +1139,25 @@
         const paddingRight = 75, paddingLeft = 10, paddingTop = 26;
         const plotWidth = this.width - paddingLeft - paddingRight;
 
-        // Dynamic Cursor Hinting
         if (!this.isDragging && !this.isDraggingScale) {
-          if (x >= (this.width - paddingRight)) {
-            this.canvas.style.cursor = 'ns-resize';
-          } else {
-            this.canvas.style.cursor = 'crosshair';
-          }
+          this.canvas.style.cursor = x >= (this.width - paddingRight) ? 'ns-resize' : 'crosshair';
         }
 
-        // VERTICAL PRICE SCALE DRAGGING
         if (this.isDraggingScale) {
           const deltaY = e.clientY - this.dragStartY;
-          // Dragging up expands scale, dragging down compresses scale
           const multiplier = Math.exp(-deltaY * 0.008);
           this.priceScaleFactor = Math.max(0.2, Math.min(6.0, this.dragStartScaleFactor * multiplier));
           this.autoScale = false;
           return;
         }
 
-        // 2-AXIS HORIZONTAL + VERTICAL CHART DRAGGING
         if (this.isDragging) {
-          // 1. Horizontal Shift
           const deltaX = e.clientX - this.dragStartX;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = Math.round(deltaX / candleWidth);
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
           this.viewOffset = Math.max(0, Math.min(maxOffset, this.dragStartOffset + candleShift));
 
-          // 2. Vertical Shift (Pan Price Up/Down)
           const deltaY = e.clientY - this.dragStartY;
           const hasRsi = this.layers.p2_rsi;
           const pricePlotH = hasRsi ? (this.height - paddingTop - 22) * 0.62 : (this.height - paddingTop - 22) * 0.80;
@@ -939,7 +1229,6 @@
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
 
-      // Base Candlestick Extents
       let baseMinPrice = Infinity, baseMaxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
         if (c.low < baseMinPrice) baseMinPrice = c.low;
@@ -947,16 +1236,12 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      // Add headroom
       const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
       const margin = baseSpan * 0.08;
       const fullBaseMin = Math.max(0, baseMinPrice - margin);
       const fullBaseMax = baseMaxPrice + margin;
       const centerPrice = (fullBaseMax + fullBaseMin) / 2;
 
-      // =========================================================================
-      // DYNAMIC 2-AXIS PRICE RANGE (With priceScaleFactor & pricePanOffset)
-      // =========================================================================
       const effectiveSpan = (fullBaseMax - fullBaseMin) / this.priceScaleFactor;
       const adjustedCenter = centerPrice - this.pricePanOffset;
 
@@ -987,7 +1272,6 @@
         ctx.fillText(`₹${priceVal.toFixed(1)}`, w - paddingRight + 6, y + 3.5);
       }
 
-      // Vertical Scale Auto-Reset Indicator (TradingView Style)
       if (!this.autoScale) {
         ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
         ctx.fillRect(w - paddingRight + 4, paddingTop + 2, paddingRight - 8, 16);
@@ -1021,7 +1305,7 @@
       ctx.stroke();
 
       // =========================================================================
-      // CLIPPED PRICE PLOT REGION (Bounded perfectly inside price panel)
+      // CLIPPED PRICE PLOT REGION
       // =========================================================================
       ctx.save();
       ctx.beginPath();
@@ -1295,7 +1579,6 @@
       ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
       ctx.fill();
 
-      // Dynamic Horizontal Crosshair Line
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
         ctx.lineWidth = 1;
@@ -1401,20 +1684,20 @@
         ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Header Legend
-      ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
+      // =========================================================================
+      // CLEAR TOP HEADER LEGEND (EXPLICIT EXCHANGE & INDEX SUB-CATEGORY)
+      // =========================================================================
+      ctx.fillStyle = 'rgba(12, 20, 36, 0.96)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = '11px JetBrains Mono, monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${this.stock.symbol} (${this.interval}) ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
+      
+      const isNSE = this.exchangeMode === 'NSE';
+      const exchPrefix = isNSE ? `NSE: ${this.stock.symbol} (Series: ${this.stock.series || 'EQ'})` : `BSE: ${this.stock.bseCode} (${this.stock.symbol})`;
+      const indexStr = isNSE ? this.stock.indexCategory : this.stock.bseIndex;
 
-      ctx.fillStyle = '#38bdf8';
-      ctx.fillText('— 20 SMA', paddingLeft + 190, 17);
-      ctx.fillStyle = '#10b981';
-      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 265, 17);
-      ctx.fillStyle = '#c084fc';
-      ctx.fillText(`P7: ROE ${this.stock.roe}% | ROCE ${this.stock.roce}%`, paddingLeft + 365, 17);
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 11px JetBrains Mono, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`${exchPrefix} • ${indexStr} • (${this.interval}) ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
 
       // Tooltip Crosshair
       if (this.crosshair.active && this.crosshair.candle) {
@@ -1433,7 +1716,7 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH DYNAMIC PERCENTAGE PROTOCOL ENGINE
+     7. MAIN APPLICATION CONTROLLER WITH INTERACTIVE EXCHANGE & VARIANT SWITCHING
      ========================================================================== */
   class Application {
     constructor() {
@@ -1443,6 +1726,7 @@
       const urlSymbol = urlParams.get('symbol');
       this.activeMainStock = (urlSymbol && this.universe.find(s => s.symbol === urlSymbol.toUpperCase())) || this.universe[0];
 
+      this.activeExchangeMode = 'NSE'; // 'NSE' or 'BSE'
       this.currentModalStock = null;
       this.activeNewsIdx = 0;
       this.newsList = LIVE_NEWS_DATABASE;
@@ -1513,6 +1797,24 @@
     }
 
     bindTradingViewToolbar() {
+      // Exchange Variant Switcher (NSE vs BSE)
+      const btnNSE = document.getElementById('btnExchNSE');
+      const btnBSE = document.getElementById('btnExchBSE');
+
+      btnNSE?.addEventListener('click', () => {
+        this.activeExchangeMode = 'NSE';
+        btnNSE.classList.add('active');
+        btnBSE?.classList.remove('active');
+        this.updateMainChart(this.activeMainStock);
+      });
+
+      btnBSE?.addEventListener('click', () => {
+        this.activeExchangeMode = 'BSE';
+        btnBSE.classList.add('active');
+        btnNSE?.classList.remove('active');
+        this.updateMainChart(this.activeMainStock);
+      });
+
       document.querySelectorAll('.tv-btn[data-interval]').forEach(btn => {
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tv-btn[data-interval]').forEach(b => b.classList.remove('active'));
@@ -1777,7 +2079,7 @@
           document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const tabName = tab.dataset.tab;
-          document.querySelectorAll.forEach && document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
           const content = document.getElementById(`tab_${tabName}`);
           if (content) content.style.display = 'block';
           if (tabName === 'chart') setTimeout(() => this.modalChart?.resize(), 50);
@@ -1812,11 +2114,36 @@
     updateMainChart(stock) {
       if (!stock || !this.mainChart) return;
       this.activeMainStock = stock;
+      
+      const isNSE = this.activeExchangeMode === 'NSE';
       const titleEl = document.getElementById('mainChartStockTitle');
       if (titleEl) {
-        titleEl.innerHTML = `${stock.symbol} <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
+        const exchLabel = isNSE ? `(NSE: ${stock.series || 'EQ'})` : `(BSE: ${stock.bseCode})`;
+        titleEl.innerHTML = `${stock.symbol} <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">${exchLabel}</span> <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
       }
 
+      // Update Exchange Buttons
+      const btnNSE = document.getElementById('btnExchNSE');
+      const btnBSE = document.getElementById('btnExchBSE');
+      if (btnNSE) {
+        btnNSE.textContent = `NSE: ${stock.series || 'EQ'}`;
+        if (isNSE) btnNSE.classList.add('active');
+        else btnNSE.classList.remove('active');
+      }
+      if (btnBSE) {
+        btnBSE.textContent = `BSE: ${stock.bseCode}`;
+        if (!isNSE) btnBSE.classList.add('active');
+        else btnBSE.classList.remove('active');
+      }
+
+      // Update Sub-Categorization Index Badge
+      const indexBadgeEl = document.getElementById('mainChartIndexBadge');
+      if (indexBadgeEl) {
+        indexBadgeEl.textContent = isNSE ? stock.indexCategory : stock.bseIndex;
+        indexBadgeEl.title = `ISIN: ${stock.isin} | Sub-Sector: ${stock.subSector}`;
+      }
+
+      // Update Pattern Badge
       const badgeEl = document.getElementById('mainChartPatternBadge');
       if (badgeEl) {
         if (stock.cupWithHandle?.isPattern) {
@@ -1831,16 +2158,25 @@
         }
       }
 
+      // Update Direct Links
       const nseLink = document.getElementById('linkNseSource');
-      if (nseLink) nseLink.href = `https://www.nseindia.com/get-quotes/equity?symbol=${stock.symbol}`;
+      if (nseLink) {
+        if (isNSE) {
+          nseLink.href = `https://www.nseindia.com/get-quotes/equity?symbol=${stock.symbol}`;
+          nseLink.innerHTML = `🏛️ NSE India`;
+        } else {
+          nseLink.href = `https://www.bseindia.com/stock-share-price/${stock.symbol.toLowerCase()}/${stock.symbol.toLowerCase()}/${stock.bseCode}/`;
+          nseLink.innerHTML = `🏛️ BSE India`;
+        }
+      }
       
       const screenerLink = document.getElementById('linkScreenerSource');
       if (screenerLink) screenerLink.href = `https://www.screener.in/company/${stock.symbol}/`;
 
       const tvLink = document.getElementById('linkTradingViewSource');
-      if (tvLink) tvLink.href = `https://in.tradingview.com/chart/?symbol=NSE%3A${stock.symbol}`;
+      if (tvLink) tvLink.href = `https://in.tradingview.com/chart/?symbol=${isNSE ? 'NSE' : 'BSE'}%3A${stock.symbol}`;
 
-      this.mainChart.setStock(stock);
+      this.mainChart.setStock(stock, null, this.activeExchangeMode);
       this.updateGpuBadge();
     }
 
@@ -2042,7 +2378,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="13" style="text-align:center; padding:32px; color:var(--text-muted);">
-              No stocks matched all active protocols with current percentage thresholds. Try lowering slider requirements or selecting <strong>View All Stocks</strong>.
+              No stocks matched all active protocols. Try selecting <strong>View All Stocks</strong>.
             </td>
           </tr>
         `;
@@ -2069,8 +2405,11 @@
           <tr data-symbol="${stock.symbol}">
             <td>
               <div class="stock-cell">
-                <span class="stock-symbol">${stock.symbol}</span>
-                <span class="stock-name">${stock.name} (${stock.sector})</span>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <span class="stock-symbol">${stock.symbol}</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">${stock.indexCategory.split('•')[0].trim()}</span>
+                </div>
+                <span class="stock-name">${stock.name} • BSE: ${stock.bseCode}</span>
               </div>
             </td>
             <td>
@@ -2235,10 +2574,10 @@
       if (!modal) return;
 
       document.getElementById('modalStockSymbol').textContent = stock.symbol;
-      document.getElementById('modalStockName').textContent = stock.name;
+      document.getElementById('modalStockName').textContent = `${stock.name} • ${stock.indexCategory}`;
       document.getElementById('modalLTP').textContent = `₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
       document.getElementById('modalDayChg').textContent = `${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%`;
-      document.getElementById('modalExchangeTag').textContent = stock.exchange;
+      document.getElementById('modalExchangeTag').textContent = `${stock.exchange}: ${stock.series || 'EQ'} | BSE: ${stock.bseCode}`;
 
       const entry = stock.ltp;
       const sl = stock.recommendedSL || (entry * 0.93);
@@ -2251,7 +2590,7 @@
       modal.classList.add('active');
       setTimeout(() => {
         if (this.modalChart) {
-          this.modalChart.setStock(stock, '1D');
+          this.modalChart.setStock(stock, '1D', this.activeExchangeMode);
         }
       }, 50);
     }
@@ -2285,9 +2624,9 @@
 
     exportCSV() {
       if (!this.currentResults?.length) { alert('No stocks.'); return; }
-      const headers = ['Symbol', 'Name', 'Exchange', 'Sector', 'LTP', 'Day Change %', 'RS Score', 'RSI', 'Vol Burst %', 'Sales YoY %', 'EPS YoY %', '3Y EPS CAGR %', '5Y EPS CAGR %', 'ROE %', 'ROCE %', 'Stop Loss', 'SL %', 'Match Count'];
+      const headers = ['Symbol', 'Name', 'NSE Series', 'BSE Scrip Code', 'ISIN', 'Index Category', 'Sector', 'LTP', 'Day Change %', 'RS Score', 'RSI', 'Vol Burst %', 'Sales YoY %', 'EPS YoY %', '3Y EPS CAGR %', '5Y EPS CAGR %', 'ROE %', 'ROCE %', 'Stop Loss', 'SL %', 'Match Count'];
       const rows = this.currentResults.map(s => [
-        s.symbol, `"${s.name}"`, s.exchange, `"${s.sector}"`, s.ltp, s.dayChangePct, s.rsScore, s.rsi,
+        s.symbol, `"${s.name}"`, s.series || 'EQ', s.bseCode, s.isin, `"${s.indexCategory}"`, `"${s.sector}"`, s.ltp, s.dayChangePct, s.rsScore, s.rsi,
         s.volumeBurst?.burstPct || 0, s.salesGrowthYoY, s.epsGrowthYoY, s.eps3Y_CAGR, s.eps5Y_CAGR, s.roe, s.roce,
         s.recommendedSL, s.slPct, s.matchCount
       ]);

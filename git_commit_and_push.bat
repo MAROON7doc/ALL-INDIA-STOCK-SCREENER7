@@ -14,7 +14,7 @@ echo [1/4] Checking Git status...
 echo.
 
 set /p MSG="Enter commit message (or press Enter for default): "
-if "%MSG%"=="" set MSG=update: recent improvements and protocol refinements
+if "%MSG%"=="" set MSG=update: recent improvements and live data updates
 
 echo.
 echo [2/4] Adding all files...
@@ -26,7 +26,7 @@ echo [3/4] Committing changes...
 
 echo.
 echo [4/4] Pushing to GitHub (origin main)...
-%GIT_EXE% push -u origin main
+%GIT_EXE% push -u origin main --force
 
 echo.
 echo ========================================================

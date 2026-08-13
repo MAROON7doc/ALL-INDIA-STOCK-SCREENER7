@@ -1,7 +1,8 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
  * Rich 200+ Candle Datasets for ALL Intervals (1m, 5m, 15m, 1H, 1D, 1W, 1M),
- * Real-Time Multi-Timeframe Tick Propagation, and Flawless Indicator Computation.
+ * Real-Time Multi-Timeframe Tick Propagation, Same-Page Fullscreen Maximize Mode,
+ * and Standalone Pop-Out Window Navigation with Direct Source Links.
  */
 
 (function() {
@@ -275,7 +276,7 @@
      3. RICH MULTI-TIMEFRAME GENERATORS (200+ CANDLES FOR EVERY TIMEFRAME)
      ========================================================================== */
 
-  // 1-Day Daily Swing Series (250 bars = 1 full year)
+  // 1-Day Daily Swing Series (250 bars)
   function generateDailySeries(basePrice, trendType = 'cup_handle', count = 250) {
     const candles = [];
     let price = basePrice;
@@ -322,7 +323,7 @@
     return candles;
   }
 
-  // 1-Minute Intraday Series (375 bars = Full 9:15 to 15:30 Indian Trading Day)
+  // 1-Minute Intraday Series (375 bars)
   function generateIntraday1mSeries(anchorPrice, count = 375) {
     const candles = [];
     let price = anchorPrice * 0.985;
@@ -352,7 +353,7 @@
     return candles;
   }
 
-  // 15-Minute Intraday Series (250 bars = Multi-Session 15m Price Action)
+  // 15-Minute Intraday Series (250 bars)
   function generateIntraday15mSeries(anchorPrice, count = 250) {
     const candles = [];
     let price = anchorPrice * 0.94;
@@ -382,10 +383,10 @@
     return candles;
   }
 
-  // 1-Month Secular Series (120 bars = 10 full years of monthly bars)
+  // 1-Month Secular Series (120 bars)
   function generateMonthlySeries(basePrice, count = 120) {
     const candles = [];
-    let price = basePrice * 0.25; // Historical secular compounder starting from 10 years ago
+    let price = basePrice * 0.25;
     const now = new Date();
 
     for (let i = count; i >= 0; i--) {
@@ -393,7 +394,7 @@
       d.setMonth(d.getMonth() - i);
       const monthStr = d.toLocaleString('en-US', { month: 'short', year: 'numeric' });
       
-      const delta = 1.1 + (Math.random() - 0.42) * 4.5; // Steady long-term upward CAGR
+      const delta = 1.1 + (Math.random() - 0.42) * 4.5;
       const open = price;
       const close = parseFloat(Math.max(5, open * (1 + delta / 100)).toFixed(2));
       const high = Math.max(open, close) + Math.random() * (open * 0.05);
@@ -648,11 +649,10 @@
       this.stock = null;
       this.allCandles = [];
       this.interval = '1D';
-      this.chartType = 'candle'; // 'candle' or 'area'
+      this.chartType = 'candle';
       
-      // Pan & Zoom state
-      this.viewOffset = 0; // Number of candles scrolled back from rightmost
-      this.viewCount = 80; // Number of visible candles on screen (constrained nicely)
+      this.viewOffset = 0;
+      this.viewCount = 80;
       this.isDragging = false;
       this.dragStartX = 0;
       this.dragStartOffset = 0;
@@ -661,7 +661,6 @@
       this.pulsePhase = 0;
       this.animReqId = null;
 
-      // 9 Protocol Visual Layers Flags (All default to TRUE)
       this.layers = {
         p1_growth: true,
         p2_rsi: true,
@@ -711,7 +710,7 @@
       const dpr = window.devicePixelRatio || 1;
 
       this.width = Math.max(320, rect.width || this.container.clientWidth || 800);
-      this.height = Math.max(240, rect.height || this.container.clientHeight || 460);
+      this.height = Math.max(240, rect.height || this.container.clientHeight || 560);
 
       this.canvas.width = Math.floor(this.width * dpr);
       this.canvas.height = Math.floor(this.height * dpr);
@@ -761,14 +760,12 @@
     setupListeners() {
       window.addEventListener('resize', () => this.resize());
 
-      // Interactive Smooth Wheel Zoom (TradingView Style)
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const zoomDelta = e.deltaY < 0 ? -5 : 5;
         this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
       }, { passive: false });
 
-      // Interactive Mouse Drag to Pan Time Horizon
       this.canvas.addEventListener('mousedown', (e) => {
         this.isDragging = true;
         this.dragStartX = e.clientX;
@@ -847,8 +844,8 @@
       const plotWidth = w - paddingLeft - paddingRight;
       
       const hasRsiPanel = this.layers.p2_rsi;
-      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.58 : (h - paddingTop - paddingBottom) * 0.76;
-      const volumeHeight = (h - paddingTop - paddingBottom) * 0.16;
+      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.62 : (h - paddingTop - paddingBottom) * 0.80;
+      const volumeHeight = (h - paddingTop - paddingBottom) * 0.14;
       const rsiHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.18 : 0;
       
       const volumeTop = paddingTop + pricePlotHeight + 6;
@@ -861,7 +858,6 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      // Factor in P6 stop loss & targets to ensure they are never clipped
       if (this.layers.p6_sl && this.stock.recommendedSL) {
         const slP = this.stock.recommendedSL;
         const entryP = this.stock.ltp;
@@ -880,7 +876,7 @@
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
       const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
 
-      // 1. Grid Lines & Right Price Scale
+      // Grid Lines & Right Price Scale
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 4; i++) {
@@ -902,7 +898,7 @@
       const visibleCount = visibleCandles.length;
       const startGlobalIdx = this.allCandles.length - this.viewOffset - visibleCount;
 
-      // 2. 20-Period Moving Average (GPU-Accelerated)
+      // 20-Period Moving Average
       const sma20 = gpu.computeMovingAverageGPU(new Float32Array(allCloses), 20);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
       ctx.lineWidth = 1.5;
@@ -918,9 +914,7 @@
       }
       ctx.stroke();
 
-      // ==========================================
       // PROTOCOL 4: 7-WEEK CONSOLIDATION BASE BOX
-      // ==========================================
       if (this.layers.p4_base7w) {
         const c7w = this.stock.consolidation7W || Indicators.detect7WeekConsolidation(this.allCandles, 7, 18);
         const baseSessions = Math.min(visibleCount, c7w.baseLengthDays || 35);
@@ -941,7 +935,6 @@
         ctx.strokeRect(boxX, boxHighY, boxW, boxH);
         ctx.setLineDash([]);
 
-        // Base High & Low Labels
         ctx.fillStyle = '#06b6d4';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'right';
@@ -949,16 +942,13 @@
         ctx.fillText(`Base Low: ₹${bLow.toFixed(1)} (${c7w.rangePct}% Tightness)`, w - paddingRight - 8, boxLowY + 12);
       }
 
-      // ==========================================
       // PROTOCOL 5: CUP WITH HANDLE GOLDEN ARC & PIVOT
-      // ==========================================
       if (this.layers.p5_cup && this.stock.cupWithHandle?.isPattern) {
         const cwh = this.stock.cupWithHandle;
         const leftIdx = cwh.leftPeak?.index - startGlobalIdx;
         const botIdx = cwh.bottom?.index - startGlobalIdx;
         const rightIdx = cwh.rightPeak?.index - startGlobalIdx;
 
-        // Golden Arc
         if (leftIdx >= -20 && rightIdx < visibleCount + 20) {
           const p1x = getX(Math.max(0, leftIdx)), p1y = getY(cwh.leftPeak.price);
           const p2x = getX(botIdx), p2y = getY(cwh.bottom.price);
@@ -971,7 +961,6 @@
           ctx.lineWidth = 2.8;
           ctx.stroke();
 
-          // Cup Fill
           ctx.lineTo(p3x, p1y);
           ctx.lineTo(p1x, p1y);
           ctx.fillStyle = 'rgba(251, 191, 36, 0.06)';
@@ -983,7 +972,6 @@
           ctx.fillText(`P5: Cup & Handle (${cwh.score}/100)`, p2x, p2y + 18);
         }
 
-        // Pivot Breakout Line
         const pivotY = getY(cwh.pivotPrice);
         ctx.beginPath();
         ctx.moveTo(paddingLeft, pivotY);
@@ -999,7 +987,6 @@
         ctx.textAlign = 'right';
         ctx.fillText(`Pivot ₹${cwh.pivotPrice}`, w - paddingRight - 6, pivotY - 4);
 
-        // Target Line
         const targetY = getY(cwh.targetPrice);
         if (targetY > paddingTop) {
           ctx.beginPath();
@@ -1018,9 +1005,7 @@
         }
       }
 
-      // ==========================================
       // PROTOCOL 6: % STOP LOSS & FULL TRADINGVIEW R:R POSITION BOX
-      // ==========================================
       if (this.layers.p6_sl) {
         const entryPrice = this.stock.ltp;
         const slPrice = this.stock.recommendedSL || (entryPrice * 0.93);
@@ -1032,7 +1017,6 @@
         const slY = getY(slPrice);
         const targetY = getY(target2Price);
 
-        // 1. Shaded Green Profit Target Zone
         const boxX = w - paddingRight - 170;
         const boxW = 160;
         const profitH = Math.max(12, entryY - targetY);
@@ -1042,7 +1026,6 @@
         ctx.lineWidth = 1.4;
         ctx.strokeRect(boxX, targetY, boxW, profitH);
 
-        // 2. Shaded Red Risk Stop Loss Zone
         const riskH = Math.max(12, slY - entryY);
         ctx.fillStyle = 'rgba(239, 68, 68, 0.18)';
         ctx.fillRect(boxX, entryY, boxW, riskH);
@@ -1050,7 +1033,6 @@
         ctx.lineWidth = 1.4;
         ctx.strokeRect(boxX, entryY, boxW, riskH);
 
-        // 3. Full-Width Horizontal Target Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, targetY);
         ctx.lineTo(w - paddingRight, targetY);
@@ -1065,7 +1047,6 @@
         ctx.textAlign = 'left';
         ctx.fillText(`🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`, paddingLeft + 6, targetY - 4);
 
-        // 4. Full-Width Horizontal Stop Loss Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, slY);
         ctx.lineTo(w - paddingRight, slY);
@@ -1081,9 +1062,7 @@
         ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${slPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, slY - 4);
       }
 
-      // ==========================================
       // PROTOCOL 9: MANSFIELD RELATIVE STRENGTH CURVE
-      // ==========================================
       if (this.layers.p9_rs) {
         const dummyNifty = allCloses.map((c, i) => c * (0.94 + Math.sin(i * 0.08) * 0.04));
         const rsCurve = gpu.computeMansfieldRsGPU(allCloses, dummyNifty);
@@ -1103,16 +1082,15 @@
         ctx.stroke();
       }
 
-      // 3. CANDLESTICK / AREA RENDERING (STRICT SCALING: MAX 18px WIDTH)
+      // CANDLESTICK / AREA RENDERING (PROPORTIONAL 18px MAX BODY)
       const rawCandleWidth = (plotWidth / visibleCount) * 0.72;
       const candleWidth = Math.min(18, Math.max(2.5, rawCandleWidth));
       const lastCandleIdx = visibleCount - 1;
       let lastCandleX = 0, lastCandleY = 0;
 
-      // Compute 20-period SMA Volume for P3 Volume Bursts across all candles
       const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
 
-      // Area Chart Mode
+      // Area Mode
       if (this.chartType === 'area') {
         const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + pricePlotHeight);
         grad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
@@ -1145,9 +1123,7 @@
         const color = isBullish ? '#10b981' : '#ef4444';
         const gIdx = startGlobalIdx + idx;
 
-        // ==========================================
-        // PROTOCOL 3: VOLUME BURST HIGHLIGHTING
-        // ==========================================
+        // PROTOCOL 3: VOLUME BURSTS
         const avgVol = volSMA20[gIdx] || 1;
         const isBurst = (c.volume >= avgVol * 1.45 && avgVol > 0);
         const burstRatio = ((c.volume / avgVol) - 1) * 100;
@@ -1165,9 +1141,7 @@
           ctx.fillText(`+${Math.round(burstRatio)}%`, cx, vy - 3);
         }
 
-        // Draw Candlestick Bars
         if (this.chartType === 'candle') {
-          // Wicks
           ctx.strokeStyle = color;
           ctx.lineWidth = 1.2;
           ctx.beginPath();
@@ -1175,7 +1149,6 @@
           ctx.lineTo(cx, getY(c.low));
           ctx.stroke();
 
-          // Body
           const oy = getY(c.open), cy = getY(c.close);
           ctx.fillStyle = color;
           ctx.fillRect(cx - candleWidth / 2, Math.min(oy, cy), candleWidth, Math.max(1.5, Math.abs(cy - oy)));
@@ -1186,9 +1159,7 @@
           lastCandleY = getY(c.close);
         }
 
-        // ==========================================
-        // PROTOCOL 1: GROWTH MILESTONE PINS
-        // ==========================================
+        // PROTOCOL 1: GROWTH PINS
         if (this.layers.p1_growth && (idx === Math.floor(visibleCount * 0.4) || idx === Math.floor(visibleCount * 0.8)) && this.stock.earningsEvent) {
           const pinY = getY(c.high) - 12;
           ctx.fillStyle = '#38bdf8';
@@ -1200,7 +1171,7 @@
         }
       });
 
-      // 4. LIVE TICK PRICE LASER LINE & 60FPS PULSING BEACON
+      // 4. LIVE TICK BEACON
       const livePrice = this.stock.ltp;
       const liveY = getY(livePrice);
       const isTickUp = this.stock.lastTickDir === 'up';
@@ -1237,16 +1208,13 @@
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
 
-      // ==========================================
-      // PROTOCOL 2: RSI(14) MOMENTUM OSCILLATOR PANEL
-      // ==========================================
+      // PROTOCOL 2: RSI PANEL
       if (this.layers.p2_rsi) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
         ctx.fillRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
 
-        // 70 & 30 Lines
         const rsi70Y = getRsiY(70);
         const rsi30Y = getRsiY(30);
 
@@ -1289,7 +1257,7 @@
         ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Header Legend with Active Interval
+      // Top Legend
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';
@@ -1321,12 +1289,17 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH TRADINGVIEW INTERFACES
+     6. MAIN APPLICATION CONTROLLER WITH FULLSCREEN & POP-OUT CAPABILITIES
      ========================================================================== */
   class Application {
     constructor() {
       this.universe = getStockUniverse();
-      this.activeMainStock = this.universe[0];
+      
+      // Check for URL query parameter (e.g. chart.html?symbol=DIXON)
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlSymbol = urlParams.get('symbol');
+      this.activeMainStock = (urlSymbol && this.universe.find(s => s.symbol === urlSymbol.toUpperCase())) || this.universe[0];
+
       this.currentModalStock = null;
       this.activeNewsIdx = 0;
       this.newsList = LIVE_NEWS_DATABASE;
@@ -1334,6 +1307,7 @@
       this.streamInterval = 1200;
       this.liveTimer = null;
       this.newsTimer = null;
+      this.isFullscreen = false;
 
       this.filters = {
         searchTerm: '', exchange: 'ALL', sector: 'ALL', sortBy: 'matchCount', sortDir: 'desc',
@@ -1428,6 +1402,40 @@
           btn.classList.add('active');
           this.mainChart?.setRange(btn.dataset.range);
         });
+      });
+
+      // MAXIMIZE / SAME-PAGE FULLSCREEN TOGGLE
+      const maximizeBtn = document.getElementById('btnMaximizeChart');
+      const mainChartCard = document.getElementById('mainChartCard');
+      
+      const toggleFullscreen = () => {
+        if (!mainChartCard) return;
+        this.isFullscreen = !this.isFullscreen;
+        if (this.isFullscreen) {
+          mainChartCard.classList.add('fullscreen-mode');
+          if (maximizeBtn) maximizeBtn.innerHTML = '✕ Exit Fullscreen';
+          document.body.style.overflow = 'hidden';
+        } else {
+          mainChartCard.classList.remove('fullscreen-mode');
+          if (maximizeBtn) maximizeBtn.innerHTML = '⛶ Fullscreen';
+          document.body.style.overflow = 'auto';
+        }
+        setTimeout(() => this.mainChart?.resize(), 60);
+      };
+
+      maximizeBtn?.addEventListener('click', toggleFullscreen);
+
+      // Escape key to exit fullscreen
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && this.isFullscreen) {
+          toggleFullscreen();
+        }
+      });
+
+      // POPOUT TO STANDALONE TAB/WINDOW
+      document.getElementById('btnPopoutChart')?.addEventListener('click', () => {
+        const symbol = this.activeMainStock?.symbol || 'TRENT';
+        window.open(`chart.html?symbol=${symbol}`, '_blank', 'width=1280,height=800,menubar=no,toolbar=no,location=no');
       });
     }
 
@@ -1766,7 +1774,6 @@
 
         const matchCount = Object.values(protocolMatch).filter(Boolean).length;
 
-        // Keep universe object updated synchronously
         stock.ltp = ltp;
         stock.rsi = rsi;
         stock.volumeBurst = volumeBurst;

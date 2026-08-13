@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NSE/BSE Live Stock Screener | TradingView Interactive Terminal & 9-Protocol Engine</title>
-  <meta name="description" content="TradingView-Grade Interactive NSE & BSE Stock Screener featuring Pan/Zoom Candlesticks, Multi-Timeframe Analysis (1m to 1W), Cup with Handle Pattern Recognition, 7-Week Base Detection, Volume Bursts, and Direct Exchange Wire Links.">
+  <meta name="description" content="TradingView-Grade Interactive NSE & BSE Stock Screener featuring Pan/Zoom Candlesticks, Multi-Timeframe Analysis (1m to 1W), Fullscreen Maximize Mode, Pop-out Window, Cup with Handle Pattern Recognition, and Direct Exchange Wire Links.">
   <link rel="stylesheet" href="css/styles.css">
   <script defer src="js/screener.bundle.js"></script>
 </head>
@@ -388,10 +388,10 @@
     <!-- Main Content Area -->
     <main class="content-area">
       
-      <!-- Live Interactive Candlestick Chart Panel (TradingView Grade) -->
+      <!-- Live Interactive Candlestick Chart Panel (TradingView Grade with Maximize & Pop-out) -->
       <div class="main-chart-card" id="mainChartCard">
         
-        <!-- 9 Interactive Protocol Visual Layer Switches (All 100% Functioning) -->
+        <!-- 9 Interactive Protocol Visual Layer Switches -->
         <div class="protocol-layer-ribbon">
           <span class="protocol-layer-label">Visual Protocols:</span>
           <button class="layer-toggle active" data-layer="p1_growth" title="P1: Growth Milestone Pins & Earnings Beats">P1: EPS Growth</button>
@@ -403,7 +403,7 @@
           <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield Relative Strength Curve vs NIFTY 50">P9: RS Momentum</button>
         </div>
 
-        <!-- TradingView Top Toolbar: Interval Selector + Chart Type + Reset Zoom + Direct Source Links -->
+        <!-- TradingView Top Toolbar: Interval Selector + Chart Type + Maximize + Pop-out Window -->
         <div class="tv-top-toolbar">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">
@@ -425,7 +425,7 @@
             </div>
           </div>
 
-          <!-- TradingView Multi-Timeframe & Type Toolbar -->
+          <!-- TradingView Multi-Timeframe & Type Toolbar + Maximize / Popout Buttons -->
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <!-- Timeframe Interval Group -->
             <div class="tv-btn-group">
@@ -445,9 +445,19 @@
               <button class="tv-btn" id="btnChartTypeArea" title="Area Line Chart">📈 Area</button>
             </div>
 
-            <!-- Pan/Zoom Controls -->
+            <!-- Pan/Zoom Fit Controls -->
             <div class="tv-btn-group">
               <button class="tv-btn" id="btnResetChartZoom" title="Reset Zoom & Pan to Fit Screen">🔍 Fit</button>
+            </div>
+
+            <!-- MAXIMIZE & POP-OUT WINDOW BUTTONS -->
+            <div class="tv-btn-group">
+              <button class="tv-btn" id="btnMaximizeChart" title="Maximize Chart to Fullscreen Viewport" style="color:var(--accent-blue);">
+                ⛶ Fullscreen
+              </button>
+              <button class="tv-btn" id="btnPopoutChart" title="Open Standalone Live Chart in New Browser Tab/Window" style="color:var(--accent-green);">
+                ↗ Pop-Out
+              </button>
             </div>
           </div>
         </div>
@@ -460,7 +470,7 @@
           </div>
         </div>
 
-        <!-- TradingView Interactive Pan/Zoom Canvas Container -->
+        <!-- TradingView Interactive Pan/Zoom Canvas Container (Generous 560px Height) -->
         <div class="chart-container-box" id="mainCanvasContainer">
           <!-- GPU-Accelerated Canvas rendered by JS -->
         </div>
@@ -478,7 +488,7 @@
             <button class="tv-range-btn" data-range="ALL">ALL</button>
           </div>
           <div style="color:var(--text-muted); font-size:10px; font-family:var(--font-mono);" id="tvChartNavHint">
-            💡 Scroll wheel to zoom • Drag to pan historical candles
+            💡 Scroll wheel to zoom • Drag to pan • Click ⛶ Fullscreen to expand
           </div>
         </div>
 
@@ -642,7 +652,7 @@
         
         <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
-          <div class="chart-container-box" id="modalCanvasContainer" style="height: 420px;">
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 480px;">
             <!-- Canvas rendered by JS -->
           </div>
         </div>

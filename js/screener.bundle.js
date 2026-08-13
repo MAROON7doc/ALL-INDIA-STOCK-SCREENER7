@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * 100% Null-Safe Initialization for Index & Standalone Pop-Out Window (chart.html),
- * Rich Multi-Timeframe Series, Real-Time Tick Engine, and Interactive Controls.
+ * Flawless P6 Stop Loss / R:R Scaling with Canvas Price-Plot Clipping,
+ * Natural Y-Axis Autoscale Dynamics, and Ultra-Stable Pop-Out Standalone Terminal.
  */
 
 (function() {
@@ -628,7 +628,7 @@
   }
 
   /* ==========================================================================
-     5. CRISP PROPORTIONAL TRADINGVIEW CANVAS ENGINE
+     5. CRISP PROPORTIONAL TRADINGVIEW CANVAS ENGINE (STABLE & CLIPPED)
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -752,7 +752,9 @@
     }
 
     setupListeners() {
-      window.addEventListener('resize', () => this.resize());
+      window.addEventListener('resize', () => {
+        requestAnimationFrame(() => this.resize());
+      });
 
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
@@ -845,6 +847,7 @@
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
 
+      // Natural Candlestick Autoscale (Candles always get crisp, proportional height)
       let minPrice = Infinity, maxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
         if (c.low < minPrice) minPrice = c.low;
@@ -852,15 +855,9 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      if (this.layers.p6_sl && this.stock.recommendedSL) {
-        const slP = this.stock.recommendedSL;
-        const entryP = this.stock.ltp;
-        const t2P = entryP + (entryP - slP) * 2;
-        if (slP < minPrice) minPrice = slP * 0.98;
-        if (t2P > maxPrice) maxPrice = t2P * 1.02;
-      }
-
-      const priceMargin = (maxPrice - minPrice) * 0.08 || 10;
+      // Add clean 6% headroom for wicks and annotations
+      const candleSpan = (maxPrice - minPrice) || (minPrice * 0.02) || 1;
+      const priceMargin = candleSpan * 0.08;
       maxPrice += priceMargin;
       minPrice = Math.max(0, minPrice - priceMargin);
       const priceRange = maxPrice - minPrice || 1;
@@ -870,7 +867,7 @@
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
       const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
 
-      // Grid Lines & Right Price Scale
+      // 1. Grid Lines & Right Price Scale
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 4; i++) {
@@ -892,7 +889,7 @@
       const visibleCount = visibleCandles.length;
       const startGlobalIdx = this.allCandles.length - this.viewOffset - visibleCount;
 
-      // 20-Period Moving Average
+      // 2. 20-Period Moving Average
       const sma20 = gpu.computeMovingAverageGPU(new Float32Array(allCloses), 20);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
       ctx.lineWidth = 1.5;
@@ -907,6 +904,14 @@
         }
       }
       ctx.stroke();
+
+      // =========================================================================
+      // CLIPPED PRICE PLOT REGION (Prevents Any Overlay from Bleeding Out of Bounds)
+      // =========================================================================
+      ctx.save();
+      ctx.beginPath();
+      ctx.rect(paddingLeft, paddingTop, plotWidth, pricePlotHeight);
+      ctx.clip();
 
       // PROTOCOL 4: 7-WEEK CONSOLIDATION BASE BOX
       if (this.layers.p4_base7w) {
@@ -982,51 +987,64 @@
         ctx.fillText(`Pivot ₹${cwh.pivotPrice}`, w - paddingRight - 6, pivotY - 4);
 
         const targetY = getY(cwh.targetPrice);
-        if (targetY > paddingTop) {
-          ctx.beginPath();
-          ctx.moveTo(paddingLeft, targetY);
-          ctx.lineTo(w - paddingRight, targetY);
-          ctx.strokeStyle = '#34d399';
-          ctx.setLineDash([3, 3]);
-          ctx.lineWidth = 1.4;
-          ctx.stroke();
-          ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, targetY);
+        ctx.lineTo(w - paddingRight, targetY);
+        ctx.strokeStyle = '#34d399';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        ctx.setLineDash([]);
 
-          ctx.fillStyle = '#34d399';
-          ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-          ctx.textAlign = 'right';
-          ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
-        }
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
       }
 
-      // PROTOCOL 6: % STOP LOSS & FULL TRADINGVIEW R:R POSITION BOX
+      // =========================================================================
+      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX (PROPORTIONALLY BOUNDED)
+      // =========================================================================
       if (this.layers.p6_sl) {
         const entryPrice = this.stock.ltp;
-        const slPrice = this.stock.recommendedSL || (entryPrice * 0.93);
-        const slPct = this.stock.slPct || 7.0;
-        const target2Price = entryPrice + (entryPrice - slPrice) * 2;
+        
+        // Adapt risk to timeframe (Intraday tight 1.2% vs Swing 7% standard)
+        const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m');
+        const defaultSlPct = isIntraday ? 1.2 : (this.stock.slPct || 7.0);
+        const slPrice = isIntraday ? parseFloat((entryPrice * (1 - defaultSlPct / 100)).toFixed(2)) : (this.stock.recommendedSL || (entryPrice * 0.93));
+        const riskPerShare = entryPrice - slPrice;
+        const target2Price = parseFloat((entryPrice + riskPerShare * 2).toFixed(2));
         const targetPct = ((target2Price - entryPrice) / entryPrice) * 100;
 
         const entryY = getY(entryPrice);
         const slY = getY(slPrice);
         const targetY = getY(target2Price);
 
+        // Shaded Green Profit Target Zone
         const boxX = w - paddingRight - 170;
         const boxW = 160;
-        const profitH = Math.max(12, entryY - targetY);
+        const profitTop = Math.max(paddingTop, Math.min(entryY, targetY));
+        const profitBottom = Math.max(entryY, targetY);
+        const profitH = Math.max(8, profitBottom - profitTop);
+
         ctx.fillStyle = 'rgba(16, 185, 129, 0.16)';
-        ctx.fillRect(boxX, targetY, boxW, profitH);
+        ctx.fillRect(boxX, profitTop, boxW, profitH);
         ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 1.4;
-        ctx.strokeRect(boxX, targetY, boxW, profitH);
+        ctx.strokeRect(boxX, profitTop, boxW, profitH);
 
-        const riskH = Math.max(12, slY - entryY);
+        // Shaded Red Risk Stop Loss Zone
+        const riskTop = Math.min(entryY, slY);
+        const riskBottom = Math.min(paddingTop + pricePlotHeight, Math.max(entryY, slY));
+        const riskH = Math.max(8, riskBottom - riskTop);
+
         ctx.fillStyle = 'rgba(239, 68, 68, 0.18)';
-        ctx.fillRect(boxX, entryY, boxW, riskH);
+        ctx.fillRect(boxX, riskTop, boxW, riskH);
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 1.4;
-        ctx.strokeRect(boxX, entryY, boxW, riskH);
+        ctx.strokeRect(boxX, riskTop, boxW, riskH);
 
+        // Horizontal Target Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, targetY);
         ctx.lineTo(w - paddingRight, targetY);
@@ -1039,8 +1057,9 @@
         ctx.fillStyle = '#10b981';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`, paddingLeft + 6, targetY - 4);
+        ctx.fillText(`🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`, paddingLeft + 6, Math.max(paddingTop + 12, targetY - 4));
 
+        // Horizontal Stop Loss Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, slY);
         ctx.lineTo(w - paddingRight, slY);
@@ -1053,7 +1072,7 @@
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${slPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, slY - 4);
+        ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${defaultSlPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, Math.min(paddingTop + pricePlotHeight - 4, slY - 4));
       }
 
       // PROTOCOL 9: MANSFIELD RELATIVE STRENGTH CURVE
@@ -1082,8 +1101,6 @@
       const lastCandleIdx = visibleCount - 1;
       let lastCandleX = 0, lastCandleY = 0;
 
-      const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
-
       // Area Mode
       if (this.chartType === 'area') {
         const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + pricePlotHeight);
@@ -1110,30 +1127,11 @@
         ctx.stroke();
       }
 
-      // Candlesticks & Volumes
+      // Candlesticks
       visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
         const isBullish = c.close >= c.open;
         const color = isBullish ? '#10b981' : '#ef4444';
-        const gIdx = startGlobalIdx + idx;
-
-        // PROTOCOL 3: VOLUME BURSTS
-        const avgVol = volSMA20[gIdx] || 1;
-        const isBurst = (c.volume >= avgVol * 1.45 && avgVol > 0);
-        const burstRatio = ((c.volume / avgVol) - 1) * 100;
-
-        const vy = getVolY(c.volume);
-        const vh = (volumeTop + volumeHeight) - vy;
-
-        ctx.fillStyle = (this.layers.p3_vol && isBurst) ? '#f59e0b' : (isBullish ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)');
-        ctx.fillRect(cx - candleWidth / 2, vy, candleWidth, Math.max(1.5, vh));
-
-        if (this.layers.p3_vol && isBurst && (idx % 3 === 0 || idx === lastCandleIdx)) {
-          ctx.fillStyle = '#f59e0b';
-          ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(`+${Math.round(burstRatio)}%`, cx, vy - 3);
-        }
 
         if (this.chartType === 'candle') {
           ctx.strokeStyle = color;
@@ -1165,7 +1163,7 @@
         }
       });
 
-      // 4. LIVE TICK BEACON
+      // 4. LIVE TICK BEACON & LASER LINE
       const livePrice = this.stock.ltp;
       const liveY = getY(livePrice);
       const isTickUp = this.stock.lastTickDir === 'up';
@@ -1183,7 +1181,6 @@
       const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
       const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
       
-      ctx.save();
       ctx.fillStyle = isTickUp ? `rgba(16, 185, 129, ${pulseAlpha})` : `rgba(239, 68, 68, ${pulseAlpha})`;
       ctx.beginPath();
       ctx.arc(lastCandleX, lastCandleY, pulseSize + 4, 0, Math.PI * 2);
@@ -1193,14 +1190,40 @@
       ctx.beginPath();
       ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
 
+      ctx.restore(); // END CLIPPING
+
+      // Draw Right Scale Live Price Tag
       ctx.fillStyle = liveColor;
       ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 10px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
+
+      // Volumes & P3 Volume Bursts (Rendered cleanly below price plot)
+      const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
+      visibleCandles.forEach((c, idx) => {
+        const cx = getX(idx);
+        const isBullish = c.close >= c.open;
+        const gIdx = startGlobalIdx + idx;
+        const avgVol = volSMA20[gIdx] || 1;
+        const isBurst = (c.volume >= avgVol * 1.45 && avgVol > 0);
+        const burstRatio = ((c.volume / avgVol) - 1) * 100;
+
+        const vy = getVolY(c.volume);
+        const vh = (volumeTop + volumeHeight) - vy;
+
+        ctx.fillStyle = (this.layers.p3_vol && isBurst) ? '#f59e0b' : (isBullish ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)');
+        ctx.fillRect(cx - candleWidth / 2, vy, candleWidth, Math.max(1.5, vh));
+
+        if (this.layers.p3_vol && isBurst && (idx % 3 === 0 || idx === lastCandleIdx)) {
+          ctx.fillStyle = '#f59e0b';
+          ctx.font = 'bold 8.5px JetBrains Mono, monospace';
+          ctx.textAlign = 'center';
+          ctx.fillText(`+${Math.round(burstRatio)}%`, cx, vy - 3);
+        }
+      });
 
       // PROTOCOL 2: RSI PANEL
       if (this.layers.p2_rsi) {
@@ -1251,7 +1274,7 @@
         ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Legend
+      // Top Header Legend
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';

@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Fully Functional Sector Menu, Exchange Filtering, Dynamic Sorting,
- * Interactive Sector Momentum Badges, and High-Performance WebGL Engine.
+ * Fully Dynamic Protocol Engine (%tage Manipulation & Live Slider Bindings),
+ * Synchronized Preset Engine, Responsive Visual Protocols, and Hardware WebGL Compute.
  */
 
 (function() {
@@ -1293,7 +1293,7 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH SECTOR FILTERING & SECTOR BADGES
+     6. MAIN APPLICATION CONTROLLER WITH DYNAMIC PERCENTAGE PROTOCOL ENGINE
      ========================================================================== */
   class Application {
     constructor() {
@@ -1319,7 +1319,7 @@
         requireVolumeBurst: true, minBurstPct: 40,
         require7WeekConsolidation: false, maxConsolidationRange: 18,
         requireCupWithHandle: false,
-        requireStopLossLimit: true, maxStopLossPct: 8.5,
+        requireStopLossLimit: true, maxStopLossPct: 8.0,
         requireRoeRoce: true, minRoe: 17, minRoce: 17,
         requireEpsCAGR: true, minEps3YCAGR: 20,
         requireRsScore: true, minRsScore: 80
@@ -1503,7 +1503,7 @@
       bindRng('rng_rsi', 'val_rsi', v => `${v}`, v => this.filters.minRsi = v);
       bindRng('rng_volumeBurst', 'val_volumeBurst', v => `+${v}%`, v => this.filters.minBurstPct = v);
       bindRng('rng_consolidationRange', 'val_consolidationRange', v => `≤ ${v}%`, v => this.filters.maxConsolidationRange = v);
-      bindRng('rng_maxStopLoss', 'val_maxStopLoss', v => `≤ ${v}%`, v => this.filters.maxStopLossPct = v);
+      bindRng('rng_maxStopLoss', 'val_maxStopLoss', v => `≤ ${v.toFixed(1)}%`, v => this.filters.maxStopLossPct = v);
       bindRng('rng_roe', 'val_roe', v => `${v}%`, v => { this.filters.minRoe = v; this.filters.minRoce = v; });
       bindRng('rng_epsCAGR', 'val_epsCAGR', v => `${v}%`, v => this.filters.minEps3YCAGR = v);
       bindRng('rng_rsScore', 'val_rsScore', v => `${v}`, v => this.filters.minRsScore = v);
@@ -1534,23 +1534,20 @@
         this.runScan();
       });
 
-      // EXCHANGE SELECTOR
       document.getElementById('selExchange')?.addEventListener('change', (e) => {
         this.filters.exchange = e.target.value;
         this.runScan();
       });
 
-      // SECTOR SELECTOR
       const sectorSelect = document.getElementById('selSector');
       sectorSelect?.addEventListener('change', (e) => {
         this.filters.sector = e.target.value;
         this.runScan();
       });
 
-      // SECTOR MOMENTUM BADGES (Direct Click to Filter)
       document.querySelectorAll('.sector-badge').forEach(badge => {
         badge.addEventListener('click', () => {
-          const rawText = badge.textContent.trim().split(' ')[0]; // E.g. "EMS", "Defence", "Renewable", "Retail", "Wires"
+          const rawText = badge.textContent.trim().split(' ')[0];
           if (sectorSelect) {
             sectorSelect.value = rawText;
             this.filters.sector = rawText;
@@ -1559,7 +1556,6 @@
         });
       });
 
-      // DYNAMIC SORTING
       document.getElementById('selSortBy')?.addEventListener('change', (e) => {
         this.filters.sortBy = e.target.value;
         this.runScan();
@@ -1641,7 +1637,7 @@
           document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const tabName = tab.dataset.tab;
-          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          document.querySelectorAll.forEach && document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
           const content = document.getElementById(`tab_${tabName}`);
           if (content) content.style.display = 'block';
           if (tabName === 'chart') setTimeout(() => this.modalChart?.resize(), 50);
@@ -1721,20 +1717,37 @@
         }
       };
 
+      const setSlider = (rngId, pillId, val, fmt) => {
+        const rng = document.getElementById(rngId);
+        const pill = document.getElementById(pillId);
+        if (rng) rng.value = val;
+        if (pill) pill.textContent = fmt(val);
+      };
+
       if (key === 'user_master') {
-        this.filters.requireGrowth = true;
+        this.filters.requireGrowth = true; this.filters.minSalesGrowth = 15; this.filters.minEpsGrowth = 15;
         this.filters.requireRsi = true; this.filters.minRsi = 70;
         this.filters.requireVolumeBurst = true; this.filters.minBurstPct = 40;
-        this.filters.require7WeekConsolidation = false;
+        this.filters.require7WeekConsolidation = false; this.filters.maxConsolidationRange = 18;
         this.filters.requireCupWithHandle = false;
-        this.filters.requireStopLossLimit = true; this.filters.maxStopLossPct = 8.5;
-        this.filters.requireRoeRoce = true; this.filters.minRoe = 17;
+        this.filters.requireStopLossLimit = true; this.filters.maxStopLossPct = 8.0;
+        this.filters.requireRoeRoce = true; this.filters.minRoe = 17; this.filters.minRoce = 17;
         this.filters.requireEpsCAGR = true; this.filters.minEps3YCAGR = 20;
         this.filters.requireRsScore = true; this.filters.minRsScore = 80;
 
         setChk('chk_p1', true); setChk('chk_p2', true); setChk('chk_p3', true);
         setChk('chk_p4', false); setChk('chk_p5', false); setChk('chk_p6', true);
         setChk('chk_p7', true); setChk('chk_p8', true); setChk('chk_p9', true);
+
+        setSlider('rng_salesGrowth', 'val_salesGrowth', 15, v => `${v}%`);
+        setSlider('rng_epsGrowth', 'val_epsGrowth', 15, v => `${v}%`);
+        setSlider('rng_rsi', 'val_rsi', 70, v => `${v}`);
+        setSlider('rng_volumeBurst', 'val_volumeBurst', 40, v => `+${v}%`);
+        setSlider('rng_consolidationRange', 'val_consolidationRange', 18, v => `≤ ${v}%`);
+        setSlider('rng_maxStopLoss', 'val_maxStopLoss', 8.0, v => `≤ ${v.toFixed(1)}%`);
+        setSlider('rng_roe', 'val_roe', 17, v => `${v}%`);
+        setSlider('rng_epsCAGR', 'val_epsCAGR', 20, v => `${v}%`);
+        setSlider('rng_rsScore', 'val_rsScore', 80, v => `${v}`);
       } else if (key === 'cup_handle') {
         this.filters.requireGrowth = true;
         this.filters.requireCupWithHandle = true;
@@ -1770,7 +1783,7 @@
         const ltp = stock.dailyCandles[stock.dailyCandles.length - 1].close;
         const rsi = Indicators.calculateRSI(stock.closes, 14);
         const volumeBurst = Indicators.checkVolumeBurst(stock.volumes, 1.5);
-        const consolidation7W = Indicators.detect7WeekConsolidation(stock.dailyCandles, 7, 18);
+        const consolidation7W = Indicators.detect7WeekConsolidation(stock.dailyCandles, 7, this.filters.maxConsolidationRange || 18);
         const cupWithHandle = Indicators.detectCupWithHandle(stock.dailyCandles);
         const rsScore = Math.min(99, Math.max(70, Math.round(stock.salesGrowthYoY * 0.4 + stock.epsGrowthYoY * 0.4 + (rsi - 50))));
 
@@ -1786,16 +1799,17 @@
 
         const slPct = parseFloat((((ltp - recommendedSL) / ltp) * 100).toFixed(2));
 
+        // 100% Dynamic Protocol Verification (Directly Bound to User-Adjusted %tage Sliders)
         const protocolMatch = {
-          p1_growth: (stock.salesGrowthYoY >= 15 && stock.epsGrowthYoY >= 15),
-          p2_rsi: (rsi >= 70),
-          p3_volumeBurst: (volumeBurst.isBurst || volumeBurst.burstPct >= 40),
-          p4_consolidation7W: consolidation7W.isConsolidating,
+          p1_growth: (stock.salesGrowthYoY >= this.filters.minSalesGrowth && stock.epsGrowthYoY >= this.filters.minEpsGrowth),
+          p2_rsi: (rsi >= this.filters.minRsi),
+          p3_volumeBurst: (volumeBurst.isBurst || volumeBurst.burstPct >= this.filters.minBurstPct),
+          p4_consolidation7W: consolidation7W.isConsolidating && (consolidation7W.rangePct <= this.filters.maxConsolidationRange),
           p5_cupWithHandle: cupWithHandle.isPattern,
-          p6_stopLoss: (slPct >= 3 && slPct <= 8.5),
-          p7_roe_roce: (stock.roe >= 17 || stock.roce >= 17),
-          p8_epsCAGR: (stock.eps3Y_CAGR >= 20 || stock.eps5Y_CAGR >= 18),
-          p9_rsScore: (rsScore >= 80)
+          p6_stopLoss: (slPct <= this.filters.maxStopLossPct),
+          p7_roe_roce: (stock.roe >= this.filters.minRoe || stock.roce >= this.filters.minRoce),
+          p8_epsCAGR: (stock.eps3Y_CAGR >= this.filters.minEps3YCAGR || stock.eps5Y_CAGR >= this.filters.minEps3YCAGR),
+          p9_rsScore: (rsScore >= this.filters.minRsScore)
         };
 
         const matchCount = Object.values(protocolMatch).filter(Boolean).length;
@@ -1832,16 +1846,17 @@
           if (stock.sector !== this.filters.sector) return false;
         }
 
-        // Protocol Rule Checks
-        if (this.filters.requireGrowth && (stock.salesGrowthYoY < this.filters.minSalesGrowth || stock.epsGrowthYoY < this.filters.minEpsGrowth)) return false;
-        if (this.filters.requireRsi && stock.rsi < this.filters.minRsi) return false;
-        if (this.filters.requireVolumeBurst && stock.volumeBurst.burstPct < this.filters.minBurstPct) return false;
-        if (this.filters.require7WeekConsolidation && !stock.consolidation7W.isConsolidating) return false;
-        if (this.filters.requireCupWithHandle && !stock.cupWithHandle.isPattern) return false;
-        if (this.filters.requireStopLossLimit && stock.slPct > this.filters.maxStopLossPct) return false;
-        if (this.filters.requireRoeRoce && (stock.roe < this.filters.minRoe && stock.roce < this.filters.minRoce)) return false;
-        if (this.filters.requireEpsCAGR && stock.eps3Y_CAGR < this.filters.minEps3YCAGR) return false;
-        if (this.filters.requireRsScore && stock.rsScore < this.filters.minRsScore) return false;
+        // Active Checkbox Rules Evaluated with Exact Slider Thresholds
+        if (this.filters.requireGrowth && !stock.protocolMatch.p1_growth) return false;
+        if (this.filters.requireRsi && !stock.protocolMatch.p2_rsi) return false;
+        if (this.filters.requireVolumeBurst && !stock.protocolMatch.p3_volumeBurst) return false;
+        if (this.filters.require7WeekConsolidation && !stock.protocolMatch.p4_consolidation7W) return false;
+        if (this.filters.requireCupWithHandle && !stock.protocolMatch.p5_cupWithHandle) return false;
+        if (this.filters.requireStopLossLimit && !stock.protocolMatch.p6_stopLoss) return false;
+        if (this.filters.requireRoeRoce && !stock.protocolMatch.p7_roe_roce) return false;
+        if (this.filters.requireEpsCAGR && !stock.protocolMatch.p8_epsCAGR) return false;
+        if (this.filters.requireRsScore && !stock.protocolMatch.p9_rsScore) return false;
+
         return true;
       });
 
@@ -1893,7 +1908,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="13" style="text-align:center; padding:32px; color:var(--text-muted);">
-              No stocks found for the selected sector/exchange filter. Try choosing <strong>All Sectors</strong> or adjusting your protocol thresholds.
+              No stocks matched all active protocols with current percentage thresholds. Try lowering slider requirements or selecting <strong>View All Stocks</strong>.
             </td>
           </tr>
         `;
@@ -1929,12 +1944,12 @@
               <div style="font-size:11px; ${dayChgStyle}">${daySign}${stock.dayChangePct}%</div>
             </td>
             <td>
-              <span class="val-pill" style="font-size:12px; font-weight:700; ${stock.rsScore >= 80 ? 'color:var(--accent-green); background:var(--accent-green-bg);' : ''}">
+              <span class="val-pill" style="font-size:12px; font-weight:700; ${stock.rsScore >= this.filters.minRsScore ? 'color:var(--accent-green); background:var(--accent-green-bg);' : ''}">
                 ${stock.rsScore}
               </span>
             </td>
             <td>
-              <span style="font-family:var(--font-mono); font-weight:600; ${stock.rsi >= 75 ? 'color:var(--accent-amber);' : ''}">
+              <span style="font-family:var(--font-mono); font-weight:600; ${stock.rsi >= this.filters.minRsi ? 'color:var(--accent-amber);' : ''}">
                 ${stock.rsi}
               </span>
             </td>
@@ -1952,7 +1967,7 @@
             </td>
             <td>
               <div style="font-family:var(--font-mono); font-size:11.5px;">₹${stock.recommendedSL.toLocaleString('en-IN')}</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-red);">${stock.slPct}% (${stock.slSource})</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:${stock.slPct <= this.filters.maxStopLossPct ? 'var(--accent-green)' : 'var(--accent-red)'};">${stock.slPct}% (${stock.slSource})</div>
             </td>
             <td>
               <span class="match-score-badge ${matchClass}">

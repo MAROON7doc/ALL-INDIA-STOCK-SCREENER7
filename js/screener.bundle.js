@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Flawless P6 Stop Loss / R:R Scaling with Canvas Price-Plot Clipping,
- * Natural Y-Axis Autoscale Dynamics, and Ultra-Stable Pop-Out Standalone Terminal.
+ * Fully Functional Sector Menu, Exchange Filtering, Dynamic Sorting,
+ * Interactive Sector Momentum Badges, and High-Performance WebGL Engine.
  */
 
 (function() {
@@ -272,7 +272,7 @@
   };
 
   /* ==========================================================================
-     3. RICH MULTI-TIMEFRAME GENERATORS (200+ CANDLES FOR EVERY TIMEFRAME)
+     3. RICH MULTI-TIMEFRAME GENERATORS
      ========================================================================== */
 
   function generateDailySeries(basePrice, trendType = 'cup_handle', count = 250) {
@@ -847,7 +847,6 @@
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
 
-      // Natural Candlestick Autoscale (Candles always get crisp, proportional height)
       let minPrice = Infinity, maxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
         if (c.low < minPrice) minPrice = c.low;
@@ -855,7 +854,6 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      // Add clean 6% headroom for wicks and annotations
       const candleSpan = (maxPrice - minPrice) || (minPrice * 0.02) || 1;
       const priceMargin = candleSpan * 0.08;
       maxPrice += priceMargin;
@@ -906,7 +904,7 @@
       ctx.stroke();
 
       // =========================================================================
-      // CLIPPED PRICE PLOT REGION (Prevents Any Overlay from Bleeding Out of Bounds)
+      // CLIPPED PRICE PLOT REGION
       // =========================================================================
       ctx.save();
       ctx.beginPath();
@@ -1002,13 +1000,9 @@
         ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
       }
 
-      // =========================================================================
-      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX (PROPORTIONALLY BOUNDED)
-      // =========================================================================
+      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX
       if (this.layers.p6_sl) {
         const entryPrice = this.stock.ltp;
-        
-        // Adapt risk to timeframe (Intraday tight 1.2% vs Swing 7% standard)
         const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m');
         const defaultSlPct = isIntraday ? 1.2 : (this.stock.slPct || 7.0);
         const slPrice = isIntraday ? parseFloat((entryPrice * (1 - defaultSlPct / 100)).toFixed(2)) : (this.stock.recommendedSL || (entryPrice * 0.93));
@@ -1020,7 +1014,6 @@
         const slY = getY(slPrice);
         const targetY = getY(target2Price);
 
-        // Shaded Green Profit Target Zone
         const boxX = w - paddingRight - 170;
         const boxW = 160;
         const profitTop = Math.max(paddingTop, Math.min(entryY, targetY));
@@ -1033,7 +1026,6 @@
         ctx.lineWidth = 1.4;
         ctx.strokeRect(boxX, profitTop, boxW, profitH);
 
-        // Shaded Red Risk Stop Loss Zone
         const riskTop = Math.min(entryY, slY);
         const riskBottom = Math.min(paddingTop + pricePlotHeight, Math.max(entryY, slY));
         const riskH = Math.max(8, riskBottom - riskTop);
@@ -1044,7 +1036,6 @@
         ctx.lineWidth = 1.4;
         ctx.strokeRect(boxX, riskTop, boxW, riskH);
 
-        // Horizontal Target Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, targetY);
         ctx.lineTo(w - paddingRight, targetY);
@@ -1059,7 +1050,6 @@
         ctx.textAlign = 'left';
         ctx.fillText(`🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`, paddingLeft + 6, Math.max(paddingTop + 12, targetY - 4));
 
-        // Horizontal Stop Loss Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, slY);
         ctx.lineTo(w - paddingRight, slY);
@@ -1095,13 +1085,12 @@
         ctx.stroke();
       }
 
-      // CANDLESTICK / AREA RENDERING (PROPORTIONAL 18px MAX BODY)
+      // Candlestick / Area
       const rawCandleWidth = (plotWidth / visibleCount) * 0.72;
       const candleWidth = Math.min(18, Math.max(2.5, rawCandleWidth));
       const lastCandleIdx = visibleCount - 1;
       let lastCandleX = 0, lastCandleY = 0;
 
-      // Area Mode
       if (this.chartType === 'area') {
         const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + pricePlotHeight);
         grad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
@@ -1127,7 +1116,6 @@
         ctx.stroke();
       }
 
-      // Candlesticks
       visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
         const isBullish = c.close >= c.open;
@@ -1151,7 +1139,6 @@
           lastCandleY = getY(c.close);
         }
 
-        // PROTOCOL 1: GROWTH PINS
         if (this.layers.p1_growth && (idx === Math.floor(visibleCount * 0.4) || idx === Math.floor(visibleCount * 0.8)) && this.stock.earningsEvent) {
           const pinY = getY(c.high) - 12;
           ctx.fillStyle = '#38bdf8';
@@ -1193,7 +1180,7 @@
 
       ctx.restore(); // END CLIPPING
 
-      // Draw Right Scale Live Price Tag
+      // Right Scale Price Badge
       ctx.fillStyle = liveColor;
       ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
       ctx.fillStyle = '#ffffff';
@@ -1201,7 +1188,7 @@
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
 
-      // Volumes & P3 Volume Bursts (Rendered cleanly below price plot)
+      // Volumes & P3 Volume Bursts
       const volSMA20 = gpu.computeMovingAverageGPU(new Float32Array(allVolumes), 20);
       visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
@@ -1274,7 +1261,7 @@
         ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Header Legend
+      // Header Legend
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';
@@ -1306,7 +1293,7 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH NULL-SAFE STANDALONE SUPPORT
+     6. MAIN APPLICATION CONTROLLER WITH SECTOR FILTERING & SECTOR BADGES
      ========================================================================== */
   class Application {
     constructor() {
@@ -1547,16 +1534,32 @@
         this.runScan();
       });
 
+      // EXCHANGE SELECTOR
       document.getElementById('selExchange')?.addEventListener('change', (e) => {
         this.filters.exchange = e.target.value;
         this.runScan();
       });
 
-      document.getElementById('selSector')?.addEventListener('change', (e) => {
+      // SECTOR SELECTOR
+      const sectorSelect = document.getElementById('selSector');
+      sectorSelect?.addEventListener('change', (e) => {
         this.filters.sector = e.target.value;
         this.runScan();
       });
 
+      // SECTOR MOMENTUM BADGES (Direct Click to Filter)
+      document.querySelectorAll('.sector-badge').forEach(badge => {
+        badge.addEventListener('click', () => {
+          const rawText = badge.textContent.trim().split(' ')[0]; // E.g. "EMS", "Defence", "Renewable", "Retail", "Wires"
+          if (sectorSelect) {
+            sectorSelect.value = rawText;
+            this.filters.sector = rawText;
+            this.runScan();
+          }
+        });
+      });
+
+      // DYNAMIC SORTING
       document.getElementById('selSortBy')?.addEventListener('change', (e) => {
         this.filters.sortBy = e.target.value;
         this.runScan();
@@ -1616,6 +1619,11 @@
       });
 
       document.getElementById('btnResetFilters')?.addEventListener('click', () => {
+        if (sectorSelect) sectorSelect.value = 'ALL';
+        const exchSelect = document.getElementById('selExchange');
+        if (exchSelect) exchSelect.value = 'ALL';
+        this.filters.sector = 'ALL';
+        this.filters.exchange = 'ALL';
         this.applyPreset('all');
         this.runScan();
       });
@@ -1808,10 +1816,23 @@
       });
 
       const filtered = analyzed.filter(stock => {
+        // Search Term Filter
         if (this.filters.searchTerm) {
           const t = this.filters.searchTerm.toLowerCase();
           if (!stock.symbol.toLowerCase().includes(t) && !stock.name.toLowerCase().includes(t)) return false;
         }
+
+        // Exchange Filter (NSE, BSE, or ALL)
+        if (this.filters.exchange && this.filters.exchange !== 'ALL') {
+          if (!stock.exchange.includes(this.filters.exchange)) return false;
+        }
+
+        // Sector Filter (Defence, Retail, EMS, IT, Wires, Renewable, Financial, or ALL)
+        if (this.filters.sector && this.filters.sector !== 'ALL') {
+          if (stock.sector !== this.filters.sector) return false;
+        }
+
+        // Protocol Rule Checks
         if (this.filters.requireGrowth && (stock.salesGrowthYoY < this.filters.minSalesGrowth || stock.epsGrowthYoY < this.filters.minEpsGrowth)) return false;
         if (this.filters.requireRsi && stock.rsi < this.filters.minRsi) return false;
         if (this.filters.requireVolumeBurst && stock.volumeBurst.burstPct < this.filters.minBurstPct) return false;
@@ -1824,7 +1845,25 @@
         return true;
       });
 
-      filtered.sort((a, b) => b.matchCount - a.matchCount);
+      // Dynamic Sorting Engine
+      if (this.filters.sortBy === 'rsScore') {
+        filtered.sort((a, b) => b.rsScore - a.rsScore);
+      } else if (this.filters.sortBy === 'volumeBurst') {
+        filtered.sort((a, b) => (b.volumeBurst?.burstPct || 0) - (a.volumeBurst?.burstPct || 0));
+      } else if (this.filters.sortBy === 'epsGrowthYoY') {
+        filtered.sort((a, b) => b.epsGrowthYoY - a.epsGrowthYoY);
+      } else if (this.filters.sortBy === 'salesGrowthYoY') {
+        filtered.sort((a, b) => b.salesGrowthYoY - a.salesGrowthYoY);
+      } else if (this.filters.sortBy === 'roe') {
+        filtered.sort((a, b) => b.roe - a.roe);
+      } else if (this.filters.sortBy === 'eps3Y_CAGR') {
+        filtered.sort((a, b) => b.eps3Y_CAGR - a.eps3Y_CAGR);
+      } else if (this.filters.sortBy === 'ltp') {
+        filtered.sort((a, b) => b.ltp - a.ltp);
+      } else {
+        filtered.sort((a, b) => b.matchCount - a.matchCount);
+      }
+
       this.currentResults = filtered;
       this.renderTable(filtered);
       this.updateStats(filtered);
@@ -1854,7 +1893,7 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="13" style="text-align:center; padding:32px; color:var(--text-muted);">
-              No stocks matched all active protocols. Try selecting <strong>View All</strong> or adjusting filters.
+              No stocks found for the selected sector/exchange filter. Try choosing <strong>All Sectors</strong> or adjusting your protocol thresholds.
             </td>
           </tr>
         `;
@@ -1882,7 +1921,7 @@
             <td>
               <div class="stock-cell">
                 <span class="stock-symbol">${stock.symbol}</span>
-                <span class="stock-name">${stock.name}</span>
+                <span class="stock-name">${stock.name} (${stock.sector})</span>
               </div>
             </td>
             <td>

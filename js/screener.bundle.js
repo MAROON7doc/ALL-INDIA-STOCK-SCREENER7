@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * GPU-Accelerated WebGL 2.0 Pipeline + 9 Interactive Protocol Chart Layers
- * Standalone Bundle with zero CORS restrictions.
+ * Real-Time 60FPS Live Chart Ticking, Price Laser Line, Candle Beacon,
+ * GPU-Accelerated WebGL Vector Pipeline & 9 Interactive Protocol Layers.
  */
 
 (function() {
@@ -16,7 +16,7 @@
       this.gpuRenderer = 'Software Emulated';
       this.gpuVendor = 'Standard';
       this.fps = 60;
-      this.lastComputeTime = 0.12; // ms
+      this.lastComputeTime = 0.08;
       this.initGPU();
     }
 
@@ -42,7 +42,6 @@
       }
     }
 
-    // GPU-accelerated fast parallel vector array operations using TypedArrays
     computeMovingAverageGPU(dataArray, period = 20) {
       const t0 = performance.now();
       const n = dataArray.length;
@@ -104,13 +103,11 @@
       const rsCurve = new Float32Array(n);
       if (n < 50) return rsCurve;
 
-      // Base Relative Strength ratio
       const rawRS = new Float32Array(n);
       for (let i = 0; i < n; i++) {
         rawRS[i] = benchmarkCloses[i] > 0 ? (stockCloses[i] / benchmarkCloses[i]) * 100 : 1;
       }
 
-      // 52-session moving average of RS
       const smaRS = this.computeMovingAverageGPU(rawRS, 52);
       for (let i = 52; i < n; i++) {
         rsCurve[i] = smaRS[i] > 0 ? ((rawRS[i] / smaRS[i]) - 1) * 100 : 0;
@@ -176,9 +173,7 @@
     },
 
     detectCupWithHandle(candles) {
-      if (!candles || candles.length < 50) {
-        return { isPattern: false, score: 0, stage: 'None' };
-      }
+      if (!candles || candles.length < 50) return { isPattern: false, score: 0, stage: 'None' };
       const total = candles.length;
       const lookback = Math.min(total, 90);
       const window = candles.slice(-lookback);
@@ -349,13 +344,15 @@
         closes: candles.map(c => c.close),
         volumes: candles.map(c => c.volume),
         ltp: candles[candles.length - 1].close,
-        dayChangePct: 0
+        dayChangePct: 0,
+        lastTickDir: 'up',
+        lastTickTime: Date.now()
       };
     });
   }
 
   /* ==========================================================================
-     4. HARDWARE-ACCELERATED MULTI-LAYER INTERACTIVE CANVAS CHART
+     4. REAL-TIME 60FPS CANDLESTICK & MULTI-LAYER GPU CANVAS CHART
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -373,26 +370,39 @@
       this.range = '6M';
       this.crosshair = { x: -1, y: -1, active: false, candle: null };
 
-      // 9 Protocol Visual Layers Flags (All fully interactive)
+      // 60 FPS animation loop variables
+      this.pulsePhase = 0;
+      this.animReqId = null;
+
+      // 9 Protocol Visual Layers Flags
       this.layers = {
-        p1_growth: true,      // P1: Quarterly EPS/Sales Beat Pins
-        p2_rsi: true,         // P2: RSI Oscillator Panel & Momentum Zone
-        p3_vol: true,         // P3: Volume Burst Glow Beacons
-        p4_base7w: true,      // P4: 7-Week Consolidation Box
-        p5_cup: true,         // P5: Cup with Handle Golden Arc & Pivot
-        p6_sl: true,          // P6: Stop Loss & R:R Target Ladder
-        p7_roe: true,         // P7: ROE/ROCE Capital Efficiency Pill
-        p8_epsCAGR: true,     // P8: Multi-Year EPS Progression Bar
-        p9_rs: true           // P9: Mansfield RS Momentum Curve
+        p1_growth: true,
+        p2_rsi: true,
+        p3_vol: true,
+        p4_base7w: true,
+        p5_cup: true,
+        p6_sl: true,
+        p7_roe: true,
+        p8_epsCAGR: true,
+        p9_rs: true
       };
 
       this.setupListeners();
       this.resize();
+      this.startAnimationLoop();
+    }
+
+    startAnimationLoop() {
+      const renderFrame = () => {
+        this.pulsePhase = (this.pulsePhase + 0.05) % (Math.PI * 2);
+        this.render();
+        this.animReqId = requestAnimationFrame(renderFrame);
+      };
+      this.animReqId = requestAnimationFrame(renderFrame);
     }
 
     setLayer(layerKey, active) {
       this.layers[layerKey] = active;
-      this.render();
     }
 
     resize() {
@@ -410,7 +420,6 @@
 
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       this.ctx.scale(dpr, dpr);
-      this.render();
     }
 
     setStock(stock, range = null) {
@@ -425,7 +434,6 @@
     setRange(range) {
       this.range = range;
       this.updateVisibleRange();
-      this.render();
     }
 
     updateVisibleRange() {
@@ -451,7 +459,7 @@
         this.crosshair.active = true;
 
         if (this.visibleCandles.length) {
-          const paddingRight = 65, paddingLeft = 10;
+          const paddingRight = 75, paddingLeft = 10;
           const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = plotWidth / this.visibleCandles.length;
           const idx = Math.floor((x - paddingLeft) / candleWidth);
@@ -461,13 +469,11 @@
             this.crosshair.candle = null;
           }
         }
-        this.render();
       });
 
       this.canvas.addEventListener('mouseleave', () => {
         this.crosshair.active = false;
         this.crosshair.candle = null;
-        this.render();
       });
     }
 
@@ -481,10 +487,9 @@
       ctx.fillStyle = '#070c17';
       ctx.fillRect(0, 0, w, h);
 
-      const paddingRight = 65, paddingBottom = 22, paddingLeft = 10, paddingTop = 26;
+      const paddingRight = 75, paddingBottom = 20, paddingLeft = 10, paddingTop = 26;
       const plotWidth = w - paddingLeft - paddingRight;
       
-      // Partitions: 60% Candlestick Price, 18% Volume, 18% RSI Oscillator
       const pricePlotHeight = (h - paddingTop - paddingBottom) * 0.60;
       const volumeHeight = (h - paddingTop - paddingBottom) * 0.16;
       const rsiHeight = (h - paddingTop - paddingBottom) * 0.18;
@@ -499,7 +504,7 @@
         if (c.volume > maxVol) maxVol = c.volume;
       }
 
-      const priceMargin = (maxPrice - minPrice) * 0.06 || 10;
+      const priceMargin = (maxPrice - minPrice) * 0.07 || 10;
       maxPrice += priceMargin;
       minPrice = Math.max(0, minPrice - priceMargin);
       const priceRange = maxPrice - minPrice || 1;
@@ -530,7 +535,7 @@
       const visibleCount = this.visibleCandles.length;
       const startIdx = this.candles.length - visibleCount;
 
-      // 2. GPU Accelerated 20-Day SMA
+      // 2. 20-Day Moving Average
       const sma20 = gpu.computeMovingAverageGPU(new Float32Array(closes), 20);
       ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
       ctx.lineWidth = 1.5;
@@ -546,9 +551,7 @@
       }
       ctx.stroke();
 
-      // ==========================================
-      // PROTOCOL LAYER 4: 7-Week Consolidation Box
-      // ==========================================
+      // Protocol 4: 7-Week Consolidation Box
       if (this.layers.p4_base7w && this.stock.consolidation7W?.isConsolidating) {
         const days = this.stock.consolidation7W.baseLengthDays || 35;
         const baseStart = Math.max(0, visibleCount - days);
@@ -571,9 +574,7 @@
         ctx.fillText(`P4: 7-Week Base (${this.stock.consolidation7W.rangePct}% range)`, w - paddingRight - 8, boxHighY + 12);
       }
 
-      // ==========================================
-      // PROTOCOL LAYER 5: Cup with Handle Golden Arc & Pivot
-      // ==========================================
+      // Protocol 5: Cup with Handle Golden Arc & Pivot
       if (this.layers.p5_cup && this.stock.cupWithHandle?.isPattern) {
         const cwh = this.stock.cupWithHandle;
         const leftIdx = cwh.leftPeak?.index - startIdx;
@@ -585,7 +586,6 @@
           const p2x = getX(botIdx), p2y = getY(cwh.bottom.price);
           const p3x = getX(rightIdx), p3y = getY(cwh.rightPeak.price);
 
-          // Golden Arc
           ctx.beginPath();
           ctx.moveTo(p1x, p1y);
           ctx.quadraticCurveTo(p2x, p2y + 18, p3x, p3y);
@@ -629,9 +629,7 @@
         }
       }
 
-      // ==========================================
-      // PROTOCOL LAYER 6: Stop Loss & R:R Ladder
-      // ==========================================
+      // Protocol 6: Stop Loss Line
       if (this.layers.p6_sl && this.stock.recommendedSL) {
         const slY = getY(this.stock.recommendedSL);
         ctx.beginPath();
@@ -649,9 +647,7 @@
         ctx.fillText(`P6: Stop Loss ₹${this.stock.recommendedSL} (-${this.stock.slPct}%)`, paddingLeft + 6, slY - 4);
       }
 
-      // ==========================================
-      // PROTOCOL LAYER 9: Mansfield RS Momentum Curve
-      // ==========================================
+      // Protocol 9: Mansfield RS Curve
       if (this.layers.p9_rs) {
         const dummyNifty = closes.map(c => c * 0.95);
         const rsCurve = gpu.computeMansfieldRsGPU(closes, dummyNifty);
@@ -672,20 +668,22 @@
 
       // 3. Draw Candlesticks & Volumes
       const candleWidth = Math.max(2, (plotWidth / visibleCount) * 0.72);
+      const lastCandleIdx = visibleCount - 1;
+      let lastCandleX = 0, lastCandleY = 0;
+
       this.visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
         const isBullish = c.close >= c.open;
         const color = isBullish ? '#10b981' : '#ef4444';
 
-        // Volume Histogram
+        // Volume
         const vy = getVolY(c.volume);
         const vh = (volumeTop + volumeHeight) - vy;
-        const isBurst = (idx === visibleCount - 1 && this.stock.volumeBurst?.isBurst);
+        const isBurst = (idx === lastCandleIdx && this.stock.volumeBurst?.isBurst);
         
         ctx.fillStyle = (this.layers.p3_vol && isBurst) ? '#f59e0b' : (isBullish ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)');
         ctx.fillRect(cx - candleWidth / 2, vy, candleWidth, Math.max(1.5, vh));
 
-        // Volume Burst Beacon Tag
         if (this.layers.p3_vol && isBurst) {
           ctx.fillStyle = '#f59e0b';
           ctx.font = 'bold 9px JetBrains Mono, monospace';
@@ -693,39 +691,84 @@
           ctx.fillText(`+${this.stock.volumeBurst.burstPct}%`, cx, vy - 3);
         }
 
-        // Candle Wicks
+        // Wicks
+        const hy = getY(c.high);
+        const ly = getY(c.low);
         ctx.strokeStyle = color;
         ctx.lineWidth = 1.2;
         ctx.beginPath();
-        ctx.moveTo(cx, getY(c.high));
-        ctx.lineTo(cx, getY(c.low));
+        ctx.moveTo(cx, hy);
+        ctx.lineTo(cx, ly);
         ctx.stroke();
 
-        // Candle Body
+        // Body
         const oy = getY(c.open), cy = getY(c.close);
         ctx.fillStyle = color;
         ctx.fillRect(cx - candleWidth / 2, Math.min(oy, cy), candleWidth, Math.max(1.5, Math.abs(cy - oy)));
+
+        if (idx === lastCandleIdx) {
+          lastCandleX = cx;
+          lastCandleY = cy;
+        }
 
         // Protocol 1: Milestone Pin
         if (this.layers.p1_growth && idx === Math.floor(visibleCount * 0.75) && this.stock.earningsEvent) {
           ctx.fillStyle = '#38bdf8';
           ctx.font = 'bold 9px Inter, sans-serif';
           ctx.textAlign = 'center';
-          ctx.fillText(`📌 P1: ${this.stock.earningsEvent}`, cx, getY(c.high) - 10);
+          ctx.fillText(`📌 P1: ${this.stock.earningsEvent}`, cx, hy - 10);
         }
       });
 
       // ==========================================
-      // PROTOCOL LAYER 2: RSI Oscillator Panel
+      // 4. LIVE TICK PRICE LASER LINE & 60FPS PULSING BEACON
       // ==========================================
+      const livePrice = this.stock.ltp;
+      const liveY = getY(livePrice);
+      const isTickUp = this.stock.lastTickDir === 'up';
+      const liveColor = isTickUp ? '#10b981' : '#ef4444';
+
+      // Laser Line
+      ctx.strokeStyle = liveColor;
+      ctx.lineWidth = 1.2;
+      ctx.setLineDash([4, 2]);
+      ctx.beginPath();
+      ctx.moveTo(paddingLeft, liveY);
+      ctx.lineTo(w - paddingRight, liveY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 60FPS Pulsing Live Beacon Ring on the newest candle
+      const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
+      const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
+      
+      ctx.save();
+      ctx.fillStyle = isTickUp ? `rgba(16, 185, 129, ${pulseAlpha})` : `rgba(239, 68, 68, ${pulseAlpha})`;
+      ctx.beginPath();
+      ctx.arc(lastCandleX, lastCandleY, pulseSize + 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = liveColor;
+      ctx.beginPath();
+      ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      // Glowing Live Price Pill on Axis
+      ctx.fillStyle = liveColor;
+      ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
+
+      // Protocol 2: RSI Oscillator Panel
       if (this.layers.p2_rsi) {
-        // RSI Box background
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
         ctx.fillRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
 
-        // RSI 70/80 Overbought momentum line
         const rsi70Y = getRsiY(70);
         ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
         ctx.setLineDash([2, 2]);
@@ -740,7 +783,6 @@
         ctx.textAlign = 'left';
         ctx.fillText('70 RSI', w - paddingRight + 4, rsi70Y + 3);
 
-        // RSI Curve
         const rsiGPUArr = gpu.computeRsiGPU(new Float32Array(closes), 14);
         ctx.strokeStyle = '#f59e0b';
         ctx.lineWidth = 1.5;
@@ -760,20 +802,20 @@
         ctx.fillText(`P2: RSI(14) Momentum: ${this.stock.rsi || 75}`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Info Legend with Protocol Highlights
+      // Top Legend
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';
       ctx.font = '11px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`${this.stock.symbol} ₹${this.stock.ltp}`, paddingLeft + 6, 17);
+      ctx.fillText(`${this.stock.symbol} ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
 
       ctx.fillStyle = '#38bdf8';
-      ctx.fillText('— 20 SMA', paddingLeft + 140, 17);
+      ctx.fillText('— 20 SMA', paddingLeft + 150, 17);
       ctx.fillStyle = '#10b981';
-      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 210, 17);
+      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 225, 17);
       ctx.fillStyle = '#c084fc';
-      ctx.fillText(`P7: ROE ${this.stock.roe}% | ROCE ${this.stock.roce}%`, paddingLeft + 310, 17);
+      ctx.fillText(`P7: ROE ${this.stock.roe}% | ROCE ${this.stock.roce}%`, paddingLeft + 330, 17);
 
       // Tooltip
       if (this.crosshair.active && this.crosshair.candle) {
@@ -791,7 +833,7 @@
   }
 
   /* ==========================================================================
-     5. MAIN APPLICATION CONTROLLER WITH GPU TELEMETRY
+     5. MAIN APPLICATION CONTROLLER WITH CONTINUOUS ACTIVE CHART TICKING
      ========================================================================== */
   class Application {
     constructor() {
@@ -800,7 +842,7 @@
       this.currentModalStock = null;
       this.activeNewsIdx = 0;
       this.isLive = true;
-      this.streamInterval = 3000;
+      this.streamInterval = 1200; // Fast responsive live stream rate (1.2s)
       this.liveTimer = null;
 
       this.filters = {
@@ -1290,15 +1332,40 @@
       const loop = () => {
         if (!this.isLive) return;
 
-        const updateCount = Math.floor(Math.random() * 3) + 2;
-        const targets = [...this.universe].sort(() => 0.5 - Math.random()).slice(0, updateCount);
-        const updated = [];
+        // 1. GUARANTEE the active chart stock ALWAYS receives a live micro-tick
+        if (this.activeMainStock) {
+          const mainCandle = this.activeMainStock.candles[this.activeMainStock.candles.length - 1];
+          const deltaPct = (Math.random() - 0.46) * 0.45; // micro price fluctuation
+          const newClose = parseFloat(Math.max(5, mainCandle.close * (1 + deltaPct / 100)).toFixed(2));
+          mainCandle.volume += Math.floor(Math.random() * 12000) + 2500;
+          mainCandle.close = newClose;
+          mainCandle.high = Math.max(mainCandle.high, newClose);
+          mainCandle.low = Math.min(mainCandle.low, newClose);
 
-        targets.forEach(stock => {
+          const baseClose = this.activeMainStock.candles[this.activeMainStock.candles.length - 2]?.close || newClose;
+          this.activeMainStock.dayChangePct = parseFloat((((newClose - baseClose) / baseClose) * 100).toFixed(2));
+          this.activeMainStock.ltp = newClose;
+          this.activeMainStock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
+          this.activeMainStock.closes[this.activeMainStock.closes.length - 1] = newClose;
+          this.activeMainStock.volumes[this.activeMainStock.volumes.length - 1] = mainCandle.volume;
+
+          // Update chart header price immediately
+          const titlePriceEl = document.getElementById('mainChartPrice');
+          if (titlePriceEl) {
+            titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            titlePriceEl.textContent = `₹${newClose.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
+          }
+        }
+
+        // 2. Concurrently tick other stocks across the market universe
+        const otherTargets = this.universe.filter(s => s.symbol !== this.activeMainStock?.symbol).sort(() => 0.5 - Math.random()).slice(0, 3);
+        const updated = [{ symbol: this.activeMainStock?.symbol, dir: this.activeMainStock?.lastTickDir }];
+
+        otherTargets.forEach(stock => {
           const candle = stock.candles[stock.candles.length - 1];
-          const deltaPct = (Math.random() - 0.44) * 0.7;
+          const deltaPct = (Math.random() - 0.46) * 0.6;
           const newClose = parseFloat(Math.max(5, candle.close * (1 + deltaPct / 100)).toFixed(2));
-          candle.volume += Math.floor(Math.random() * 35000) + 8000;
+          candle.volume += Math.floor(Math.random() * 25000) + 5000;
           candle.close = newClose;
           candle.high = Math.max(candle.high, newClose);
           candle.low = Math.min(candle.low, newClose);
@@ -1306,27 +1373,25 @@
           const baseClose = stock.candles[stock.candles.length - 2]?.close || newClose;
           stock.dayChangePct = parseFloat((((newClose - baseClose) / baseClose) * 100).toFixed(2));
           stock.ltp = newClose;
+          stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
           stock.closes[stock.closes.length - 1] = newClose;
           stock.volumes[stock.volumes.length - 1] = candle.volume;
 
-          updated.push({ symbol: stock.symbol, dir: deltaPct >= 0 ? 'up' : 'down' });
+          updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
         });
 
         this.runScan();
 
+        // Flash table row
         updated.forEach(t => {
+          if (!t.symbol) return;
           const row = document.querySelector(`tr[data-symbol="${t.symbol}"]`);
           if (row) {
             const cls = t.dir === 'up' ? 'flash-up' : 'flash-down';
             row.classList.add(cls);
-            setTimeout(() => row.classList.remove(cls), 500);
+            setTimeout(() => row.classList.remove(cls), 400);
           }
         });
-
-        if (this.mainChart && this.activeMainStock) {
-          const matched = updated.find(t => t.symbol === this.activeMainStock.symbol);
-          if (matched) this.updateMainChart(this.activeMainStock);
-        }
 
         this.liveTimer = setTimeout(loop, this.streamInterval);
       };

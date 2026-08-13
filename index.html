@@ -74,7 +74,7 @@
       </div>
 
       <div class="header-actions">
-        <!-- Live Stream Controls -->
+        <!-- Live Stream Speed Controls -->
         <div style="display:flex; align-items:center; gap:6px; background:var(--bg-card); padding:4px 8px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
           <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
           <select id="selStreamSpeed" class="btn btn-sm" style="padding:2px 6px; font-size:11px; border:none; background:transparent;">
@@ -85,6 +85,14 @@
           </select>
           <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 8px; font-size:11px;">⏸ Pause</button>
         </div>
+
+        <button class="btn btn-sm" id="btnToggleMainChart" title="Toggle Live Chart Panel">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 9l-5 5-4-4-6 6"></path>
+          </svg>
+          📈 Live Chart
+        </button>
 
         <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News & Market Wire">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -377,6 +385,34 @@
 
     <!-- Main Content Area -->
     <main class="content-area">
+      
+      <!-- Live Interactive Candlestick Chart Panel directly on Dashboard -->
+      <div class="main-chart-card" id="mainChartCard">
+        <div class="chart-toolbar">
+          <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+            <div style="font-weight:700; font-size:14px; color:var(--text-primary);" id="mainChartStockTitle">
+              TRENT <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
+            </div>
+            <span class="tag tag-cwh" id="mainChartPatternBadge">☕ Cup & Handle (Score 95)</span>
+            <div class="stock-pill-selector" id="stockPillSelector">
+              <!-- Dynamically populated stock selection pills -->
+            </div>
+          </div>
+
+          <div class="range-btn-group">
+            <button class="btn btn-sm main-range-btn" data-range="1M">1M</button>
+            <button class="btn btn-sm main-range-btn" data-range="3M">3M</button>
+            <button class="btn btn-sm main-range-btn btn-primary" data-range="6M">6M</button>
+            <button class="btn btn-sm main-range-btn" data-range="1Y">1Y</button>
+            <button class="btn btn-sm main-range-btn" data-range="ALL">ALL</button>
+          </div>
+        </div>
+
+        <div class="chart-container-box" id="mainCanvasContainer" style="height: 380px;">
+          <!-- Main Canvas rendered by JS -->
+        </div>
+      </div>
+
       <!-- High-Level Metric Cards -->
       <div class="stats-grid">
         <div class="stat-card">
@@ -496,7 +532,7 @@
   <!-- Dynamic Live Alert Toast -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Detail Modal & Chart Visualizer -->
+  <!-- Detail Modal & Full Analysis Visualizer -->
   <div class="modal-overlay" id="stockModal">
     <div class="modal-container">
       <div class="modal-header">
@@ -523,7 +559,7 @@
 
       <!-- Modal Tabs -->
       <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="chart">📊 Technical Candlestick Chart & Pattern Overlay</div>
+        <div class="modal-tab active" data-tab="chart">📊 Candlestick Chart & Pattern Overlay</div>
         <div class="modal-tab" data-tab="fundamentals">📑 Fundamentals & 3-5Y EPS CAGR</div>
         <div class="modal-tab" data-tab="calculator">🧮 Risk Management & Position Sizing</div>
         <div class="modal-tab" data-tab="overview">🏢 Company Profile & Protocols Checklist</div>
@@ -532,22 +568,22 @@
       <!-- Modal Body -->
       <div class="modal-body">
         
-        <!-- Tab 1: Candlestick Chart -->
+        <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
           <div class="chart-toolbar">
             <div style="font-size:12px; color:var(--text-muted);" id="chartPatternSummary">
               Annotated: Cup with Handle (Rounded bottom, pivot line, target & stop loss)
             </div>
             <div class="range-btn-group">
-              <button class="btn btn-sm range-btn" data-range="1M">1M</button>
-              <button class="btn btn-sm range-btn" data-range="3M">3M</button>
-              <button class="btn btn-sm range-btn btn-primary" data-range="6M">6M</button>
-              <button class="btn btn-sm range-btn" data-range="1Y">1Y</button>
-              <button class="btn btn-sm range-btn" data-range="ALL">ALL</button>
+              <button class="btn btn-sm modal-range-btn" data-range="1M">1M</button>
+              <button class="btn btn-sm modal-range-btn" data-range="3M">3M</button>
+              <button class="btn btn-sm modal-range-btn btn-primary" data-range="6M">6M</button>
+              <button class="btn btn-sm modal-range-btn" data-range="1Y">1Y</button>
+              <button class="btn btn-sm modal-range-btn" data-range="ALL">ALL</button>
             </div>
           </div>
 
-          <div class="chart-container-box" id="canvasContainer">
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 400px;">
             <!-- Canvas rendered by JS -->
           </div>
         </div>

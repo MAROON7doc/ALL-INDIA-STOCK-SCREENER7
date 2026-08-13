@@ -1,6 +1,7 @@
 /**
- * Main Application Orchestrator with Live Streamer & News Wire
- * Connects UI, Filter Engine, Candlestick Chart, Live Market Stream, and Real-time News Feeds.
+ * Main Application Orchestrator with Dual Chart Visualizers & Live Streamer
+ * Connects UI, Filter Engine, Embedded Main Candlestick Chart, Modal Chart,
+ * Live Market Stream, and Real-time News Feeds.
  */
 
 import { getInitialStockUniverse } from './data.js';
@@ -15,8 +16,12 @@ class App {
     this.rawUniverse = getInitialStockUniverse();
     this.scanner = new StockScanner(this.rawUniverse);
     this.newsEngine = new NewsEngine();
-    this.chart = null;
-    this.currentStock = null;
+    
+    this.mainChart = null;
+    this.modalChart = null;
+    this.activeMainStock = this.rawUniverse[0]; // Default to TRENT
+    this.currentModalStock = null;
+    
     this.activePreset = 'user_master';
     this.newsItems = [];
     this.activeNewsIdx = 0;
@@ -53,12 +58,21 @@ class App {
   }
 
   init() {
-    this.chart = new StockChart('canvasContainer');
+    // 1. Initialize Main Dashboard Chart & Modal Chart
+    this.mainChart = new StockChart('mainCanvasContainer');
+    this.modalChart = new StockChart('modalCanvasContainer');
+
     this.bindEvents();
+    this.renderStockPills();
     this.applyPreset('user_master');
     this.runScan();
 
-    // Start Live Market Stream Engine
+    // Set initial stock on main chart
+    if (this.mainChart && this.activeMainStock) {
+      this.updateMainChartDisplay(this.activeMainStock);
+    }
+
+    // 2. Start Live Market Stream Engine
     this.liveEngine = new LiveStreamEngine(
       this.rawUniverse,
       (updatedTicks) => this.handleLiveTicks(updatedTicks),
@@ -66,8 +80,62 @@ class App {
     );
     this.liveEngine.start();
 
-    // Load Live Financial News
+    // 3. Load Live Financial News
     this.loadNews();
+  }
+
+  renderStockPills() {
+    const pillContainer = document.getElementById('stockPillSelector');
+    if (!pillContainer) return;
+
+    const topSymbols = ['TRENT', 'DIXON', 'KAYNES', 'BEL', 'HAL', 'SOLARINDS', 'CDSL', 'BDL', 'POLYCAB', 'PERSISTENT'];
+    pillContainer.innerHTML = topSymbols.map(sym => `
+      <button class="stock-pill ${sym === this.activeMainStock.symbol ? 'active' : ''}" data-symbol="${sym}">
+        ${sym}
+      </button>
+    `).join('');
+
+    pillContainer.querySelectorAll('.stock-pill').forEach(pill => {
+      pill.addEventListener('click', () => {
+        pillContainer.querySelectorAll('.stock-pill').forEach(p => p.classList.remove('active'));
+        pill.classList.add('active');
+        const sym = pill.dataset.symbol;
+        const stock = this.rawUniverse.find(s => s.symbol === sym);
+        if (stock) {
+          this.activeMainStock = stock;
+          this.updateMainChartDisplay(stock);
+        }
+      });
+    });
+  }
+
+  updateMainChartDisplay(stock) {
+    if (!stock || !this.mainChart) return;
+    this.activeMainStock = stock;
+
+    const titleEl = document.getElementById('mainChartStockTitle');
+    if (titleEl) {
+      titleEl.innerHTML = `${stock.symbol} <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
+    }
+
+    const badgeEl = document.getElementById('mainChartPatternBadge');
+    if (badgeEl) {
+      if (stock.cupWithHandle?.isPattern) {
+        badgeEl.textContent = `☕ Cup & Handle (Score ${stock.cupWithHandle.score})`;
+        badgeEl.className = 'tag tag-cwh';
+        badgeEl.style.display = 'inline-block';
+      } else if (stock.consolidation7W?.isConsolidating) {
+        badgeEl.textContent = `🧱 7-Week Base (${stock.consolidation7W.rangePct}% range)`;
+        badgeEl.className = 'tag tag-7w';
+        badgeEl.style.display = 'inline-block';
+      } else {
+        badgeEl.textContent = `High RS Leader (${stock.rsScore})`;
+        badgeEl.className = 'tag';
+        badgeEl.style.display = 'inline-block';
+      }
+    }
+
+    this.mainChart.setStock(stock);
   }
 
   bindEvents() {
@@ -122,6 +190,19 @@ class App {
         this.applyPreset(chip.dataset.preset);
         this.runScan();
       });
+    });
+
+    // Toggle Main Chart Card
+    document.getElementById('btnToggleMainChart')?.addEventListener('click', () => {
+      const card = document.getElementById('mainChartCard');
+      if (card) {
+        if (card.style.display === 'none') {
+          card.style.display = 'block';
+          setTimeout(() => this.mainChart?.resize(), 50);
+        } else {
+          card.style.display = 'none';
+        }
+      }
     });
 
     // Live Stream Controls
@@ -205,18 +286,27 @@ class App {
         const activeContent = document.getElementById(`tab_${tabName}`);
         if (activeContent) activeContent.style.display = 'block';
 
-        if (tabName === 'chart' && this.chart) {
-          setTimeout(() => this.chart.resize(), 50);
+        if (tabName === 'chart' && this.modalChart) {
+          setTimeout(() => this.modalChart.resize(), 50);
         }
       });
     });
 
-    // Chart Range Buttons
-    document.querySelectorAll('.range-btn').forEach(btn => {
+    // Main Chart Range Buttons
+    document.querySelectorAll('.main-range-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        document.querySelectorAll('.range-btn').forEach(b => b.classList.remove('btn-primary'));
+        document.querySelectorAll('.main-range-btn').forEach(b => b.classList.remove('btn-primary'));
         btn.classList.add('btn-primary');
-        if (this.chart) this.chart.setRange(btn.dataset.range);
+        if (this.mainChart) this.mainChart.setRange(btn.dataset.range);
+      });
+    });
+
+    // Modal Chart Range Buttons
+    document.querySelectorAll('.modal-range-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.modal-range-btn').forEach(b => b.classList.remove('btn-primary'));
+        btn.classList.add('btn-primary');
+        if (this.modalChart) this.modalChart.setRange(btn.dataset.range);
       });
     });
 
@@ -271,7 +361,6 @@ class App {
       </div>
     `).join('');
 
-    // Clicking news card focuses on ticker if present
     list.querySelectorAll('.news-card').forEach(card => {
       card.addEventListener('click', () => {
         const ticker = card.dataset.ticker;
@@ -279,6 +368,8 @@ class App {
           document.getElementById('txtSearch').value = ticker;
           this.filters.searchTerm = ticker;
           this.runScan();
+          const stock = this.rawUniverse.find(s => s.symbol === ticker);
+          if (stock) this.updateMainChartDisplay(stock);
           document.getElementById('newsDrawerOverlay')?.classList.remove('active');
         }
       });
@@ -303,7 +394,27 @@ class App {
 
   handleLiveTicks(updatedTicks) {
     this.scanner.analyzeUniverse();
-    this.runScan(false); // Update without resetting view
+    this.runScan(false);
+
+    // Update charts in real-time
+    const currentMainSym = this.activeMainStock?.symbol;
+    const mainTick = updatedTicks.find(t => t.symbol === currentMainSym);
+    if (mainTick && this.mainChart) {
+      const refreshedStock = this.rawUniverse.find(s => s.symbol === currentMainSym);
+      if (refreshedStock) {
+        this.updateMainChartDisplay(refreshedStock);
+      }
+    }
+
+    if (this.currentModalStock && this.modalChart) {
+      const modalTick = updatedTicks.find(t => t.symbol === this.currentModalStock.symbol);
+      if (modalTick) {
+        const refreshedStock = this.rawUniverse.find(s => s.symbol === this.currentModalStock.symbol);
+        if (refreshedStock) {
+          this.modalChart.setStock(refreshedStock);
+        }
+      }
+    }
 
     // Apply flash animations to updated rows
     updatedTicks.forEach(tick => {
@@ -486,9 +597,9 @@ class App {
 
   updateStats(stocks) {
     const totalMatching = stocks.length;
-    const cupCount = stocks.filter(s => s.cupWithHandle.isPattern).length;
-    const w7Count = stocks.filter(s => s.consolidation7W.isConsolidating).length;
-    const avgRs = totalMatching > 0 ? Math.round(stocks.reduce((a, b) => a + b.rsScore, 0) / totalMatching) : 0;
+    const cupCount = stocks.filter(s => s.cupWithHandle?.isPattern).length;
+    const w7Count = stocks.filter(s => s.consolidation7W?.isConsolidating).length;
+    const avgRs = totalMatching > 0 ? Math.round(stocks.reduce((a, b) => a + (b.rsScore || 50), 0) / totalMatching) : 0;
 
     document.getElementById('statMatchingCount').textContent = totalMatching;
     document.getElementById('statMatchingSub').textContent = `Scanned universe: ${this.rawUniverse.length}`;
@@ -519,15 +630,15 @@ class App {
       const daySign = stock.dayChangePct > 0 ? '+' : '';
 
       let patternBadge = `<span style="color:var(--text-muted); font-size:11px;">Consolidating</span>`;
-      if (stock.cupWithHandle.isPattern) {
+      if (stock.cupWithHandle?.isPattern) {
         patternBadge = `<span class="tag tag-cwh" title="Cup & Handle Score: ${stock.cupWithHandle.score}">☕ Cup & Handle (${stock.cupWithHandle.score})</span>`;
-      } else if (stock.consolidation7W.isConsolidating) {
+      } else if (stock.consolidation7W?.isConsolidating) {
         patternBadge = `<span class="tag tag-7w" title="7-Week Base Range: ${stock.consolidation7W.rangePct}%">🧱 7W Base (${stock.consolidation7W.rangePct}%)</span>`;
       }
 
-      const volBurstDisplay = stock.volumeBurst.burstPct > 0 
+      const volBurstDisplay = stock.volumeBurst?.burstPct > 0 
         ? `<span style="color:var(--accent-amber); font-weight:600;">+${stock.volumeBurst.burstPct}%</span>`
-        : `<span style="color:var(--text-muted);">${stock.volumeBurst.ratio}x</span>`;
+        : `<span style="color:var(--text-muted);">${stock.volumeBurst?.ratio || 1.0}x</span>`;
 
       html += `
         <tr data-symbol="${stock.symbol}">
@@ -573,9 +684,14 @@ class App {
             </span>
           </td>
           <td>
-            <button class="btn btn-primary btn-sm btn-analyze" data-symbol="${stock.symbol}">
-              Analyze Chart
-            </button>
+            <div style="display:flex; gap:4px;">
+              <button class="btn btn-sm btn-chart-quick" data-symbol="${stock.symbol}" title="View on Dashboard Chart">
+                📈 View
+              </button>
+              <button class="btn btn-primary btn-sm btn-analyze" data-symbol="${stock.symbol}" title="Full Deep Analysis">
+                Details
+              </button>
+            </div>
           </td>
         </tr>
       `;
@@ -583,17 +699,30 @@ class App {
 
     tbody.innerHTML = html;
 
+    // View on Dashboard Chart handler
+    tbody.querySelectorAll('.btn-chart-quick').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const symbol = btn.dataset.symbol;
+        const stock = this.rawUniverse.find(s => s.symbol === symbol);
+        if (stock) {
+          this.updateMainChartDisplay(stock);
+          document.getElementById('mainChartCard').scrollIntoView({ behavior: 'smooth' });
+        }
+      });
+    });
+
+    // Details Modal handler
     tbody.querySelectorAll('.btn-analyze').forEach(btn => {
       btn.addEventListener('click', () => {
         const symbol = btn.dataset.symbol;
-        const stock = this.rawUniverse.find(s => s.symbol === symbol) || stocks.find(s => s.symbol === symbol);
+        const stock = this.rawUniverse.find(s => s.symbol === symbol);
         if (stock) this.openModal(stock);
       });
     });
   }
 
   openModal(stock) {
-    this.currentStock = stock;
+    this.currentModalStock = stock;
     const modal = document.getElementById('stockModal');
     if (!modal) return;
 
@@ -604,10 +733,10 @@ class App {
     document.getElementById('modalExchangeTag').textContent = stock.exchange;
 
     const patternTag = document.getElementById('modalPatternTag');
-    if (stock.cupWithHandle.isPattern) {
+    if (stock.cupWithHandle?.isPattern) {
       patternTag.textContent = `☕ Cup & Handle (Score: ${stock.cupWithHandle.score})`;
       patternTag.className = 'tag tag-cwh';
-    } else if (stock.consolidation7W.isConsolidating) {
+    } else if (stock.consolidation7W?.isConsolidating) {
       patternTag.textContent = `🧱 7-Week Consolidation (${stock.consolidation7W.rangePct}% range)`;
       patternTag.className = 'tag tag-7w';
     } else {
@@ -615,9 +744,9 @@ class App {
       patternTag.className = 'tag';
     }
 
-    document.getElementById('chartPatternSummary').textContent = stock.cupWithHandle.isPattern
+    document.getElementById('chartPatternSummary').textContent = stock.cupWithHandle?.isPattern
       ? `Annotated: Cup with Handle (Cup Depth: -${stock.cupWithHandle.cupDepthPct}%, Pivot: ₹${stock.cupWithHandle.pivotPrice}, Target: ₹${stock.cupWithHandle.targetPrice})`
-      : (stock.consolidation7W.isConsolidating
+      : (stock.consolidation7W?.isConsolidating
           ? `Annotated: 7-Week Consolidation Box (Base High: ₹${stock.consolidation7W.baseHigh}, Base Low: ₹${stock.consolidation7W.baseLow})`
           : `Annotated: Candlestick Price Action with Volume Bursts & 20-Day Moving Average`);
 
@@ -682,8 +811,8 @@ class App {
 
     modal.classList.add('active');
     setTimeout(() => {
-      if (this.chart) {
-        this.chart.setStock(stock, '6M');
+      if (this.modalChart) {
+        this.modalChart.setStock(stock, '6M');
       }
     }, 60);
   }
@@ -728,7 +857,7 @@ class App {
       s.dayChangePct,
       s.rsScore,
       s.rsi,
-      s.volumeBurst.burstPct,
+      s.volumeBurst?.burstPct || 0,
       s.salesGrowthYoY,
       s.epsGrowthYoY,
       s.eps3Y_CAGR,

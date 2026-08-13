@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * TradingView-Grade Interactive Pan/Zoom Canvas Engine, Multi-Timeframe Timeline (1m-1M),
- * Fully Functional 9-Protocol Visual Overlays, and Direct Source Financial Wire.
+ * Fixed Scaling, Ultra-Crisp Canvas DPI, TradingView Interactive Navigation,
+ * Rich Multi-Timeframe Datasets (1m-1M), and Flawless 9-Protocol Visual Overlays.
  */
 
 (function() {
@@ -33,12 +33,12 @@
             this.gpuVendor = gl.getParameter(ext.UNMASKED_VENDOR_WEBGL) || 'Direct3D';
             this.gpuRenderer = gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) || 'Hardware Accelerated';
           } else {
-            this.gpuRenderer = 'WebGL 2.0 Hardware High-Performance';
+            this.gpuRenderer = 'WebGL 2.0 High-Performance';
           }
         }
       } catch (e) {
         this.isGPUAvailable = false;
-        this.gpuRenderer = 'CPU Fast-Vectorized';
+        this.gpuRenderer = 'CPU Vectorized';
       }
     }
 
@@ -269,13 +269,13 @@
   };
 
   /* ==========================================================================
-     3. MULTI-TIMEFRAME DATASET GENERATOR
+     3. RICH MULTI-TIMEFRAME DATASET GENERATORS (1m to 1M)
      ========================================================================== */
-  function generateDailyCandles(basePrice, trendType = 'cup_handle', days = 180) {
+  function generateDailySeries(basePrice, trendType = 'cup_handle', days = 240) {
     const candles = [];
     let price = basePrice;
     const now = new Date();
-    const avgVol = Math.floor(Math.random() * 800000) + 350000;
+    const avgVol = Math.floor(Math.random() * 600000) + 250000;
 
     for (let i = days; i >= 0; i--) {
       const d = new Date(now);
@@ -287,10 +287,10 @@
       let volMultiplier = 0.7 + Math.random() * 0.6;
 
       if (trendType === 'cup_handle') {
-        if (progress < 0.35) deltaPct = -0.6 + (Math.random() - 0.5) * 1.8;
-        else if (progress < 0.60) { deltaPct = 0.2 + (Math.random() - 0.48) * 1.2; volMultiplier *= 0.6; }
-        else if (progress < 0.82) { deltaPct = 0.9 + (Math.random() - 0.4) * 2.0; volMultiplier *= 1.4; }
-        else if (progress < 0.95) { deltaPct = -0.3 + (Math.random() - 0.5) * 1.0; volMultiplier *= 0.5; }
+        if (progress < 0.35) deltaPct = -0.5 + (Math.random() - 0.5) * 1.8;
+        else if (progress < 0.60) { deltaPct = 0.25 + (Math.random() - 0.48) * 1.2; volMultiplier *= 0.6; }
+        else if (progress < 0.82) { deltaPct = 0.85 + (Math.random() - 0.4) * 2.0; volMultiplier *= 1.4; }
+        else if (progress < 0.95) { deltaPct = -0.25 + (Math.random() - 0.5) * 1.0; volMultiplier *= 0.5; }
         else { deltaPct = 1.8 + (Math.random() - 0.2) * 2.5; volMultiplier *= 2.2; }
       } else if (trendType === 'consolidation_7w') {
         if (progress < 0.60) deltaPct = 0.8 + (Math.random() - 0.4) * 2.2;
@@ -318,7 +318,7 @@
     return candles;
   }
 
-  function generateIntraday1mCandles(lastDailyCandle, count = 120) {
+  function generateIntraday1mSeries(lastDailyCandle, count = 250) {
     const candles = [];
     let price = lastDailyCandle.open;
     const now = new Date();
@@ -348,32 +348,38 @@
     return candles;
   }
 
-  function resampleCandles(base1mCandles, step = 5) {
+  function generateSyntheticTimeframe(dailySeries, baseCount = 140, stepMultiplier = 1.0, label = '1H') {
     const res = [];
-    for (let i = 0; i < base1mCandles.length; i += step) {
-      const chunk = base1mCandles.slice(i, i + step);
-      if (!chunk.length) continue;
-      const open = chunk[0].open;
-      const close = chunk[chunk.length - 1].close;
-      let high = -Infinity, low = Infinity, vol = 0;
-      chunk.forEach(c => {
-        if (c.high > high) high = c.high;
-        if (c.low < low) low = c.low;
-        vol += c.volume;
-      });
+    let price = dailySeries[0].open;
+    const now = new Date();
+
+    for (let i = baseCount; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 3600000 * stepMultiplier);
+      const delta = (Math.random() - 0.48) * (1.2 * Math.sqrt(stepMultiplier));
+      const open = price;
+      const close = parseFloat(Math.max(5, open * (1 + delta / 100)).toFixed(2));
+      const high = Math.max(open, close) + Math.random() * (open * 0.008 * stepMultiplier);
+      const low = Math.min(open, close) - Math.random() * (open * 0.008 * stepMultiplier);
+      const volume = Math.floor(Math.random() * 25000 * stepMultiplier) + 5000;
+
+      price = close;
       res.push({
-        date: chunk[0].date,
-        time: chunk[chunk.length - 1].time,
-        open, high, low, close, volume: vol
+        date: d.toISOString().split('T')[0],
+        time: d.toTimeString().split(' ')[0].substring(0, 5),
+        open: parseFloat(open.toFixed(2)),
+        high: parseFloat(high.toFixed(2)),
+        low: parseFloat(low.toFixed(2)),
+        close: parseFloat(close.toFixed(2)),
+        volume
       });
     }
     return res;
   }
 
-  function resampleWeeklyCandles(dailyCandles) {
+  function resampleSeries(baseSeries, step = 5) {
     const res = [];
-    for (let i = 0; i < dailyCandles.length; i += 5) {
-      const chunk = dailyCandles.slice(i, i + 5);
+    for (let i = 0; i < baseSeries.length; i += step) {
+      const chunk = baseSeries.slice(i, i + step);
       if (!chunk.length) continue;
       const open = chunk[0].open;
       const close = chunk[chunk.length - 1].close;
@@ -385,7 +391,7 @@
       });
       res.push({
         date: chunk[chunk.length - 1].date,
-        time: 'Weekly',
+        time: chunk[chunk.length - 1].time,
         open, high, low, close, volume: vol
       });
     }
@@ -495,16 +501,16 @@
 
   function getStockUniverse() {
     return RAW_DATABASE.map(stock => {
-      const dailyCandles = generateDailyCandles(stock.basePrice, stock.patternType, 180);
+      const dailyCandles = generateDailySeries(stock.basePrice, stock.patternType, 240);
       const initialDayClose = dailyCandles[dailyCandles.length - 1].close;
       const initialDayVol = dailyCandles[dailyCandles.length - 1].volume;
       
-      const intraday1m = generateIntraday1mCandles(dailyCandles[dailyCandles.length - 1], 120);
-      const intraday5m = resampleCandles(intraday1m, 5);
-      const intraday15m = resampleCandles(intraday1m, 15);
-      const intraday1H = resampleCandles(intraday1m, 60);
-      const weekly = resampleWeeklyCandles(dailyCandles);
-      const monthly = resampleCandles(dailyCandles, 20);
+      const intraday1m = generateIntraday1mSeries(dailyCandles[dailyCandles.length - 1], 250);
+      const intraday5m = resampleSeries(intraday1m, 5);
+      const intraday15m = resampleSeries(intraday1m, 15);
+      const intraday1H = generateSyntheticTimeframe(dailyCandles, 120, 1.0, '1H');
+      const weekly = resampleSeries(dailyCandles, 5);
+      const monthly = resampleSeries(dailyCandles, 20);
 
       return {
         ...stock,
@@ -530,7 +536,7 @@
   }
 
   /* ==========================================================================
-     5. TRADINGVIEW-GRADE INTERACTIVE PAN/ZOOM CANVAS CHART ENGINE
+     5. CRISP PROPORTIONAL TRADINGVIEW CANVAS ENGINE
      ========================================================================== */
   class InteractiveGPUChart {
     constructor(containerId) {
@@ -549,7 +555,7 @@
       
       // Pan & Zoom state
       this.viewOffset = 0; // Number of candles scrolled back from rightmost
-      this.viewCount = 90; // Number of visible candles on screen
+      this.viewCount = 80; // Number of visible candles on screen (constrained nicely)
       this.isDragging = false;
       this.dragStartX = 0;
       this.dragStartOffset = 0;
@@ -594,9 +600,11 @@
 
     resetZoom() {
       this.viewOffset = 0;
-      if (this.interval === '1m') this.viewCount = 75;
-      else if (this.interval === '5m' || this.interval === '15m' || this.interval === '1H') this.viewCount = 50;
-      else this.viewCount = 90;
+      if (this.interval === '1m') this.viewCount = 90;
+      else if (this.interval === '5m' || this.interval === '15m') this.viewCount = 70;
+      else if (this.interval === '1H') this.viewCount = 60;
+      else if (this.interval === '1D') this.viewCount = 100;
+      else this.viewCount = 80;
     }
 
     resize() {
@@ -605,7 +613,7 @@
       const dpr = window.devicePixelRatio || 1;
 
       this.width = Math.max(320, rect.width || this.container.clientWidth || 800);
-      this.height = Math.max(240, rect.height || this.container.clientHeight || 440);
+      this.height = Math.max(240, rect.height || this.container.clientHeight || 460);
 
       this.canvas.width = Math.floor(this.width * dpr);
       this.canvas.height = Math.floor(this.height * dpr);
@@ -635,12 +643,12 @@
     setRange(range) {
       if (!this.allCandles.length) return;
       this.viewOffset = 0;
-      if (range === '1D') { this.setInterval('1m'); this.viewCount = 75; }
-      else if (range === '5D') { this.setInterval('15m'); this.viewCount = 65; }
-      else if (range === '1M') { this.setInterval('1D'); this.viewCount = 22; }
+      if (range === '1D') { this.setInterval('1m'); this.viewCount = 90; }
+      else if (range === '5D') { this.setInterval('15m'); this.viewCount = 70; }
+      else if (range === '1M') { this.setInterval('1D'); this.viewCount = 24; }
       else if (range === '3M') { this.setInterval('1D'); this.viewCount = 65; }
       else if (range === '6M') { this.setInterval('1D'); this.viewCount = 130; }
-      else if (range === '1Y') { this.setInterval('1D'); this.viewCount = 260; }
+      else if (range === '1Y') { this.setInterval('1D'); this.viewCount = Math.min(240, this.allCandles.length); }
       else if (range === 'ALL') { this.setInterval('1W'); this.viewCount = this.allCandles.length; }
     }
 
@@ -655,10 +663,10 @@
     setupListeners() {
       window.addEventListener('resize', () => this.resize());
 
-      // Interactive Wheel Zoom (TradingView Style)
+      // Interactive Smooth Wheel Zoom (TradingView Style)
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
-        const zoomDelta = e.deltaY < 0 ? -6 : 6;
+        const zoomDelta = e.deltaY < 0 ? -5 : 5;
         this.viewCount = Math.max(15, Math.min(this.allCandles.length, this.viewCount + zoomDelta));
       }, { passive: false });
 
@@ -686,7 +694,7 @@
           const deltaX = e.clientX - this.dragStartX;
           const paddingRight = 75, paddingLeft = 10;
           const plotWidth = this.width - paddingLeft - paddingRight;
-          const candleWidth = plotWidth / this.viewCount;
+          const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = Math.round(deltaX / candleWidth);
           
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
@@ -737,7 +745,7 @@
       ctx.fillStyle = '#070c17';
       ctx.fillRect(0, 0, w, h);
 
-      const paddingRight = 75, paddingBottom = 20, paddingLeft = 10, paddingTop = 26;
+      const paddingRight = 75, paddingBottom = 22, paddingLeft = 10, paddingTop = 26;
       const plotWidth = w - paddingLeft - paddingRight;
       
       const hasRsiPanel = this.layers.p2_rsi;
@@ -765,7 +773,7 @@
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
       const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
 
-      // 1. Grid Lines
+      // 1. Grid Lines & Right Price Scale
       ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
       ctx.lineWidth = 1;
       for (let i = 0; i <= 4; i++) {
@@ -779,7 +787,7 @@
         ctx.fillStyle = '#64748b';
         ctx.font = '10px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`₹${priceVal.toFixed(1)}`, w - paddingRight + 6, y + 3);
+        ctx.fillText(`₹${priceVal.toFixed(1)}`, w - paddingRight + 6, y + 3.5);
       }
 
       const allCloses = this.allCandles.map(c => c.close);
@@ -908,8 +916,8 @@
         const target2RY = getY(entryPrice + (entryPrice - slPrice) * 2);
 
         // Position Box: Shaded Green Target Zone
-        const boxX = w - paddingRight - 160;
-        const boxW = 150;
+        const boxX = w - paddingRight - 150;
+        const boxW = 140;
         ctx.fillStyle = 'rgba(16, 185, 129, 0.12)';
         ctx.fillRect(boxX, target2RY, boxW, entryY - target2RY);
         ctx.strokeStyle = '#10b981';
@@ -959,8 +967,9 @@
         ctx.stroke();
       }
 
-      // 3. CANDLESTICK / AREA RENDERING
-      const candleWidth = Math.max(2.5, (plotWidth / visibleCount) * 0.72);
+      // 3. CANDLESTICK / AREA RENDERING (STRICT SCALING: MAX 18px WIDTH)
+      const rawCandleWidth = (plotWidth / visibleCount) * 0.72;
+      const candleWidth = Math.min(18, Math.max(2.5, rawCandleWidth));
       const lastCandleIdx = visibleCount - 1;
       let lastCandleX = 0, lastCandleY = 0;
 

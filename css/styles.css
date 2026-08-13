@@ -1,6 +1,6 @@
 /* ==========================================================================
    NSE/BSE Professional Stock Screener - TradingView Terminal Design System
-   Full Pan/Zoom Interactive Canvas + Complete 9-Protocol Visual Layer Overlays
+   Fixed Scaling, Responsive Webview, Ultra-Smooth Pan/Zoom, and Strict Proportions
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -415,7 +415,7 @@ select option {
 }
 
 /* ==========================================================================
-   TRADINGVIEW-GRADE INTERACTIVE CHART SECTION
+   TRADINGVIEW INTERACTIVE TERMINAL CHART
    ========================================================================== */
 .main-chart-card {
   background: var(--bg-surface);
@@ -430,7 +430,7 @@ select option {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
+  gap: 8px;
   margin-bottom: 8px;
   flex-wrap: wrap;
 }
@@ -438,7 +438,7 @@ select option {
 .tv-btn-group {
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   background: #080e1c;
   padding: 2px 4px;
   border-radius: var(--radius-sm);
@@ -455,7 +455,7 @@ select option {
 }
 
 .tv-btn {
-  padding: 2px 6px;
+  padding: 3px 7px;
   font-size: 10.5px;
   font-family: var(--font-mono);
   font-weight: 600;
@@ -476,13 +476,7 @@ select option {
   background: #0284c7;
   color: #ffffff;
   border-color: #38bdf8;
-}
-
-.tv-divider {
-  width: 1px;
-  height: 14px;
-  background: var(--border-subtle);
-  margin: 0 2px;
+  box-shadow: 0 0 8px rgba(56, 189, 248, 0.4);
 }
 
 .source-link-pill {
@@ -510,8 +504,8 @@ select option {
 .protocol-layer-ribbon {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 5px 8px;
+  gap: 4px;
+  padding: 4px 8px;
   background: #080e1c;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
@@ -532,7 +526,7 @@ select option {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-size: 10px;
   font-family: var(--font-mono);
@@ -634,16 +628,17 @@ select option {
   color: var(--accent-blue);
 }
 
-/* TradingView Interactive Canvas Container with Pan/Zoom Cursor */
+/* TradingView Interactive Pan/Zoom Canvas Container with Precise Height */
 .chart-container-box {
   width: 100%;
-  height: 440px;
+  height: 460px;
   background: #070c17;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   position: relative;
   overflow: hidden;
   cursor: crosshair;
+  touch-action: none;
 }
 
 .chart-container-box.panning {

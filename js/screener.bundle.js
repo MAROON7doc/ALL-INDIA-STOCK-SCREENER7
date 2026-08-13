@@ -1,8 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Full Stock Variant & Exchange Disambiguation (NSE: EQ vs BSE: Scrip Code),
- * Sub-Categorization Index Badges (NIFTY 50, NIFTY NEXT 50, NIFTY MIDCAP 100, etc.),
- * 2-Axis Interactive TradingView Engine, and WebGL Accelerated Compute.
+ * Real-Time 3.5s Auto-Refresh Engine (Continuous Live Data Ingestion, Full-Universe
+ * Market Breadth Recalculation, WebGL Technical Compute, and Dual-Axis TradingView Canvas).
  */
 
 (function() {
@@ -948,7 +947,7 @@
       this.allCandles = [];
       this.interval = '1D';
       this.chartType = 'candle';
-      this.exchangeMode = 'NSE'; // 'NSE' or 'BSE'
+      this.exchangeMode = 'NSE';
       
       this.viewOffset = 0;
       this.viewCount = 80;
@@ -1716,7 +1715,7 @@
   }
 
   /* ==========================================================================
-     7. MAIN APPLICATION CONTROLLER WITH INTERACTIVE EXCHANGE & VARIANT SWITCHING
+     7. MAIN APPLICATION CONTROLLER WITH 3.5s AUTO-REFRESH ENGINE
      ========================================================================== */
   class Application {
     constructor() {
@@ -1726,12 +1725,12 @@
       const urlSymbol = urlParams.get('symbol');
       this.activeMainStock = (urlSymbol && this.universe.find(s => s.symbol === urlSymbol.toUpperCase())) || this.universe[0];
 
-      this.activeExchangeMode = 'NSE'; // 'NSE' or 'BSE'
+      this.activeExchangeMode = 'NSE';
       this.currentModalStock = null;
       this.activeNewsIdx = 0;
       this.newsList = LIVE_NEWS_DATABASE;
       this.isLive = true;
-      this.streamInterval = 1200;
+      this.streamInterval = 3500; // 3.5s Auto-Refresh default
       this.liveTimer = null;
       this.newsTimer = null;
       this.isFullscreen = false;
@@ -1797,7 +1796,6 @@
     }
 
     bindTradingViewToolbar() {
-      // Exchange Variant Switcher (NSE vs BSE)
       const btnNSE = document.getElementById('btnExchNSE');
       const btnBSE = document.getElementById('btnExchBSE');
 
@@ -1921,7 +1919,7 @@
       };
 
       updateHeadline();
-      this.newsTimer = setInterval(updateHeadline, 5000);
+      this.newsTimer = setInterval(updateHeadline, 4500);
 
       headlineEl.addEventListener('click', () => {
         document.getElementById('newsDrawerOverlay')?.classList.add('active');
@@ -2027,7 +2025,7 @@
         if (this.isLive) {
           if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>`;
           if (pill) {
-            pill.innerHTML = '<span class="live-dot"></span> LIVE';
+            pill.innerHTML = '<span class="live-dot"></span> LIVE 3.5s';
             pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
             pill.style.color = 'var(--accent-green)';
           }
@@ -2079,7 +2077,7 @@
           document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const tabName = tab.dataset.tab;
-          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          document.querySelectorAll.forEach && document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
           const content = document.getElementById(`tab_${tabName}`);
           if (content) content.style.display = 'block';
           if (tabName === 'chart') setTimeout(() => this.modalChart?.resize(), 50);
@@ -2122,7 +2120,6 @@
         titleEl.innerHTML = `${stock.symbol} <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">${exchLabel}</span> <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
       }
 
-      // Update Exchange Buttons
       const btnNSE = document.getElementById('btnExchNSE');
       const btnBSE = document.getElementById('btnExchBSE');
       if (btnNSE) {
@@ -2136,14 +2133,12 @@
         else btnBSE.classList.remove('active');
       }
 
-      // Update Sub-Categorization Index Badge
       const indexBadgeEl = document.getElementById('mainChartIndexBadge');
       if (indexBadgeEl) {
         indexBadgeEl.textContent = isNSE ? stock.indexCategory : stock.bseIndex;
         indexBadgeEl.title = `ISIN: ${stock.isin} | Sub-Sector: ${stock.subSector}`;
       }
 
-      // Update Pattern Badge
       const badgeEl = document.getElementById('mainChartPatternBadge');
       if (badgeEl) {
         if (stock.cupWithHandle?.isPattern) {
@@ -2158,7 +2153,6 @@
         }
       }
 
-      // Update Direct Links
       const nseLink = document.getElementById('linkNseSource');
       if (nseLink) {
         if (isNSE) {
@@ -2352,6 +2346,36 @@
       this.currentResults = filtered;
       this.renderTable(filtered);
       this.updateStats(filtered);
+      this.updateMarketBreadth();
+    }
+
+    updateMarketBreadth() {
+      const advances = this.universe.filter(s => s.dayChangePct >= 0).length;
+      const declines = this.universe.length - advances;
+      const sentimentPct = Math.round((advances / this.universe.length) * 100);
+
+      const elAdv = document.getElementById('breadthAdvances');
+      if (elAdv) elAdv.textContent = `▲ ${advances} Advances`;
+
+      const elDec = document.getElementById('breadthDeclines');
+      if (elDec) elDec.textContent = `▼ ${declines} Declines`;
+
+      const elSent = document.getElementById('breadthSentiment');
+      if (elSent) {
+        if (sentimentPct >= 65) {
+          elSent.textContent = `Strongly Bullish (${sentimentPct}%)`;
+          elSent.style.color = 'var(--accent-green)';
+          elSent.style.background = 'rgba(16, 185, 129, 0.15)';
+        } else if (sentimentPct >= 45) {
+          elSent.textContent = `Balanced Neutral (${sentimentPct}%)`;
+          elSent.style.color = 'var(--accent-amber)';
+          elSent.style.background = 'rgba(245, 158, 11, 0.15)';
+        } else {
+          elSent.textContent = `Bearish Under Pressure (${sentimentPct}%)`;
+          elSent.style.color = 'var(--accent-red)';
+          elSent.style.background = 'rgba(239, 68, 68, 0.15)';
+        }
+      }
     }
 
     updateStats(stocks) {
@@ -2482,83 +2506,62 @@
       const loop = () => {
         if (!this.isLive) return;
 
-        if (this.activeMainStock) {
+        // Auto-refresh all active stocks in the universe
+        const updated = [];
+
+        this.universe.forEach(stock => {
           const updateCandleArray = (arr, volFactor = 1.0) => {
             if (!arr || !arr.length) return;
             const c = arr[arr.length - 1];
-            const priceDiff = (c.close - this.activeMainStock.baseDayPrice) / this.activeMainStock.baseDayPrice;
+            const priceDiff = (c.close - stock.baseDayPrice) / stock.baseDayPrice;
             const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.28;
             const newClose = parseFloat(Math.max(5, c.close * (1 + deltaPct / 100)).toFixed(2));
             
-            c.volume += Math.floor((Math.random() * 300 + 50) * volFactor);
+            c.volume += Math.floor((Math.random() * 350 + 60) * volFactor);
             c.close = newClose;
             c.high = Math.max(c.high, newClose);
             c.low = Math.min(c.low, newClose);
             return { newClose, deltaPct };
           };
 
-          const tickRes = updateCandleArray(this.activeMainStock.intraday1m, 1.0);
-          updateCandleArray(this.activeMainStock.intraday5m, 2.0);
-          updateCandleArray(this.activeMainStock.intraday15m, 4.0);
-          updateCandleArray(this.activeMainStock.intraday1H, 8.0);
-          updateCandleArray(this.activeMainStock.dailyCandles, 20.0);
-          updateCandleArray(this.activeMainStock.weekly, 50.0);
-          updateCandleArray(this.activeMainStock.monthly, 100.0);
+          const tickRes = updateCandleArray(stock.intraday1m, 1.0);
+          updateCandleArray(stock.intraday5m, 2.0);
+          updateCandleArray(stock.intraday15m, 4.0);
+          updateCandleArray(stock.intraday1H, 8.0);
+          updateCandleArray(stock.dailyCandles, 20.0);
+          updateCandleArray(stock.weekly, 50.0);
+          updateCandleArray(stock.monthly, 100.0);
 
           if (tickRes) {
             const { newClose, deltaPct } = tickRes;
-            const prevClose = this.activeMainStock.dailyCandles[this.activeMainStock.dailyCandles.length - 2]?.close || this.activeMainStock.baseDayPrice;
-            this.activeMainStock.dayChangePct = parseFloat((((newClose - prevClose) / prevClose) * 100).toFixed(2));
-            this.activeMainStock.ltp = newClose;
-            this.activeMainStock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
-            this.activeMainStock.closes[this.activeMainStock.closes.length - 1] = newClose;
+            const prevClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
+            stock.dayChangePct = parseFloat((((newClose - prevClose) / prevClose) * 100).toFixed(2));
+            stock.ltp = newClose;
+            stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
+            stock.closes[stock.closes.length - 1] = newClose;
 
-            const titlePriceEl = document.getElementById('mainChartPrice');
-            if (titlePriceEl) {
-              titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-              titlePriceEl.textContent = `₹${newClose.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
-            }
+            updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
+          }
+        });
+
+        if (this.activeMainStock) {
+          const titlePriceEl = document.getElementById('mainChartPrice');
+          if (titlePriceEl) {
+            titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            titlePriceEl.textContent = `₹${this.activeMainStock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
           }
         }
 
-        const otherTargets = this.universe.filter(s => s.symbol !== this.activeMainStock?.symbol).sort(() => 0.5 - Math.random()).slice(0, 3);
-        const updated = [{ symbol: this.activeMainStock?.symbol, dir: this.activeMainStock?.lastTickDir }];
-
-        otherTargets.forEach(stock => {
-          const c = stock.intraday1m[stock.intraday1m.length - 1];
-          const priceDiff = (c.close - stock.baseDayPrice) / stock.baseDayPrice;
-          const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.3;
-          const newClose = parseFloat(Math.max(5, c.close * (1 + deltaPct / 100)).toFixed(2));
-          
-          c.volume += Math.floor(Math.random() * 300) + 60;
-          c.close = newClose;
-          c.high = Math.max(c.high, newClose);
-          c.low = Math.min(c.low, newClose);
-
-          const c15 = stock.intraday15m[stock.intraday15m.length - 1];
-          if (c15) { c15.close = newClose; c15.high = Math.max(c15.high, newClose); c15.low = Math.min(c15.low, newClose); }
-
-          const cM = stock.monthly[stock.monthly.length - 1];
-          if (cM) { cM.close = newClose; cM.high = Math.max(cM.high, newClose); cM.low = Math.min(cM.low, newClose); }
-
-          const prevClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
-          stock.dayChangePct = parseFloat((((newClose - prevClose) / prevClose) * 100).toFixed(2));
-          stock.ltp = newClose;
-          stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
-          stock.closes[stock.closes.length - 1] = newClose;
-
-          updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
-        });
-
         this.runScan();
 
-        updated.forEach(t => {
+        // Flash highlighting on updated rows
+        updated.slice(0, 4).forEach(t => {
           if (!t.symbol) return;
           const row = document.querySelector(`tr[data-symbol="${t.symbol}"]`);
           if (row) {
             const cls = t.dir === 'up' ? 'flash-up' : 'flash-down';
             row.classList.add(cls);
-            setTimeout(() => row.classList.remove(cls), 350);
+            setTimeout(() => row.classList.remove(cls), 400);
           }
         });
 

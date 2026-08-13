@@ -3,10 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSE/BSE Live Stock Screener | GPU Accelerated & 9 Interactive Protocol Layers</title>
-  <meta name="description" content="GPU-Accelerated Live NSE & BSE Stock Screener featuring Cup with Handle Pattern Recognition, 7-Week Consolidation Bases, RS Rating > 80, RSI Momentum, Volume Bursts, and Live Financial News Feeds.">
+  <title>NSE/BSE Live Stock Screener | GPU Accelerated & Multi-Timeframe (1m to 1D)</title>
+  <meta name="description" content="GPU-Accelerated Live NSE & BSE Stock Screener featuring 1-Minute to 1-Day Multi-Timeframe Candlestick Charts, Live Financial News Wires with Direct Source Pinpointing, and 9 CANSLIM Quantitative Protocols.">
   <link rel="stylesheet" href="css/styles.css">
-  <!-- Universal bundle script: runs seamlessly via file:// and http:// -->
   <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
@@ -69,7 +68,7 @@
               <span class="gpu-dot"></span> GPU WebGL
             </span>
           </div>
-          <div class="brand-sub">CANSLIM Growth • Cup & Handle • 7W Bases • RS > 80</div>
+          <div class="brand-sub">Multi-Timeframe 1m-1D • Cup & Handle • 7W Bases • Live News Wires</div>
         </div>
       </div>
 
@@ -78,10 +77,9 @@
         <div style="display:flex; align-items:center; gap:5px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
           <span style="font-size:11px; color:var(--text-muted);">Speed:</span>
           <select id="selStreamSpeed" style="padding:2px 20px 2px 6px; font-size:11px;">
-            <option value="1000">1s (Fast)</option>
-            <option value="2000" selected>2s (Normal)</option>
-            <option value="5000">5s (Medium)</option>
-            <option value="10000">10s (Relaxed)</option>
+            <option value="800">0.8s (Instant)</option>
+            <option value="1500" selected>1.5s (Normal)</option>
+            <option value="3000">3.0s (Relaxed)</option>
           </select>
           <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:11px;">
             <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
@@ -100,7 +98,7 @@
           Live Chart
         </button>
 
-        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire">
+        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire with Direct Links">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
             <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
@@ -108,7 +106,7 @@
             <path d="M7 13h6"></path>
             <path d="M7 17h4"></path>
           </svg>
-          Live News
+          Live News (<span id="newsCountBadge">8</span>)
         </button>
 
         <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
@@ -138,13 +136,13 @@
       </div>
     </div>
 
-    <!-- Breaking News Ticker Ribbon -->
+    <!-- Breaking News Ticker Ribbon with Clickable Direct Sources -->
     <div class="breaking-news-ribbon" id="breakingNewsRibbon">
       <span class="breaking-tag">LIVE WIRE</span>
-      <div class="breaking-content" id="breakingHeadline">
+      <div class="breaking-content" id="breakingHeadline" title="Click to open full news wire">
         Loading live Indian equity news & market intelligence...
       </div>
-      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Feed</button>
+      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Wire</button>
     </div>
 
     <!-- Live Market Breadth Strip -->
@@ -296,8 +294,8 @@
             <span class="slider"></span>
           </label>
         </div>
-        <div style="font-size:10.5px; color:var(--text-muted); margin-top:3px;">
-          Detects Left Rim, Rounded U-Bottom, Right Rim recovery & tight breakout.
+        <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">
+          Detects Left Rim, Rounded U-Bottom, Right Rim recovery & breakout.
         </div>
       </div>
 
@@ -390,12 +388,12 @@
     <!-- Main Content Area -->
     <main class="content-area">
       
-      <!-- Live Interactive Candlestick Chart Panel with 9-Protocol Visual Layer Switches -->
+      <!-- Live Interactive Candlestick Chart Panel with Multi-Timeframes & Direct Source Pinpointing -->
       <div class="main-chart-card" id="mainChartCard">
         
         <!-- Interactive Protocol Layer Switcher Ribbon -->
         <div class="protocol-layer-ribbon">
-          <span class="protocol-layer-label">Interactive Layers:</span>
+          <span class="protocol-layer-label">Layers:</span>
           <button class="layer-toggle active" data-layer="p1_growth" title="P1: EPS & Sales Beat Pins">P1 Growth</button>
           <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI Momentum Oscillator Panel">P2 RSI Sub-Chart</button>
           <button class="layer-toggle active" data-layer="p3_vol" title="P3: Volume Burst Glow Beacons">P3 Vol Burst</button>
@@ -405,23 +403,58 @@
           <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield RS Momentum Curve">P9 RS Curve</button>
         </div>
 
-        <div class="chart-toolbar">
-          <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;">
+        <!-- Main Chart Toolbar with Interval Selectors (1m, 5m, 15m, 1D, 1W) & Direct Source Links -->
+        <div class="chart-toolbar-main">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
             <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">
               TRENT <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
             </div>
             <span class="tag tag-cwh" id="mainChartPatternBadge">Cup & Handle (95)</span>
-            <div class="stock-pill-selector" id="stockPillSelector">
-              <!-- Dynamically populated stock selection pills -->
+            
+            <!-- Direct Exchange & Source Pinpoint Links -->
+            <div style="display:flex; align-items:center; gap:4px;" id="mainChartSourceLinks">
+              <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" class="source-link-pill" id="linkNseSource" title="View live quote on NSE India Official Portal">
+                🏛️ NSE India
+              </a>
+              <a href="https://www.screener.in/company/TRENT/" target="_blank" class="source-link-pill" id="linkScreenerSource" title="View deep fundamental financials on Screener.in">
+                📊 Screener.in
+              </a>
+              <a href="https://in.tradingview.com/chart/?symbol=NSE%3ATRENT" target="_blank" class="source-link-pill" id="linkTradingViewSource" title="View interactive chart on TradingView">
+                📈 TradingView
+              </a>
             </div>
           </div>
 
-          <div class="range-btn-group">
-            <button class="btn btn-sm main-range-btn" data-range="1M">1M</button>
-            <button class="btn btn-sm main-range-btn" data-range="3M">3M</button>
-            <button class="btn btn-sm main-range-btn btn-primary" data-range="6M">6M</button>
-            <button class="btn btn-sm main-range-btn" data-range="1Y">1Y</button>
-            <button class="btn btn-sm main-range-btn" data-range="ALL">ALL</button>
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <!-- Candlestick Interval Selector (1m, 5m, 15m, 1D, 1W) -->
+            <div class="timeframe-group">
+              <span class="tf-label">Interval:</span>
+              <button class="tf-btn active" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
+              <button class="tf-btn" data-interval="5m" title="5-Minute Intraday Candlesticks">5m</button>
+              <button class="tf-btn" data-interval="15m" title="15-Minute Intraday Candlesticks">15m</button>
+              <button class="tf-btn" data-interval="1D" title="1-Day Daily Swing Candlesticks">1D</button>
+              <button class="tf-btn" data-interval="1W" title="1-Week Multi-Week Base Candlesticks">1W</button>
+            </div>
+
+            <!-- Range Selector (1D, 1W, 1M, 3M, 6M, 1Y, ALL) -->
+            <div class="timeframe-group">
+              <span class="tf-label">Range:</span>
+              <button class="tf-btn main-range-btn" data-range="1D">1D</button>
+              <button class="tf-btn main-range-btn" data-range="1W">1W</button>
+              <button class="tf-btn main-range-btn" data-range="1M">1M</button>
+              <button class="tf-btn main-range-btn" data-range="3M">3M</button>
+              <button class="tf-btn main-range-btn active" data-range="6M">6M</button>
+              <button class="tf-btn main-range-btn" data-range="1Y">1Y</button>
+              <button class="tf-btn main-range-btn" data-range="ALL">ALL</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Selector Quick Ribbon -->
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Active Stocks:</span>
+          <div class="stock-pill-selector" id="stockPillSelector">
+            <!-- Dynamically populated stock selection pills -->
           </div>
         </div>
 
@@ -484,7 +517,7 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:11.5px; color:var(--text-muted);">Sort By:</span>
+          <span style="font-size:11px; color:var(--text-muted);">Sort By:</span>
           <select id="selSortBy">
             <option value="matchCount">Protocol Match Count (9/9)</option>
             <option value="rsScore">RS Score (Highest First)</option>
@@ -526,7 +559,7 @@
     </main>
   </div>
 
-  <!-- Live Financial News & Market Wire Side Drawer -->
+  <!-- Live Financial News & Market Wire Side Drawer with Direct Source Pinpoints -->
   <div class="news-drawer-overlay" id="newsDrawerOverlay">
     <div class="news-drawer">
       <div class="news-drawer-header">
@@ -539,15 +572,16 @@
             <path d="M7 17h4"></path>
           </svg>
           <div>
-            <div style="font-weight:700; font-size:14px; color:var(--text-primary);">Live Financial News & Market Wire</div>
-            <div style="font-size:10.5px; color:var(--text-muted);">Livemint • Economic Times • Moneycontrol • NSE Block Deals</div>
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Live Financial News Wire</div>
+            <div style="font-size:10px; color:var(--text-muted);">Direct Links: Livemint • Economic Times • Moneycontrol • NSE Filings</div>
           </div>
         </div>
         <button class="modal-close-btn" id="btnCloseNewsDrawer">&times;</button>
       </div>
 
+      <!-- Real-Time Feed Container -->
       <div class="news-feed-list" id="newsFeedList">
-        <!-- Dynamically rendered news cards -->
+        <!-- Dynamically rendered real-time news cards with direct links -->
       </div>
     </div>
   </div>

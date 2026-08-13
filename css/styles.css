@@ -1,6 +1,6 @@
 /* ==========================================================================
    NSE/BSE Professional Stock Screener Design System
-   Tailored Dark Financial Terminal Aesthetics + GPU Acceleration + Clean UI
+   Tailored Dark Financial Terminal Aesthetics + GPU Acceleration + Multi-Timeframe
    ========================================================================== */
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
@@ -61,16 +61,16 @@ body {
 }
 
 /* ==========================================================================
-   Universal Select Dropdown Fix (Eliminates White Background Glitch)
+   Universal Select Dropdown Fix
    ========================================================================== */
 select, select.btn {
   background-color: #0e172a !important;
   color: var(--text-primary) !important;
   border: 1px solid var(--border-subtle) !important;
   border-radius: var(--radius-sm);
-  padding: 5px 26px 5px 9px;
+  padding: 4px 24px 4px 8px;
   font-family: var(--font-sans);
-  font-size: 12px;
+  font-size: 11.5px;
   outline: none;
   cursor: pointer;
   appearance: none;
@@ -78,17 +78,13 @@ select, select.btn {
   -moz-appearance: none;
   background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e") !important;
   background-repeat: no-repeat !important;
-  background-position: right 7px center !important;
-  background-size: 11px !important;
+  background-position: right 6px center !important;
+  background-size: 10px !important;
 }
 
 select:hover {
   border-color: var(--border-active) !important;
   background-color: #142036 !important;
-}
-
-select:focus {
-  border-color: var(--accent-blue) !important;
 }
 
 select option {
@@ -98,14 +94,7 @@ select option {
   font-size: 12px;
 }
 
-select option:hover, select option:focus, select option:checked {
-  background-color: #0284c7 !important;
-  color: #ffffff !important;
-}
-
-/* ==========================================================================
-   Header & Ticker Tape
-   ========================================================================== */
+/* Header & Ticker Tape */
 .app-header {
   background-color: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
@@ -118,7 +107,7 @@ select option:hover, select option:focus, select option:checked {
 .market-ticker-tape {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
   padding: 4px 20px;
   background: #080d1a;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -265,9 +254,9 @@ select option:hover, select option:focus, select option:checked {
 .btn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 11px;
-  font-size: 12px;
+  gap: 5px;
+  padding: 5px 10px;
+  font-size: 11.5px;
   font-weight: 500;
   font-family: var(--font-sans);
   border-radius: var(--radius-sm);
@@ -277,10 +266,6 @@ select option:hover, select option:focus, select option:checked {
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.15s ease-in-out;
-}
-
-.btn svg {
-  flex-shrink: 0;
 }
 
 .btn:hover {
@@ -300,7 +285,7 @@ select option:hover, select option:focus, select option:checked {
 }
 
 .btn-sm {
-  padding: 4px 8px;
+  padding: 3px 8px;
   font-size: 11px;
 }
 
@@ -332,6 +317,12 @@ select option:hover, select option:focus, select option:checked {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  cursor: pointer;
+}
+
+.breaking-content:hover {
+  color: var(--accent-blue);
+  text-decoration: underline;
 }
 
 .market-breadth-strip {
@@ -424,7 +415,7 @@ select option:hover, select option:focus, select option:checked {
   font-weight: 600;
 }
 
-/* Main Interactive Chart Section & Protocol Layer Switches */
+/* Main Interactive Chart Section & Multi-Timeframe Toolbar */
 .main-chart-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
@@ -434,11 +425,83 @@ select option:hover, select option:focus, select option:checked {
   box-shadow: var(--shadow-sm);
 }
 
+.chart-toolbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+.timeframe-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #080e1c;
+  padding: 2px 4px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+
+.tf-label {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  margin-right: 2px;
+}
+
+.tf-btn {
+  padding: 2px 7px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tf-btn:hover {
+  color: var(--text-primary);
+  background: var(--bg-card);
+}
+
+.tf-btn.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
+}
+
+.source-link-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.source-link-pill:hover {
+  color: var(--accent-blue);
+  border-color: var(--accent-blue);
+  background: var(--bg-card-hover);
+}
+
 .protocol-layer-ribbon {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 5px 9px;
+  gap: 5px;
+  padding: 4px 8px;
   background: #080e1c;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
@@ -447,7 +510,7 @@ select option:hover, select option:focus, select option:checked {
 }
 
 .protocol-layer-label {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
@@ -459,9 +522,9 @@ select option:hover, select option:focus, select option:checked {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 7px;
+  padding: 2px 6px;
   border-radius: 4px;
-  font-size: 10px;
+  font-size: 9.5px;
   font-family: var(--font-mono);
   font-weight: 600;
   background: var(--bg-card);
@@ -516,9 +579,9 @@ select option:hover, select option:focus, select option:checked {
 .stock-pill-selector {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   overflow-x: auto;
-  max-width: 480px;
+  max-width: 440px;
   padding: 2px 0;
 }
 
@@ -535,7 +598,7 @@ select option:hover, select option:focus, select option:checked {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  font-size: 10.5px;
+  font-size: 10px;
   font-family: var(--font-mono);
   font-weight: 600;
   color: var(--text-secondary);
@@ -558,7 +621,7 @@ select option:hover, select option:focus, select option:checked {
 /* App Grid */
 .app-container {
   display: grid;
-  grid-template-columns: 290px 1fr;
+  grid-template-columns: 280px 1fr;
   min-height: calc(100vh - 150px);
 }
 
@@ -581,7 +644,7 @@ select option:hover, select option:focus, select option:checked {
 }
 
 .filter-section-title {
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -596,8 +659,8 @@ select option:hover, select option:focus, select option:checked {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 9px;
-  margin-bottom: 7px;
+  padding: 8px 10px;
+  margin-bottom: 6px;
   transition: border-color 0.15s ease;
 }
 
@@ -614,7 +677,7 @@ select option:hover, select option:focus, select option:checked {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 3px;
+  margin-bottom: 2px;
 }
 
 .protocol-title-wrap {
@@ -624,11 +687,11 @@ select option:hover, select option:focus, select option:checked {
 }
 
 .protocol-badge {
-  font-size: 9px;
+  font-size: 8.5px;
   font-family: var(--font-mono);
   font-weight: 700;
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
   background: #1e293b;
   color: var(--accent-blue);
 }
@@ -642,8 +705,8 @@ select option:hover, select option:focus, select option:checked {
 .switch {
   position: relative;
   display: inline-block;
-  width: 28px;
-  height: 15px;
+  width: 26px;
+  height: 14px;
 }
 
 .switch input {
@@ -665,8 +728,8 @@ select option:hover, select option:focus, select option:checked {
 .slider:before {
   position: absolute;
   content: "";
-  height: 9px;
-  width: 9px;
+  height: 8px;
+  width: 8px;
   left: 2px;
   bottom: 2px;
   background-color: #94a3b8;
@@ -680,7 +743,7 @@ input:checked + .slider {
 }
 
 input:checked + .slider:before {
-  transform: translateX(13px);
+  transform: translateX(12px);
   background-color: #ffffff;
 }
 
@@ -688,9 +751,9 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--text-secondary);
-  margin-top: 4px;
+  margin-top: 3px;
 }
 
 .range-wrap {
@@ -705,51 +768,51 @@ input:checked + .slider:before {
 
 .val-pill {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 600;
   color: var(--accent-blue);
   background: rgba(56, 189, 248, 0.1);
-  padding: 2px 5px;
-  border-radius: 4px;
+  padding: 1px 4px;
+  border-radius: 3px;
 }
 
 /* Content Area */
 .content-area {
-  padding: 14px 18px;
+  padding: 12px 16px;
   overflow-y: auto;
   max-height: calc(100vh - 150px);
 }
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-  gap: 9px;
-  margin-bottom: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
 }
 
 .stat-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 9px 11px;
+  padding: 8px 10px;
 }
 
 .stat-header {
-  font-size: 10px;
+  font-size: 9.5px;
   color: var(--text-muted);
   font-weight: 500;
   margin-bottom: 2px;
 }
 
 .stat-value {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 700;
   font-family: var(--font-mono);
   color: var(--text-primary);
 }
 
 .stat-sub {
-  font-size: 9.5px;
+  font-size: 9px;
   color: var(--text-secondary);
   margin-top: 1px;
 }
@@ -759,7 +822,7 @@ input:checked + .slider:before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 9px;
+  margin-bottom: 8px;
   gap: 8px;
   flex-wrap: wrap;
 }
@@ -767,12 +830,12 @@ input:checked + .slider:before {
 .search-box-wrap {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 4px 8px;
-  width: 230px;
+  padding: 3px 8px;
+  width: 210px;
 }
 
 .search-input {
@@ -780,7 +843,7 @@ input:checked + .slider:before {
   border: none;
   outline: none;
   color: var(--text-primary);
-  font-size: 11.5px;
+  font-size: 11px;
   width: 100%;
 }
 
@@ -801,13 +864,13 @@ input:checked + .slider:before {
   width: 100%;
   border-collapse: collapse;
   text-align: left;
-  font-size: 11.5px;
+  font-size: 11px;
   white-space: nowrap;
 }
 
 .screener-table th {
   background: #080e1a;
-  padding: 9px 10px;
+  padding: 8px 10px;
   font-size: 9.5px;
   font-weight: 600;
   text-transform: uppercase;
@@ -819,7 +882,7 @@ input:checked + .slider:before {
 }
 
 .screener-table td {
-  padding: 9px 10px;
+  padding: 8px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: var(--text-secondary);
   transition: background-color 0.25s ease;
@@ -852,7 +915,7 @@ input:checked + .slider:before {
 }
 
 .stock-name {
-  font-size: 9.5px;
+  font-size: 9px;
   color: var(--text-muted);
 }
 
@@ -869,8 +932,8 @@ input:checked + .slider:before {
   justify-content: center;
   font-family: var(--font-mono);
   font-weight: 700;
-  font-size: 10px;
-  padding: 2px 6px;
+  font-size: 9.5px;
+  padding: 2px 5px;
   border-radius: var(--radius-full);
 }
 
@@ -896,7 +959,7 @@ input:checked + .slider:before {
   display: inline-block;
   padding: 2px 5px;
   border-radius: 4px;
-  font-size: 9.5px;
+  font-size: 9px;
   font-weight: 600;
 }
 
@@ -932,7 +995,7 @@ input:checked + .slider:before {
 }
 
 .news-drawer {
-  width: 440px;
+  width: 460px;
   max-width: 90vw;
   height: 100vh;
   background: var(--bg-surface);
@@ -963,16 +1026,16 @@ input:checked + .slider:before {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 9px;
+  gap: 10px;
 }
 
 .news-card {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
+  padding: 11px 13px;
   transition: all 0.15s ease;
-  cursor: pointer;
+  position: relative;
 }
 
 .news-card:hover {
@@ -1008,13 +1071,42 @@ input:checked + .slider:before {
   font-weight: 600;
   color: var(--text-primary);
   line-height: 1.4;
-  margin-bottom: 2px;
+  margin-bottom: 4px;
 }
 
 .news-snippet {
-  font-size: 10px;
+  font-size: 10.5px;
   color: var(--text-secondary);
   line-height: 1.35;
+  margin-bottom: 8px;
+}
+
+.news-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.news-link-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  background: #0b1424;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  color: var(--accent-blue);
+  text-decoration: none;
+  transition: all 0.15s ease;
+}
+
+.news-link-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #38bdf8;
 }
 
 /* Modal */
@@ -1113,51 +1205,11 @@ input:checked + .slider:before {
 
 .chart-container-box {
   width: 100%;
-  height: 440px;
+  height: 420px;
   background: #070c17;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   position: relative;
-}
-
-.chart-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-
-.range-btn-group {
-  display: flex;
-  gap: 4px;
-}
-
-/* Fundamental Data Cards */
-.fund-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 9px;
-  margin-top: 9px;
-}
-
-.fund-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 9px;
-}
-
-.fund-label {
-  font-size: 9.5px;
-  color: var(--text-muted);
-  margin-bottom: 2px;
-}
-
-.fund-val {
-  font-size: 15px;
-  font-family: var(--font-mono);
-  font-weight: 700;
-  color: var(--text-primary);
 }
 
 /* Calculator Grid */
@@ -1192,6 +1244,26 @@ input:checked + .slider:before {
 
 .calc-input:focus {
   border-color: var(--accent-blue);
+}
+
+.fund-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+}
+
+.fund-label {
+  font-size: 9.5px;
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.fund-val {
+  font-size: 15px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--text-primary);
 }
 
 /* Responsive */

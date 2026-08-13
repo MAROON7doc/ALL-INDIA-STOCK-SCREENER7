@@ -1078,6 +1078,11 @@ input:checked + .slider:before {
   user-select: none;
 }
 
+.screener-table tbody tr {
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+}
+
 .screener-table td {
   padding: 8px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
@@ -1088,6 +1093,16 @@ input:checked + .slider:before {
 .screener-table tr:hover td {
   background-color: var(--bg-card-hover);
   color: var(--text-primary);
+}
+
+.screener-table tr.selected-stock-row td {
+  background-color: rgba(56, 189, 248, 0.14) !important;
+  border-top: 1px solid rgba(56, 189, 248, 0.4);
+  border-bottom: 1px solid rgba(56, 189, 248, 0.4);
+}
+
+.screener-table tr.selected-stock-row td:first-child {
+  border-left: 3px solid var(--accent-blue);
 }
 
 .flash-up {

@@ -2379,7 +2379,7 @@
     }
 
     updateMainChart(stock) {
-      if (!stock || !this.mainChart) return;
+      if (!stock) return;
       this.activeMainStock = stock;
       
       const isNSE = this.activeExchangeMode === 'NSE';
@@ -2388,6 +2388,18 @@
         const exchLabel = isNSE ? `(NSE: ${stock.series || 'EQ'})` : `(BSE: ${stock.bseCode})`;
         titleEl.innerHTML = `${stock.symbol} <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">${exchLabel}</span> <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
       }
+
+      // Update top pill selector active state
+      document.querySelectorAll('.stock-pill').forEach(pill => {
+        if (pill.dataset.symbol === stock.symbol) pill.classList.add('active');
+        else pill.classList.remove('active');
+      });
+
+      // Update table row highlight
+      document.querySelectorAll('#screenerTableBody tr').forEach(r => {
+        if (r.dataset.symbol === stock.symbol) r.classList.add('selected-stock-row');
+        else r.classList.remove('selected-stock-row');
+      });
 
       const btnNSE = document.getElementById('btnExchNSE');
       const btnBSE = document.getElementById('btnExchBSE');
@@ -2423,7 +2435,9 @@
       }
 
       this.updateSourceLinks();
-      this.mainChart.setStock(stock, null, this.activeExchangeMode);
+      if (this.mainChart) {
+        this.mainChart.setStock(stock, null, this.activeExchangeMode);
+      }
       this.updateGpuBadge();
     }
 
@@ -2663,6 +2677,7 @@
       }
 
       tbody.innerHTML = stocks.map(stock => {
+        const isSelected = this.activeMainStock?.symbol === stock.symbol;
         const matchClass = stock.matchCount >= 7 ? 'match-high' : (stock.matchCount >= 4 ? 'match-med' : 'match-low');
         const dayChgStyle = stock.dayChangePct >= 0 ? 'color:var(--accent-green);' : 'color:var(--accent-red);';
         const daySign = stock.dayChangePct > 0 ? '+' : '';
@@ -2679,7 +2694,7 @@
           : `<span style="color:var(--text-muted);">${stock.volumeBurst?.ratio || 1.0}x</span>`;
 
         return `
-          <tr data-symbol="${stock.symbol}">
+          <tr data-symbol="${stock.symbol}" class="${isSelected ? 'selected-stock-row' : ''}">
             <td>
               <div class="stock-cell">
                 <div style="display:flex; align-items:center; gap:6px;">
@@ -2734,24 +2749,28 @@
         `;
       }).join('');
 
-      tbody.querySelectorAll('.btn-chart-quick').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const sym = btn.dataset.symbol;
+      if (!this.hasBoundTableDelegation) {
+        this.hasBoundTableDelegation = true;
+        tbody.addEventListener('click', (e) => {
+          const row = e.target.closest('tr[data-symbol]');
+          if (!row) return;
+          const sym = row.dataset.symbol;
           const stock = this.universe.find(s => s.symbol === sym);
-          if (stock) {
+          if (!stock) return;
+
+          if (e.target.closest('.btn-analyze')) {
+            e.stopPropagation();
+            this.openModal(stock);
+          } else {
             this.updateMainChart(stock);
-            document.getElementById('mainChartCard')?.scrollIntoView({ behavior: 'smooth' });
+            const chartCard = document.getElementById('mainChartCard');
+            if (chartCard) {
+              if (chartCard.style.display === 'none') chartCard.style.display = 'block';
+              chartCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
           }
         });
-      });
-
-      tbody.querySelectorAll('.btn-analyze').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const sym = btn.dataset.symbol;
-          const stock = this.universe.find(s => s.symbol === sym);
-          if (stock) this.openModal(stock);
-        });
-      });
+      }
     }
 
     startLiveStream() {

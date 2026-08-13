@@ -1,7 +1,7 @@
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
- * Multi-Timeframe Candlesticks (1m, 5m, 15m, 1D, 1W), Direct Source Pinpointing,
- * Live Financial News Wire with Direct Website Links, and GPU-Accelerated Overlays.
+ * Unified Zero-Ambiguity Timeframe System (1m Live, 5m, 15m, 1M, 3M, 6M Base, 1Y, 1W),
+ * GPU-Accelerated 60FPS Live Motion, Direct Exchange & News Wire Pinpoints.
  */
 
 (function() {
@@ -323,7 +323,7 @@
     return candles;
   }
 
-  function generateIntraday1mCandles(lastDailyCandle, count = 75) {
+  function generateIntraday1mCandles(lastDailyCandle, count = 80) {
     const candles = [];
     let price = lastDailyCandle.open;
     const now = new Date();
@@ -516,7 +516,7 @@
         intraday5m,
         intraday15m,
         weekly,
-        activeInterval: '1m', // Default to ultra-fast 1-minute live intraday candles
+        activeTF: '1m',
         candles: intraday1m,
         closes: dailyCandles.map(c => c.close),
         volumes: dailyCandles.map(c => c.volume),
@@ -546,8 +546,7 @@
       this.stock = null;
       this.candles = [];
       this.visibleCandles = [];
-      this.range = '6M';
-      this.interval = '1m';
+      this.timeframeKey = '1m';
       this.crosshair = { x: -1, y: -1, active: false, candle: null };
 
       this.pulsePhase = 0;
@@ -599,54 +598,46 @@
       this.ctx.scale(dpr, dpr);
     }
 
-    setInterval(interval) {
-      this.interval = interval;
+    setTimeframe(tfKey) {
+      this.timeframeKey = tfKey;
       if (!this.stock) return;
 
-      if (interval === '1m') this.candles = this.stock.intraday1m;
-      else if (interval === '5m') this.candles = this.stock.intraday5m;
-      else if (interval === '15m') this.candles = this.stock.intraday15m;
-      else if (interval === '1D') this.candles = this.stock.dailyCandles;
-      else if (interval === '1W') this.candles = this.stock.weekly;
-
-      this.updateVisibleRange();
+      if (tfKey === '1m') {
+        this.candles = this.stock.intraday1m;
+        this.visibleCandles = this.candles.slice(-80);
+      } else if (tfKey === '5m') {
+        this.candles = this.stock.intraday5m;
+        this.visibleCandles = this.candles.slice(-60);
+      } else if (tfKey === '15m') {
+        this.candles = this.stock.intraday15m;
+        this.visibleCandles = this.candles.slice(-40);
+      } else if (tfKey === '1D_1M') {
+        this.candles = this.stock.dailyCandles;
+        this.visibleCandles = this.candles.slice(-22);
+      } else if (tfKey === '1D_3M') {
+        this.candles = this.stock.dailyCandles;
+        this.visibleCandles = this.candles.slice(-65);
+      } else if (tfKey === '1D_6M') {
+        this.candles = this.stock.dailyCandles;
+        this.visibleCandles = this.candles.slice(-130);
+      } else if (tfKey === '1D_1Y') {
+        this.candles = this.stock.dailyCandles;
+        this.visibleCandles = this.candles.slice(-260);
+      } else if (tfKey === '1W') {
+        this.candles = this.stock.weekly;
+        this.visibleCandles = this.candles.slice(-32);
+      } else {
+        this.candles = this.stock.intraday1m;
+        this.visibleCandles = this.candles.slice(-80);
+      }
     }
 
-    setStock(stock, range = null, interval = null) {
+    setStock(stock, tfKey = null) {
       if (!stock) return;
       this.stock = stock;
-      if (interval) this.interval = interval;
-
-      if (this.interval === '1m') this.candles = stock.intraday1m;
-      else if (this.interval === '5m') this.candles = stock.intraday5m;
-      else if (this.interval === '15m') this.candles = stock.intraday15m;
-      else if (this.interval === '1D') this.candles = stock.dailyCandles;
-      else if (this.interval === '1W') this.candles = stock.weekly;
-      else this.candles = stock.intraday1m;
-
-      if (range) this.range = range;
-      this.updateVisibleRange();
+      if (tfKey) this.timeframeKey = tfKey;
+      this.setTimeframe(this.timeframeKey);
       this.resize();
-    }
-
-    setRange(range) {
-      this.range = range;
-      this.updateVisibleRange();
-    }
-
-    updateVisibleRange() {
-      if (!this.candles || !this.candles.length) return;
-      let count = 80;
-      if (this.interval === '1m' || this.interval === '5m' || this.interval === '15m') {
-        count = Math.min(80, this.candles.length);
-      } else {
-        if (this.range === '1M') count = 22;
-        else if (this.range === '3M') count = 65;
-        else if (this.range === '6M') count = 130;
-        else if (this.range === '1Y') count = 260;
-        else if (this.range === 'ALL') count = this.candles.length;
-      }
-      this.visibleCandles = this.candles.slice(-Math.min(count, this.candles.length));
     }
 
     setupListeners() {
@@ -752,8 +743,10 @@
       }
       ctx.stroke();
 
-      // Protocol 4: 7-Week Consolidation Box
-      if (this.layers.p4_base7w && this.stock.consolidation7W?.isConsolidating) {
+      const isIntraday = (this.timeframeKey === '1m' || this.timeframeKey === '5m' || this.timeframeKey === '15m');
+
+      // Protocol 4: 7-Week Consolidation Box (Rendered on Swing/Weekly timeframes)
+      if (this.layers.p4_base7w && !isIntraday && this.stock.consolidation7W?.isConsolidating) {
         const days = this.stock.consolidation7W.baseLengthDays || 35;
         const baseStart = Math.max(0, visibleCount - days);
         const boxX = getX(baseStart) - (plotWidth / visibleCount) * 0.5;
@@ -782,7 +775,7 @@
         const botIdx = cwh.bottom?.index - startIdx;
         const rightIdx = cwh.rightPeak?.index - startIdx;
 
-        if (leftIdx >= 0 && rightIdx < visibleCount) {
+        if (!isIntraday && leftIdx >= 0 && rightIdx < visibleCount) {
           const p1x = getX(leftIdx), p1y = getY(cwh.leftPeak.price);
           const p2x = getX(botIdx), p2y = getY(cwh.bottom.price);
           const p3x = getX(rightIdx), p3y = getY(cwh.rightPeak.price);
@@ -914,7 +907,7 @@
         }
 
         // Protocol 1: Milestone Pin
-        if (this.layers.p1_growth && idx === Math.floor(visibleCount * 0.75) && this.stock.earningsEvent) {
+        if (this.layers.p1_growth && !isIntraday && idx === Math.floor(visibleCount * 0.75) && this.stock.earningsEvent) {
           ctx.fillStyle = '#38bdf8';
           ctx.font = 'bold 9px Inter, sans-serif';
           ctx.textAlign = 'center';
@@ -959,7 +952,7 @@
       ctx.textAlign = 'left';
       ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
 
-      // Protocol 2: RSI Oscillator Panel
+      // Protocol 2: RSI Oscillator Panel (Computed on current timeframe closes)
       if (this.layers.p2_rsi) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
         ctx.fillRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
@@ -994,25 +987,33 @@
         }
         ctx.stroke();
 
+        const curRsi = rsiGPUArr[rsiGPUArr.length - 1] || 75;
         ctx.fillStyle = '#f59e0b';
         ctx.font = 'bold 9px JetBrains Mono, monospace';
-        ctx.fillText(`P2: RSI(14) Momentum: ${this.stock.rsi || 75}`, paddingLeft + 6, rsiTop + 12);
+        ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)}`, paddingLeft + 6, rsiTop + 12);
       }
 
-      // Top Legend
+      // Top Legend with Active Timeframe Tag
+      let tfName = '1-Min Live Intraday';
+      if (this.timeframeKey === '5m') tfName = '5-Min Intraday';
+      else if (this.timeframeKey === '15m') tfName = '15-Min Intraday';
+      else if (this.timeframeKey === '1D_1M') tfName = '1-Month Daily';
+      else if (this.timeframeKey === '1D_3M') tfName = '3-Month Daily';
+      else if (this.timeframeKey === '1D_6M') tfName = '6-Month Daily Base';
+      else if (this.timeframeKey === '1D_1Y') tfName = '1-Year Daily Swing';
+      else if (this.timeframeKey === '1W') tfName = 'Weekly Positional Base';
+
       ctx.fillStyle = 'rgba(12, 20, 36, 0.95)';
       ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
       ctx.fillStyle = '#f8fafc';
       ctx.font = '11px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`${this.stock.symbol} (${this.interval.toUpperCase()}) ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
+      ctx.fillText(`${this.stock.symbol} [${tfName}] ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
 
       ctx.fillStyle = '#38bdf8';
-      ctx.fillText('— 20 SMA', paddingLeft + 170, 17);
+      ctx.fillText('— 20 SMA', paddingLeft + 270, 17);
       ctx.fillStyle = '#10b981';
-      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 245, 17);
-      ctx.fillStyle = '#c084fc';
-      ctx.fillText(`P7: ROE ${this.stock.roe}% | ROCE ${this.stock.roce}%`, paddingLeft + 350, 17);
+      ctx.fillText(`P9: RS ${this.stock.rsScore}/99`, paddingLeft + 345, 17);
 
       // Tooltip
       if (this.crosshair.active && this.crosshair.candle) {
@@ -1031,7 +1032,7 @@
   }
 
   /* ==========================================================================
-     6. MAIN APPLICATION CONTROLLER WITH LIVE NEWS & INSTANT 1M MOVEMENTS
+     6. MAIN APPLICATION CONTROLLER WITH UNIFIED TIMEFRAME HANDLERS
      ========================================================================== */
   class Application {
     constructor() {
@@ -1068,7 +1069,7 @@
       this.updateGpuBadge();
       this.bindUI();
       this.bindLayerToggles();
-      this.bindTimeframeButtons();
+      this.bindUnifiedTimeframeBar();
       this.renderStockPills();
       this.renderNewsFeed();
       this.startNewsCycle();
@@ -1101,22 +1102,14 @@
       });
     }
 
-    bindTimeframeButtons() {
-      document.querySelectorAll('.tf-btn[data-interval]').forEach(btn => {
+    bindUnifiedTimeframeBar() {
+      document.querySelectorAll('.unified-tf-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.tf-btn[data-interval]').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.unified-tf-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const interval = btn.dataset.interval;
-          if (this.mainChart) this.mainChart.setInterval(interval);
-          if (this.modalChart) this.modalChart.setInterval(interval);
-        });
-      });
-
-      document.querySelectorAll('.main-range-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.main-range-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          this.mainChart?.setRange(btn.dataset.range);
+          const tfKey = btn.dataset.tf;
+          if (this.mainChart) this.mainChart.setTimeframe(tfKey);
+          if (this.modalChart) this.modalChart.setTimeframe(tfKey);
         });
       });
     }
@@ -1351,7 +1344,6 @@
         }
       }
 
-      // Update Direct Source Links to exact company pages
       const nseLink = document.getElementById('linkNseSource');
       if (nseLink) nseLink.href = `https://www.nseindia.com/get-quotes/equity?symbol=${stock.symbol}`;
       
@@ -1604,9 +1596,7 @@
       const loop = () => {
         if (!this.isLive) return;
 
-        // Ultra-responsive 1-Minute Live Candlestick Ticks
         if (this.activeMainStock) {
-          // Update 1-Minute intraday candle
           const c1m = this.activeMainStock.intraday1m[this.activeMainStock.intraday1m.length - 1];
           const priceDiff = (c1m.close - this.activeMainStock.baseDayPrice) / this.activeMainStock.baseDayPrice;
           const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.28;
@@ -1617,7 +1607,6 @@
           c1m.high = Math.max(c1m.high, newClose);
           c1m.low = Math.min(c1m.low, newClose);
 
-          // Update daily candle
           const cDaily = this.activeMainStock.dailyCandles[this.activeMainStock.dailyCandles.length - 1];
           cDaily.close = newClose;
           cDaily.high = Math.max(cDaily.high, newClose);
@@ -1699,7 +1688,7 @@
       modal.classList.add('active');
       setTimeout(() => {
         if (this.modalChart) {
-          this.modalChart.setStock(stock, '6M', '1D');
+          this.modalChart.setStock(stock, '1D_6M');
         }
       }, 50);
     }

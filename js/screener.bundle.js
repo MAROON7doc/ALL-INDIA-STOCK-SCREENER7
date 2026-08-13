@@ -878,6 +878,14 @@
       const weekly = resampleSeries(dailyCandles, 5);
       const monthly = generateMonthlySeries(stock.basePrice, 120);
 
+      // Force-lock all multi-timeframe endpoints to the exact same initialDayClose
+      if (intraday1m.length) intraday1m[intraday1m.length - 1].close = initialDayClose;
+      if (intraday5m.length) intraday5m[intraday5m.length - 1].close = initialDayClose;
+      if (intraday15m.length) intraday15m[intraday15m.length - 1].close = initialDayClose;
+      if (intraday1H.length) intraday1H[intraday1H.length - 1].close = initialDayClose;
+      if (weekly.length) weekly[weekly.length - 1].close = initialDayClose;
+      if (monthly.length) monthly[monthly.length - 1].close = initialDayClose;
+
       const closes = dailyCandles.map(c => c.close);
       const volumes = dailyCandles.map(c => c.volume);
 
@@ -1111,15 +1119,34 @@
     }
 
     setRange(range) {
-      if (!this.allCandles.length) return;
+      if (!this.stock) return;
       this.viewOffset = 0;
-      if (range === '1D') { this.setInterval('1m'); this.viewCount = 90; }
-      else if (range === '5D') { this.setInterval('15m'); this.viewCount = 75; }
-      else if (range === '1M') { this.setInterval('1D'); this.viewCount = 24; }
-      else if (range === '3M') { this.setInterval('1D'); this.viewCount = 65; }
-      else if (range === '6M') { this.setInterval('1D'); this.viewCount = 130; }
-      else if (range === '1Y') { this.setInterval('1D'); this.viewCount = Math.min(240, this.allCandles.length); }
-      else if (range === 'ALL') { this.setInterval('1W'); this.viewCount = this.allCandles.length; }
+      this.priceScaleFactor = 1.0;
+      this.pricePanOffset = 0;
+      this.autoScale = true;
+
+      if (range === '1D') {
+        this.setInterval('1m');
+        this.viewCount = Math.min(375, this.allCandles.length);
+      } else if (range === '5D') {
+        this.setInterval('15m');
+        this.viewCount = Math.min(125, this.allCandles.length);
+      } else if (range === '1M') {
+        this.setInterval('1D');
+        this.viewCount = Math.min(24, this.allCandles.length);
+      } else if (range === '3M') {
+        this.setInterval('1D');
+        this.viewCount = Math.min(65, this.allCandles.length);
+      } else if (range === '6M') {
+        this.setInterval('1D');
+        this.viewCount = Math.min(130, this.allCandles.length);
+      } else if (range === '1Y') {
+        this.setInterval('1D');
+        this.viewCount = Math.min(250, this.allCandles.length);
+      } else if (range === 'ALL') {
+        this.setInterval('1W');
+        this.viewCount = this.allCandles.length;
+      }
     }
 
     setStock(stock, interval = null, exchangeMode = null) {
@@ -1993,6 +2020,9 @@
           const interval = btn.dataset.interval;
           if (this.mainChart) this.mainChart.setInterval(interval);
           if (this.modalChart) this.modalChart.setInterval(interval);
+          
+          // Deselect range buttons when manually picking a specific interval
+          document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
           this.updateSourceLinks();
         });
       });
@@ -2017,7 +2047,17 @@
         btn.addEventListener('click', () => {
           document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          this.mainChart?.setRange(btn.dataset.range);
+          const range = btn.dataset.range;
+          this.mainChart?.setRange(range);
+          
+          // Sync active interval button in the UI
+          const targetInterval = this.mainChart?.interval;
+          if (targetInterval) {
+            document.querySelectorAll('.tv-btn[data-interval]').forEach(b => {
+              if (b.dataset.interval === targetInterval) b.classList.add('active');
+              else b.classList.remove('active');
+            });
+          }
           this.updateSourceLinks();
         });
       });
@@ -2719,42 +2759,40 @@
       const loop = () => {
         if (!this.isLive) return;
 
-        // Auto-refresh all active stocks in the universe
+        // Auto-refresh all active stocks in the universe with unified multi-timeframe tick price
         const updated = [];
 
         this.universe.forEach(stock => {
-          const updateCandleArray = (arr, volFactor = 1.0) => {
+          const prevLtp = stock.ltp;
+          const priceDiff = (prevLtp - stock.baseDayPrice) / stock.baseDayPrice;
+          const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.28;
+          const newClose = parseFloat(Math.max(5, prevLtp * (1 + deltaPct / 100)).toFixed(2));
+          const volInc = Math.floor(Math.random() * 350 + 60);
+
+          const syncCandle = (arr, volMultiplier) => {
             if (!arr || !arr.length) return;
             const c = arr[arr.length - 1];
-            const priceDiff = (c.close - stock.baseDayPrice) / stock.baseDayPrice;
-            const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.28;
-            const newClose = parseFloat(Math.max(5, c.close * (1 + deltaPct / 100)).toFixed(2));
-            
-            c.volume += Math.floor((Math.random() * 350 + 60) * volFactor);
             c.close = newClose;
             c.high = Math.max(c.high, newClose);
             c.low = Math.min(c.low, newClose);
-            return { newClose, deltaPct };
+            c.volume += volInc * volMultiplier;
           };
 
-          const tickRes = updateCandleArray(stock.intraday1m, 1.0);
-          updateCandleArray(stock.intraday5m, 2.0);
-          updateCandleArray(stock.intraday15m, 4.0);
-          updateCandleArray(stock.intraday1H, 8.0);
-          updateCandleArray(stock.dailyCandles, 20.0);
-          updateCandleArray(stock.weekly, 50.0);
-          updateCandleArray(stock.monthly, 100.0);
+          syncCandle(stock.intraday1m, 1);
+          syncCandle(stock.intraday5m, 2);
+          syncCandle(stock.intraday15m, 4);
+          syncCandle(stock.intraday1H, 8);
+          syncCandle(stock.dailyCandles, 20);
+          syncCandle(stock.weekly, 50);
+          syncCandle(stock.monthly, 100);
 
-          if (tickRes) {
-            const { newClose, deltaPct } = tickRes;
-            const prevClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
-            stock.dayChangePct = parseFloat((((newClose - prevClose) / prevClose) * 100).toFixed(2));
-            stock.ltp = newClose;
-            stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
-            stock.closes[stock.closes.length - 1] = newClose;
+          const prevDayClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
+          stock.dayChangePct = parseFloat((((newClose - prevDayClose) / prevDayClose) * 100).toFixed(2));
+          stock.ltp = newClose;
+          stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
+          stock.closes[stock.closes.length - 1] = newClose;
 
-            updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
-          }
+          updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
         });
 
         if (this.activeMainStock) {

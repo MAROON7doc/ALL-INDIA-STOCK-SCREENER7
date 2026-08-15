@@ -1800,8 +1800,8 @@
           this.render();
         } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
           // Direct trackpad two-finger horizontal swipe or Shift+Wheel
-          const delta = (e.deltaX !== 0 ? e.deltaX : e.deltaY);
-          const shift = (delta / candleWidth) * 0.55;
+          const trackpadDelta = (e.deltaX !== 0 ? e.deltaX : e.deltaY);
+          const shift = (trackpadDelta / candleWidth) * 0.55;
           this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + shift));
           this.velocityX = 0;
           this.render();
@@ -1810,8 +1810,8 @@
           const mouseRatio = Math.max(0, Math.min(1, (mouseX - paddingLeft) / plotWidth));
           const oldViewCount = this.viewCount;
           const zoomStep = Math.max(2, Math.round(oldViewCount * 0.08));
-          const delta = e.deltaY < 0 ? -zoomStep : zoomStep;
-          const newViewCount = Math.max(10, Math.min(this.allCandles.length, oldViewCount + delta));
+          const zoomDelta = e.deltaY < 0 ? -zoomStep : zoomStep;
+          const newViewCount = Math.max(10, Math.min(this.allCandles.length, oldViewCount + zoomDelta));
           
           if (newViewCount !== oldViewCount) {
             const countDiff = newViewCount - oldViewCount;
@@ -2004,9 +2004,9 @@
           this.lastTouchTime = now;
           this.render();
         } else if (e.touches.length === 2 && this.touchStartPinchDist) {
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          const dist = Math.hypot(dx, dy);
+          const pinchDx = e.touches[0].clientX - e.touches[1].clientX;
+          const pinchDy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(pinchDx, pinchDy);
           const scale = this.touchStartPinchDist / Math.max(10, dist);
           const newViewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
           this.viewCount = newViewCount;
@@ -2091,11 +2091,6 @@
       const volumeTop = paddingTop + pricePlotHeight + 6;
       const rsiTop = volumeTop + volumeHeight + 8;
       const timeGutterTop = h - paddingBottom;
-
-      // Retrieve the true instantaneous market price from the latest candle in the active series
-      const latestCandle = (this.allCandles && this.allCandles.length) ? this.allCandles[this.allCandles.length - 1] : null;
-      const livePrice = latestCandle ? latestCandle.close : this.stock.ltp;
-      this.stock.ltp = livePrice;
 
       let baseMinPrice = Infinity, baseMaxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
@@ -3138,9 +3133,9 @@
 
     bindUI() {
       const bindRng = (id, pillId, fmt, fn) => {
-        const el = document.getElementById(id), pill = document.getElementById(pillId);
-        if (!el || !pill) return;
-        el.addEventListener('input', (e) => {
+        const sliderEl = document.getElementById(id), pill = document.getElementById(pillId);
+        if (!sliderEl || !pill) return;
+        sliderEl.addEventListener('input', (e) => {
           const v = parseFloat(e.target.value);
           pill.textContent = fmt(v);
           fn(v);
@@ -3162,9 +3157,9 @@
       bindRng('rng_mtfGreen', 'val_mtfGreen', v => `${v}/6 Green`, v => this.filters.minMtfGreen = v);
 
       const bindChk = (id, cardId, fn) => {
-        const el = document.getElementById(id), card = document.getElementById(cardId);
-        if (!el || !card) return;
-        el.addEventListener('change', (e) => {
+        const chkEl = document.getElementById(id), card = document.getElementById(cardId);
+        if (!chkEl || !card) return;
+        chkEl.addEventListener('change', (e) => {
           if (e.target.checked) card.classList.add('active');
           else card.classList.remove('active');
           fn(e.target.checked);

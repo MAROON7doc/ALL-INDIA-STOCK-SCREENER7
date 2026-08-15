@@ -1885,6 +1885,7 @@
         ctx.lineWidth = 1.4;
         ctx.strokeRect(boxX, riskTop, boxW, riskH);
 
+        // P6 Target 2R Horizontal Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, targetY);
         ctx.lineTo(w - paddingRight, targetY);
@@ -1894,11 +1895,24 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.fillStyle = '#10b981';
+        // P6 Target 2R Sleek Right-Aligned Tag Pill
+        const targetStr = `🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`;
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`, paddingLeft + 6, Math.max(paddingTop + 12, targetY - 4));
+        const targetStrW = ctx.measureText(targetStr).width + 12;
+        const targetTagX = w - paddingRight - targetStrW - 6;
+        const targetTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, targetY - 10));
 
+        ctx.fillStyle = 'rgba(6, 78, 59, 0.90)';
+        ctx.fillRect(targetTagX, targetTagY, targetStrW, 18);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(targetTagX, targetTagY, targetStrW, 18);
+
+        ctx.fillStyle = '#34d399';
+        ctx.textAlign = 'left';
+        ctx.fillText(targetStr, targetTagX + 6, targetTagY + 12);
+
+        // P6 Stop Loss Horizontal Line
         ctx.beginPath();
         ctx.moveTo(paddingLeft, slY);
         ctx.lineTo(w - paddingRight, slY);
@@ -1908,10 +1922,22 @@
         ctx.stroke();
         ctx.setLineDash([]);
 
-        ctx.fillStyle = '#ef4444';
+        // P6 Stop Loss Sleek Right-Aligned Tag Pill
+        const slStr = `🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${activeSlPct.toFixed(1)}%) | R:R 1:2.0`;
+        const slStrW = ctx.measureText(slStr).width + 12;
+        const slTagX = w - paddingRight - slStrW - 6;
+        const slTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, slY - 10));
+
+        ctx.fillStyle = 'rgba(127, 29, 29, 0.90)';
+        ctx.fillRect(slTagX, slTagY, slStrW, 18);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(slTagX, slTagY, slStrW, 18);
+
+        ctx.fillStyle = '#f87171';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${activeSlPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, Math.min(paddingTop + pricePlotHeight - 4, slY - 4));
+        ctx.fillText(slStr, slTagX + 6, slTagY + 12);
       }
 
       // PROTOCOL 10: MULTI-TIMEFRAME ALL-GREEN CANDLE ALIGNMENT HUD (5m, 15m, 1H, 4H, 1D, 1W)
@@ -1934,9 +1960,9 @@
         const isSuperTrend = greenCount >= minReq;
 
         const hudX = paddingLeft + 8;
-        const hudY = paddingTop + 8;
-        const hudW = 340;
-        const hudH = 26;
+        const hudY = paddingTop + 6;
+        const hudW = 348;
+        const hudH = 22;
 
         ctx.fillStyle = isSuperTrend ? 'rgba(16, 185, 129, 0.18)' : 'rgba(15, 23, 42, 0.88)';
         ctx.fillRect(hudX, hudY, hudW, hudH);
@@ -1947,14 +1973,14 @@
         ctx.fillStyle = isSuperTrend ? '#10b981' : '#94a3b8';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`P10 MTF Trend (${greenCount}/6 Green):`, hudX + 8, hudY + 17);
+        ctx.fillText(`P10 MTF Trend (${greenCount}/6 Green):`, hudX + 6, hudY + 15);
 
-        let chipX = hudX + 160;
+        let chipX = hudX + 162;
         tfs.forEach(t => {
           ctx.fillStyle = t.isGreen ? '#10b981' : '#ef4444';
           ctx.font = 'bold 9px JetBrains Mono, monospace';
-          ctx.fillText(`${t.name}:${t.isGreen ? '🟢' : '🔴'}`, chipX, hudY + 17);
-          chipX += 28;
+          ctx.fillText(`${t.name}:${t.isGreen ? '🟢' : '🔴'}`, chipX, hudY + 15);
+          chipX += 29;
         });
       }
 

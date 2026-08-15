@@ -3303,7 +3303,10 @@
           document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const tabName = tab.dataset.tab;
-          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          const allTabs = document.querySelectorAll('.tab-content');
+          for (let i = 0; i < allTabs.length; i++) {
+            allTabs[i].style.display = 'none';
+          }
           const content = document.getElementById(`tab_${tabName}`);
           if (content) content.style.display = 'block';
           if (tabName === 'chart') setTimeout(() => this.modalChart?.resize(), 50);

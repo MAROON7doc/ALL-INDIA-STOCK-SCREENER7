@@ -859,11 +859,14 @@
         </div>
       </div>
 
-      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <a href="https://trade.angelone.in/" target="_blank" class="btn btn-sm" style="color:#ea580c; border-color:rgba(234, 88, 12, 0.4);">
           🚀 Open Angel One Trade Terminal ↗
         </a>
-        <div style="display:flex; gap:8px;">
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm" id="btnTestSmartApi" title="Run instant live endpoint ping test">
+            🧪 Test Ping
+          </button>
           <button class="btn btn-sm" id="btnDisconnectSmartApi">Disconnect</button>
           <button class="btn btn-primary btn-sm" id="btnConnectSmartApi" style="background:#ea580c; border-color:#f97316;">
             Connect & Authenticate

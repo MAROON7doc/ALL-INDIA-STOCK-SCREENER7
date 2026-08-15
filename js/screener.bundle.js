@@ -1884,11 +1884,22 @@
       const rsiTop = volumeTop + volumeHeight + 8;
       const timeGutterTop = h - paddingBottom;
 
+      // Retrieve the true instantaneous market price from the latest candle in the active series
+      const latestCandle = (this.allCandles && this.allCandles.length) ? this.allCandles[this.allCandles.length - 1] : null;
+      const livePrice = latestCandle ? latestCandle.close : this.stock.ltp;
+      this.stock.ltp = livePrice;
+
       let baseMinPrice = Infinity, baseMaxPrice = -Infinity, maxVol = 0;
       for (const c of visibleCandles) {
         if (c.low < baseMinPrice) baseMinPrice = c.low;
         if (c.high > baseMaxPrice) baseMaxPrice = c.high;
         if (c.volume > maxVol) maxVol = c.volume;
+      }
+
+      // If at live offset (viewOffset <= 2), ensure instantaneous market price is framed inside the scale
+      if (this.viewOffset <= 2) {
+        if (livePrice < baseMinPrice) baseMinPrice = livePrice;
+        if (livePrice > baseMaxPrice) baseMaxPrice = livePrice;
       }
 
       const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
@@ -2066,9 +2077,9 @@
 
       // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX (DYNAMICALLY ADJUSTED BY SLIDER)
       if (this.layers.p6_sl) {
-        const entryPrice = this.stock.ltp;
-        const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m');
-        const activeSlPct = isIntraday ? 1.2 : (this.filterParams?.maxStopLossPct ?? this.stock.slPct ?? 7.0);
+        const entryPrice = livePrice; // Exact current candle market price!
+        const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m' || this.interval === '1H' || this.interval === '4H');
+        const activeSlPct = isIntraday ? 1.5 : (this.filterParams?.maxStopLossPct ?? this.stock.slPct ?? 7.0);
         const slPrice = parseFloat((entryPrice * (1 - activeSlPct / 100)).toFixed(2));
         const riskPerShare = entryPrice - slPrice;
         const target2Price = parseFloat((entryPrice + riskPerShare * 2).toFixed(2));
@@ -2359,26 +2370,31 @@
 
       ctx.restore(); // END CLIPPING
 
-      // Right Scale Live Price / EOD Badge
+      // Right Scale Live Price / EOD Badge (Pinned strictly to the live price line with overflow protection)
+      const liveTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, liveY));
       ctx.fillStyle = liveColor;
-      ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
+      ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
       ctx.fillStyle = '#ffffff';
       ctx.font = 'bold 9.5px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
       const badgeText = isLiveActive 
         ? `₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`
         : `₹${livePrice.toFixed(1)} EOD`;
-      ctx.fillText(badgeText, w - paddingRight + 4, liveY + 3.5);
+      ctx.fillText(badgeText, w - paddingRight + 4, liveTagY + 3.5);
 
       // Right Scale Hover Crosshair Badge
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
         const hoverPrice = getPriceFromY(this.crosshair.y);
-        ctx.fillStyle = '#334155';
-        ctx.fillRect(w - paddingRight + 2, this.crosshair.y - 8, paddingRight - 4, 16);
+        const crosshairTagY = Math.max(paddingTop + 8, Math.min(paddingTop + pricePlotHeight - 8, this.crosshair.y));
+        ctx.fillStyle = '#1e293b';
+        ctx.fillRect(w - paddingRight + 2, crosshairTagY - 8, paddingRight - 4, 16);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(w - paddingRight + 2, crosshairTagY - 8, paddingRight - 4, 16);
         ctx.fillStyle = '#f8fafc';
-        ctx.font = '9.5px JetBrains Mono, monospace';
+        ctx.font = 'bold 9px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`₹${hoverPrice.toFixed(1)}`, w - paddingRight + 5, this.crosshair.y + 3.5);
+        ctx.fillText(`₹${hoverPrice.toFixed(1)}`, w - paddingRight + 5, crosshairTagY + 3.5);
       }
 
       // Volumes & P3 Volume Bursts (Dynamic Threshold Multiplier from Slider)

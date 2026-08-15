@@ -675,7 +675,7 @@
             <div style="font-size:10px; color:var(--text-muted);">Direct Links: Livemint • Economic Times • Moneycontrol • NSE Filings</div>
           </div>
         </div>
-        <button class="modal-close-btn" id="btnCloseNewsDrawer">&times;</button>
+        <button class="modal-close-btn" id="btnCloseNewsDrawer" aria-label="Close news drawer">&times;</button>
       </div>
 
       <div class="news-feed-list" id="newsFeedList">
@@ -685,7 +685,7 @@
   </div>
 
   <!-- Detail Modal & Full Analysis Visualizer -->
-  <div class="modal-overlay" id="stockModal">
+  <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
     <div class="modal-container">
       <div class="modal-header">
         <div class="modal-title-group">
@@ -705,7 +705,7 @@
             <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
             <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
           </div>
-          <button class="modal-close-btn" id="btnCloseModal">&times;</button>
+          <button class="modal-close-btn" id="btnCloseModal" aria-label="Close stock detail modal">&times;</button>
         </div>
       </div>
 
@@ -789,7 +789,7 @@
   </div>
 
   <!-- Angel One SmartAPI Configuration & Live Connect Modal -->
-  <div class="modal-overlay" id="smartApiModal">
+  <div class="modal-overlay" id="smartApiModal" role="dialog" aria-modal="true" aria-label="SmartAPI Configuration">
     <div class="modal-card" style="max-width: 680px;">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:10px;">
@@ -803,7 +803,7 @@
             <div style="font-size:11px; color:var(--text-muted);">Free Institutional Real-Time Quotes, Historical OHLCV & WebSocket Stream</div>
           </div>
         </div>
-        <button class="btn-close" id="btnCloseSmartApiModal">✕</button>
+        <button class="modal-close-btn" id="btnCloseSmartApiModal" aria-label="Close SmartAPI configuration modal">×</button>
       </div>
 
       <div class="modal-body" style="padding:16px 20px;">
@@ -826,7 +826,7 @@
           </div>
           <div class="calc-field">
             <label class="calc-label" for="txtSmartApiTotp">TOTP / 6-Digit Auth Code:</label>
-            <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456 (from Authenticator App)">
+            <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
           </div>
         </div>
 
@@ -882,4 +882,12 @@
       </div>
     </div>
   </div>
+
+  <!-- Global Toast Notification -->
+  <div id="uiToast" role="status" aria-live="polite" aria-atomic="true">
+    <span id="uiToastIcon"></span>
+    <span id="uiToastMsg"></span>
+  </div>
+
+</body>
 </html>

@@ -58,7 +58,42 @@ body {
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  /* user-select scoped to non-text elements only */
+}
+
+/* Prevent accidental selection on interactive controls, icons, chart areas */
+.app-header,
+.protocol-layer-ribbon,
+.tv-top-toolbar,
+.tv-btn-group,
+.stock-pill-selector,
+.layer-toggle,
+.preset-chip,
+.tag,
+.val-pill,
+.match-score-badge,
+.market-ticker-tape,
+.market-breadth-strip,
+.mtf-chip,
+.brand-logo,
+.header-actions,
+canvas {
   user-select: none;
+  -webkit-user-select: none;
+}
+
+/* Ensure news and calc outputs are selectable */
+.news-title,
+.news-snippet,
+.calc-input,
+#calcSharesOut,
+#calcInvOut,
+#calcRiskAmountOut,
+#modalLTP,
+#mainChartPrice,
+.price-num {
+  user-select: text;
+  -webkit-user-select: text;
 }
 
 /* Modern Dark Custom Scrollbars */
@@ -1609,5 +1644,261 @@ input:checked + .slider:before {
   }
   .news-drawer {
     width: 100%;
+  }
+}
+
+/* ======================================================
+   UI POLISH & ACCESSIBILITY ENHANCEMENTS
+   ====================================================== */
+
+/* Focus ring for keyboard navigation – visible on every interactive element */
+:focus-visible {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* Select elements always show proper contrast */
+select {
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+select:focus-visible {
+  outline: 2px solid var(--accent-blue);
+}
+
+/* Table row click affordance */
+#screenerTableBody tr[data-symbol] {
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+#screenerTableBody tr[data-symbol]:hover {
+  background: var(--bg-card-hover);
+}
+
+#screenerTableBody tr[data-symbol]:focus-within {
+  outline: 2px solid var(--accent-blue);
+  outline-offset: -2px;
+}
+
+/* Table horizontal scroll on narrow screens */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Loading skeleton shimmer animation */
+@keyframes shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position: 800px 0; }
+}
+
+.skeleton-row td {
+  background: linear-gradient(90deg, var(--bg-card) 25%, var(--bg-card-hover) 50%, var(--bg-card) 75%);
+  background-size: 800px 100%;
+  animation: shimmer 1.6s infinite linear;
+  color: transparent !important;
+  border-radius: var(--radius-sm);
+  user-select: none;
+}
+
+/* Toast Notification */
+#uiToast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-active);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: 12.5px;
+  color: var(--text-primary);
+  font-weight: 500;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  max-width: 340px;
+}
+
+#uiToast.show {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+#uiToast.toast-success { border-color: rgba(16, 185, 129, 0.5); }
+#uiToast.toast-warn    { border-color: rgba(245, 158, 11, 0.5); }
+#uiToast.toast-error   { border-color: rgba(239, 68, 68, 0.5); }
+
+/* Scan button loading spinner */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-loading svg {
+  animation: spin 0.7s linear infinite;
+}
+
+/* Empty news feed placeholder */
+.news-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 48px 24px;
+  color: var(--text-muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.news-empty-state svg {
+  opacity: 0.4;
+}
+
+/* Modal focus trap border glow on open */
+.modal-overlay.active .modal-container,
+.modal-overlay.active .modal-card {
+  animation: modalPop 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes modalPop {
+  from { transform: scale(0.94) translateY(12px); opacity: 0; }
+  to   { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+/* Close button accessible label */
+.modal-close-btn[aria-label],
+.btn[aria-label] {
+  position: relative;
+}
+
+/* Protocol layer toggle active state pulse */
+.layer-toggle.active {
+  position: relative;
+}
+
+.layer-toggle.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 4px;
+  height: 4px;
+  background: var(--accent-blue);
+  border-radius: 50%;
+}
+
+/* Run scan button disabled state */
+#btnRunScan:disabled,
+#btnExportCsv:disabled,
+#btnCopyTickers:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+/* Ticker tape auto-scroll on narrow viewports */
+@media (max-width: 768px) {
+  .market-ticker-tape {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .market-ticker-tape::-webkit-scrollbar { display: none; }
+
+  .header-actions {
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .protocol-layer-ribbon {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 4px;
+  }
+  .protocol-layer-ribbon::-webkit-scrollbar { display: none; }
+
+  .tv-btn-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+
+  .screener-table {
+    font-size: 11px;
+  }
+
+  .modal-container {
+    width: 98vw;
+    max-height: 96vh;
+    margin: 2vh auto;
+  }
+}
+
+/* Input number spinner hide (cleaner appearance) */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  opacity: 0.4;
+}
+
+/* Scan status badge pulse when scanning */
+#scanStatusBadge.scanning {
+  animation: statusPulse 1.2s ease-in-out infinite;
+}
+
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.5; }
+}
+
+/* Chart container minimum height guard */
+#mainCanvasContainer,
+#modalCanvasContainer {
+  min-height: 240px;
+}
+
+/* Smooth modal tab content transitions */
+.tab-content {
+  transition: opacity 0.15s ease;
+}
+
+/* Source link pill hover state */
+.source-link-pill:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-blue);
+  color: var(--accent-blue);
+  transform: translateY(-1px);
+}
+
+/* News card interactive feedback */
+.news-card:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--border-active);
+  transform: translateX(2px);
+}
+
+/* Scrollable preset ribbon on small screens */
+@media (max-width: 640px) {
+  .protocol-ribbon {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+  }
+  .preset-group {
+    flex-wrap: nowrap;
   }
 }

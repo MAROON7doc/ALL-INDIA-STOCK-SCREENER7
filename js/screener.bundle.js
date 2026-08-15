@@ -3142,6 +3142,22 @@
       const container = document.getElementById('newsFeedList');
       if (!container) return;
 
+      if (!this.newsList.length) {
+        container.innerHTML = `
+          <div class="news-empty-state">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/>
+              <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"/>
+            </svg>
+            <div>No live news available at this time.</div>
+            <div style="font-size:11px;">Financial news updates every market session.</div>
+          </div>
+        `;
+        const countBadge = document.getElementById('newsCountBadge');
+        if (countBadge) countBadge.textContent = '0';
+        return;
+      }
+
       container.innerHTML = this.newsList.map(item => `
         <div class="news-card" data-id="${item.id}">
           <div class="news-card-header">
@@ -3234,9 +3250,11 @@
       bindChk('chk_p9', 'card_p9', v => this.filters.requireRsScore = v);
       bindChk('chk_p10', 'card_p10', v => this.filters.requireMtfAllGreen = v);
 
+      let _searchDebounce = null;
       document.getElementById('txtSearch')?.addEventListener('input', (e) => {
         this.filters.searchTerm = e.target.value.trim();
-        this.runScan();
+        clearTimeout(_searchDebounce);
+        _searchDebounce = setTimeout(() => this.runScan(), 250);
       });
 
       document.getElementById('selExchange')?.addEventListener('change', (e) => {
@@ -3278,8 +3296,10 @@
       document.getElementById('btnToggleMainChart')?.addEventListener('click', () => {
         const card = document.getElementById('mainChartCard');
         if (card) {
-          card.style.display = card.style.display === 'none' ? 'block' : 'none';
-          if (card.style.display === 'block') setTimeout(() => this.mainChart?.resize(), 50);
+          const isHidden = card.style.display === 'none';
+          // Restore as 'grid' to match the CSS layout expectation (not plain 'block')
+          card.style.display = isHidden ? '' : 'none';
+          if (isHidden) setTimeout(() => this.mainChart?.resize(), 50);
         }
       });
 
@@ -3338,13 +3358,37 @@
         this.applyPreset('all');
         this.runScan();
       });
-      document.getElementById('btnRunScan')?.addEventListener('click', () => this.runScan());
+      document.getElementById('btnRunScan')?.addEventListener('click', () => {
+        const btn = document.getElementById('btnRunScan');
+        if (btn) btn.classList.add('btn-loading');
+        const badge = document.getElementById('scanStatusBadge');
+        if (badge) { badge.textContent = 'Scanning...'; badge.classList.add('scanning'); }
+        requestAnimationFrame(() => {
+          this.runScan();
+          if (btn) btn.classList.remove('btn-loading');
+          if (badge) { badge.textContent = 'Live Scanner Active'; badge.classList.remove('scanning'); }
+        });
+      });
       document.getElementById('btnExportCsv')?.addEventListener('click', () => this.exportCSV());
       document.getElementById('btnCopyTickers')?.addEventListener('click', () => this.copyTickers());
 
       document.getElementById('btnCloseModal')?.addEventListener('click', () => this.closeModal());
       document.getElementById('stockModal')?.addEventListener('click', (e) => {
         if (e.target.id === 'stockModal') this.closeModal();
+      });
+
+      // Focus trap for stockModal (Tab key cycles through focusable children)
+      document.getElementById('stockModal')?.addEventListener('keydown', (e) => {
+        if (e.key !== 'Tab') return;
+        const modal = document.getElementById('stockModal');
+        if (!modal || !modal.classList.contains('active')) return;
+        const focusable = modal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+        const first = focusable[0];
+        const last = focusable[focusable.length - 1];
+        if (e.shiftKey ? document.activeElement === first : document.activeElement === last) {
+          e.preventDefault();
+          (e.shiftKey ? last : first).focus();
+        }
       });
 
       document.querySelectorAll('.modal-tab').forEach(tab => {
@@ -3393,33 +3437,46 @@
       document.getElementById('btnConnectSmartApi')?.addEventListener('click', async () => {
         const btn = document.getElementById('btnConnectSmartApi');
         const logEl = document.getElementById('smartApiStatusLog');
-        const key = document.getElementById('txtSmartApiKey')?.value || '';
-        const client = document.getElementById('txtSmartApiClientCode')?.value || '';
+        const key = document.getElementById('txtSmartApiKey')?.value.trim() || '';
+        const client = document.getElementById('txtSmartApiClientCode')?.value.trim() || '';
         const pass = document.getElementById('txtSmartApiPassword')?.value || '';
-        const totp = document.getElementById('txtSmartApiTotp')?.value || '';
-        const jwt = document.getElementById('txtSmartApiJwt')?.value || '';
+        const totp = document.getElementById('txtSmartApiTotp')?.value.trim() || '';
+        const jwt = document.getElementById('txtSmartApiJwt')?.value.trim() || '';
 
-        if (btn) btn.textContent = 'Connecting...';
+        // Pre-validate required fields before network call
+        if (!key && !jwt) {
+          if (logEl) logEl.textContent = '⚠️ Please enter your Angel One API Key or paste a JWT Bearer token first.';
+          document.getElementById('txtSmartApiKey')?.focus();
+          return;
+        }
+
+        if (btn) { btn.disabled = true; btn.textContent = 'Connecting...'; }
         if (logEl) logEl.textContent = 'Authenticating with Angel One SmartAPI servers (apiconnect.angelbroking.com)...';
 
         const res = await AngelOneSmartApiService.authenticate(key, client, pass, totp, jwt);
-        if (btn) btn.textContent = 'Connect & Authenticate';
+        if (btn) { btn.disabled = false; btn.textContent = 'Connect & Authenticate'; }
         if (logEl) logEl.textContent = res.message;
         
         this.updateSmartApiStatusUI();
-        if (res.success && this.activeMainStock) {
-          this.syncLiveRealtimeData(this.activeMainStock);
+        if (res.success) {
+          // Auto-close modal on successful connection after a brief moment
+          setTimeout(() => document.getElementById('smartApiModal')?.classList.remove('active'), 1200);
+          this.showToast('SmartAPI connected successfully.', 'success');
+          if (this.activeMainStock) this.syncLiveRealtimeData(this.activeMainStock);
+        } else {
+          this.showToast('SmartAPI connection failed. Check credentials.', 'error');
         }
       });
 
       document.getElementById('btnTestSmartApi')?.addEventListener('click', async () => {
         const btn = document.getElementById('btnTestSmartApi');
         const logEl = document.getElementById('smartApiStatusLog');
-        if (btn) btn.textContent = 'Testing...';
+        if (btn) { btn.disabled = true; btn.textContent = 'Testing...'; }
         if (logEl) logEl.textContent = 'Pinging Angel One SmartAPI institutional market quote endpoint...';
         const res = await AngelOneSmartApiService.testConnection();
-        if (btn) btn.textContent = '🧪 Test Ping';
+        if (btn) { btn.disabled = false; btn.textContent = '🧪 Test Ping'; }
         if (logEl) logEl.textContent = res.message;
+        this.showToast(res.success ? 'SmartAPI ping OK.' : 'SmartAPI ping failed.', res.success ? 'success' : 'warn');
       });
 
       document.getElementById('btnDisconnectSmartApi')?.addEventListener('click', () => {
@@ -3936,10 +3993,19 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="14" style="text-align:center; padding:32px; color:var(--text-muted);">
-              No stocks matched all active protocols. Try selecting <strong>View All Stocks</strong>.
+              <div style="margin-bottom:10px; font-size:20px;">🔍</div>
+              <div style="font-weight:600; color:var(--text-secondary); margin-bottom:8px;">No stocks matched all active protocols.</div>
+              <button class="btn btn-sm" id="btnEmptyViewAll" style="margin-top:4px; padding:5px 14px;">View All Stocks</button>
             </td>
           </tr>
         `;
+        // Wire the inline action button
+        document.getElementById('btnEmptyViewAll')?.addEventListener('click', () => {
+          this.applyPreset('all');
+          this.runScan();
+          document.querySelectorAll('.preset-chip').forEach(c => c.classList.remove('active'));
+          document.querySelector('[data-preset="all"]')?.classList.add('active');
+        });
         return;
       }
 
@@ -4195,7 +4261,9 @@
       this.updateCalculator();
 
       modal.classList.add('active');
+      // Move focus to close button for keyboard users
       setTimeout(() => {
+        document.getElementById('btnCloseModal')?.focus();
         if (this.modalChart) {
           this.modalChart.setStock(stock, '1D', this.activeExchangeMode);
         }
@@ -4203,7 +4271,12 @@
     }
 
     closeModal() {
-      document.getElementById('stockModal')?.classList.remove('active');
+      const modal = document.getElementById('stockModal');
+      if (modal) modal.classList.remove('active');
+      this.currentModalStock = null;
+      // Reset modal body scroll position so next open starts at top
+      const body = modal?.querySelector('.modal-body');
+      if (body) body.scrollTop = 0;
     }
 
     updateCalculator() {
@@ -4214,10 +4287,18 @@
 
       const alertBox = document.getElementById('calcAlertBox');
       const alertMsg = document.getElementById('calcAlertMsg');
+      const entryInput = document.getElementById('calcEntryPrice');
+      const slInput = document.getElementById('calcStopLossPrice');
+
+      // Clear prior invalid states
+      if (entryInput) entryInput.style.borderColor = '';
+      if (slInput) slInput.style.borderColor = '';
 
       if (sl >= entry) {
         if (alertBox) alertBox.className = 'calc-alert warn';
         if (alertMsg) alertMsg.textContent = '⚠️ Invalid Stop Loss: Stop loss must be placed strictly below Entry Price.';
+        // Red border on the offending inputs
+        if (slInput) slInput.style.borderColor = 'var(--accent-red)';
         const elShares = document.getElementById('calcSharesOut');
         if (elShares) elShares.textContent = '0 Qty';
         const elInv = document.getElementById('calcInvOut');
@@ -4255,7 +4336,7 @@
     }
 
     exportCSV() {
-      if (!this.currentResults?.length) { alert('No stocks to export.'); return; }
+      if (!this.currentResults?.length) { this.showToast('No stocks to export. Run a scan first.', 'warn'); return; }
       try {
         const headers = ['Symbol', 'Name', 'NSE Series', 'BSE Scrip Code', 'ISIN', 'Index Category', 'Sector', 'LTP', 'Day Change %', 'RS Score', 'RSI', 'Vol Burst %', 'Sales YoY %', 'EPS YoY %', '3Y EPS CAGR %', '5Y EPS CAGR %', 'ROE %', 'ROCE %', 'Stop Loss', 'SL %', 'Match Count'];
         const rows = this.currentResults.map(s => [
@@ -4276,7 +4357,7 @@
     }
 
     copyTickers() {
-      if (!this.currentResults?.length) { return; }
+      if (!this.currentResults?.length) { this.showToast('No results to copy.', 'warn'); return; }
       try {
         const txt = this.currentResults.map(s => s.symbol).join(', ');
         navigator.clipboard.writeText(txt).then(() => {
@@ -4286,12 +4367,30 @@
             btn.innerHTML = '✓ Copied!';
             setTimeout(() => btn.innerHTML = old, 2000);
           }
+          this.showToast(`${this.currentResults.length} tickers copied to clipboard.`, 'success');
         }).catch(() => {
           prompt('Copy tickers to clipboard:', txt);
         });
       } catch (e) {
         console.warn('Clipboard Error:', e);
       }
+    }
+
+    showToast(message, type = 'success', durationMs = 3000) {
+      const toast = document.getElementById('uiToast');
+      const iconEl = document.getElementById('uiToastIcon');
+      const msgEl = document.getElementById('uiToastMsg');
+      if (!toast || !msgEl) return;
+
+      const icons = { success: '✓', warn: '⚠️', error: '✕' };
+      if (iconEl) iconEl.textContent = icons[type] || '';
+      msgEl.textContent = message;
+      toast.className = `show toast-${type}`;
+
+      clearTimeout(this._toastTimer);
+      this._toastTimer = setTimeout(() => {
+        toast.className = toast.className.replace('show', '').trim();
+      }, durationMs);
     }
   }
 
@@ -4303,6 +4402,7 @@
     if (e.key === 'Escape') {
       window.screener?.closeModal();
       document.getElementById('newsDrawerOverlay')?.classList.remove('active');
+      document.getElementById('smartApiModal')?.classList.remove('active');
     } else if (e.key === 'ArrowLeft') {
       if (window.screener?.mainChart) {
         window.screener.mainChart.viewOffset = Math.min(window.screener.mainChart.allCandles.length - window.screener.mainChart.viewCount, window.screener.mainChart.viewOffset + 4);

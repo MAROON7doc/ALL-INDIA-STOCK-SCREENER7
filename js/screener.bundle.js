@@ -3409,12 +3409,12 @@
     renderStockPills() {
       const container = document.getElementById('stockPillSelector');
       if (!container) return;
+      const activeSym = this.activeMainStock ? this.activeMainStock.symbol : '';
       const symbols = ['TRENT', 'DIXON', 'KAYNES', 'BEL', 'HAL', 'SOLARINDS', 'CDSL', 'BDL', 'POLYCAB', 'PERSISTENT'];
-      container.innerHTML = symbols.map(sym => `
-        <button class="stock-pill ${sym === this.activeMainStock?.symbol ? 'active' : ''}" data-symbol="${sym}">
-          ${sym}
-        </button>
-      `).join('');
+      container.innerHTML = symbols.map(sym => {
+        const isActive = (sym === activeSym) ? ' active' : '';
+        return `<button class="stock-pill${isActive}" data-symbol="${sym}">${sym}</button>`;
+      }).join('');
 
       container.querySelectorAll('.stock-pill').forEach(pill => {
         pill.addEventListener('click', () => {

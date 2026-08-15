@@ -462,7 +462,115 @@
   }
 
   /* ==========================================================================
-     4. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION
+  /* ==========================================================================
+     4. REAL-TIME LIVE MARKET FEED & MULTI-TIMEFRAME PARSER ENGINE
+     ========================================================================== */
+  const LiveMarketFeedService = {
+    cache: new Map(),
+    isOnline: typeof navigator !== 'undefined' ? navigator.onLine !== false : true,
+    lastSyncTimestamp: null,
+
+    getTimeframeParams(interval) {
+      switch (interval) {
+        case '1m': return { interval: '1m', range: '1d' };
+        case '5m': return { interval: '5m', range: '5d' };
+        case '15m': return { interval: '15m', range: '5d' };
+        case '1H': return { interval: '60m', range: '1mo' };
+        case '4H': return { interval: '60m', range: '3mo' };
+        case '1D': return { interval: '1d', range: '1y' };
+        case '1W': return { interval: '1wk', range: '2y' };
+        case '1M': return { interval: '1mo', range: '5y' };
+        default: return { interval: '1d', range: '1y' };
+      }
+    },
+
+    parseMarketData(json, interval = '1D') {
+      try {
+        const result = json?.chart?.result?.[0];
+        if (!result || !result.timestamp || !result.indicators?.quote?.[0]) return null;
+
+        const meta = result.meta || {};
+        const timestamps = result.timestamp;
+        const quote = result.indicators.quote[0];
+        const opens = quote.open || [];
+        const highs = quote.high || [];
+        const lows = quote.low || [];
+        const closes = quote.close || [];
+        const volumes = quote.volume || [];
+
+        const candles = [];
+        for (let i = 0; i < timestamps.length; i++) {
+          const c = closes[i], o = opens[i], h = highs[i], l = lows[i], v = volumes[i];
+          if (c == null || o == null || isNaN(c) || isNaN(o)) continue;
+
+          const ts = timestamps[i] * 1000;
+          const d = new Date(ts);
+          const dateStr = d.toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' });
+          let timeStr = '15:30';
+
+          if (interval === '1m' || interval === '5m' || interval === '15m' || interval === '1H' || interval === '4H') {
+            timeStr = d.toLocaleTimeString('en-IN', { timeZone: 'Asia/Kolkata', hour: '2-digit', minute: '2-digit', hour12: false });
+          } else if (interval === '1M') {
+            timeStr = 'Monthly';
+          }
+
+          candles.push({
+            date: dateStr,
+            time: timeStr,
+            open: parseFloat(o.toFixed(2)),
+            high: parseFloat((h != null ? h : Math.max(o, c)).toFixed(2)),
+            low: parseFloat((l != null ? l : Math.min(o, c)).toFixed(2)),
+            close: parseFloat(c.toFixed(2)),
+            volume: Math.round(v || 0),
+            timestamp: ts
+          });
+        }
+
+        if (interval === '4H' && candles.length > 0) {
+          return { candles: resampleSeries(candles, 4), meta };
+        }
+
+        return { candles, meta };
+      } catch (err) {
+        return null;
+      }
+    },
+
+    async fetchRealtimeSeries(symbol, interval = '1D') {
+      const ticker = symbol.endsWith('.NS') || symbol.endsWith('.BO') ? symbol : `${symbol}.NS`;
+      const { interval: yfInterval, range: yfRange } = this.getTimeframeParams(interval);
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=${yfInterval}&range=${yfRange}&includePrePost=false`;
+
+      const endpoints = [
+        targetUrl,
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 4000);
+          const resp = await fetch(ep, { signal: controller.signal });
+          clearTimeout(timeoutId);
+          if (resp.ok) {
+            const json = await resp.json();
+            const parsed = this.parseMarketData(json, interval);
+            if (parsed && parsed.candles && parsed.candles.length >= 5) {
+              this.lastSyncTimestamp = Date.now();
+              return parsed;
+            }
+          }
+        } catch (e) {
+          // Try next proxy endpoint
+        }
+      }
+      return null;
+    }
+  };
+
+  /* ==========================================================================
+     5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION
      ========================================================================== */
   const RAW_DATABASE = [
     {
@@ -477,7 +585,7 @@
       bseIndex: 'BSE 100 • S&P BSE 500',
       sector: 'Retail',
       subSector: 'Consumer Discretionary • Tata Group',
-      basePrice: 5200,
+      basePrice: 7140.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 53.2,
       epsGrowthYoY: 67.8,
@@ -503,7 +611,7 @@
       bseIndex: 'BSE 100 • S&P BSE 200',
       sector: 'EMS',
       subSector: 'EMS & Consumer Electronics',
-      basePrice: 11200,
+      basePrice: 14850.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 101.4,
       epsGrowthYoY: 82.5,
@@ -529,7 +637,7 @@
       bseIndex: 'BSE 100 • BSE PSU',
       sector: 'Defence',
       subSector: 'Defence Radars, EW & Avionics',
-      basePrice: 240,
+      basePrice: 302.50,
       patternType: 'cup_handle',
       salesGrowthYoY: 28.5,
       epsGrowthYoY: 38.4,
@@ -555,7 +663,7 @@
       bseIndex: 'BSE 100 • BSE PSU',
       sector: 'Defence',
       subSector: 'Fighter Jets & Military Helicopters',
-      basePrice: 3950,
+      basePrice: 4580.00,
       patternType: 'consolidation_7w',
       salesGrowthYoY: 18.2,
       epsGrowthYoY: 29.5,
@@ -581,7 +689,7 @@
       bseIndex: 'BSE 100 • S&P BSE 200',
       sector: 'Wires',
       subSector: 'Power Cables, Wires & FMEG',
-      basePrice: 5600,
+      basePrice: 6780.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 25.1,
       epsGrowthYoY: 34.2,
@@ -607,7 +715,7 @@
       bseIndex: 'BSE 200 • S&P BSE 500',
       sector: 'Defence',
       subSector: 'Industrial Explosives & Rocket Propellants',
-      basePrice: 8500,
+      basePrice: 10950.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 31.4,
       epsGrowthYoY: 41.2,
@@ -633,7 +741,7 @@
       bseIndex: 'BSE 500',
       sector: 'EMS',
       subSector: 'Semiconductor OSAT & Smart EMS',
-      basePrice: 4200,
+      basePrice: 5240.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 72.1,
       epsGrowthYoY: 79.4,
@@ -659,7 +767,7 @@
       bseIndex: 'BSE 200 • BSE IT',
       sector: 'IT',
       subSector: 'Digital Engineering & AI Software',
-      basePrice: 4500,
+      basePrice: 5620.00,
       patternType: 'consolidation_7w',
       salesGrowthYoY: 19.8,
       epsGrowthYoY: 23.4,
@@ -685,7 +793,7 @@
       bseIndex: 'BSE 500 • BSE Financials',
       sector: 'Financial',
       subSector: 'Depository Infrastructure Monopoly',
-      basePrice: 1250,
+      basePrice: 1520.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 52.1,
       epsGrowthYoY: 61.3,
@@ -711,7 +819,7 @@
       bseIndex: 'BSE 500 • BSE PSU',
       sector: 'Defence',
       subSector: 'Guided Missiles & Torpedoes',
-      basePrice: 890,
+      basePrice: 1185.00,
       patternType: 'consolidation_7w',
       salesGrowthYoY: 62.4,
       epsGrowthYoY: 74.1,
@@ -737,7 +845,7 @@
       bseIndex: 'BSE 500',
       sector: 'Renewable',
       subSector: 'Solar Cells & TOPCon PV Modules',
-      basePrice: 780,
+      basePrice: 1140.00,
       patternType: 'cup_handle',
       salesGrowthYoY: 124.0,
       epsGrowthYoY: 145.2,
@@ -763,7 +871,7 @@
       bseIndex: 'BSE 500 • BSE Financials',
       sector: 'Financial',
       subSector: 'Fintech & Digital Retail Brokerage',
-      basePrice: 2450,
+      basePrice: 2920.00,
       patternType: 'consolidation_7w',
       salesGrowthYoY: 45.8,
       epsGrowthYoY: 38.7,
@@ -2429,6 +2537,7 @@
           const interval = btn.dataset.interval;
           if (this.mainChart) this.mainChart.setInterval(interval);
           if (this.modalChart) this.modalChart.setInterval(interval);
+          if (this.activeMainStock) this.syncLiveRealtimeData(this.activeMainStock, interval);
           
           // Deselect range buttons when manually picking a specific interval
           document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
@@ -2876,6 +2985,57 @@
         this.mainChart.setStock(stock, null, this.activeExchangeMode);
       }
       this.updateGpuBadge();
+      this.syncLiveRealtimeData(stock, this.mainChart?.interval || '1D');
+    }
+
+    async syncLiveRealtimeData(stock, interval = null) {
+      if (!stock) return;
+      const targetInterval = interval || this.mainChart?.interval || '1D';
+
+      try {
+        const liveData = await LiveMarketFeedService.fetchRealtimeSeries(stock.symbol, targetInterval);
+        if (liveData && liveData.candles && liveData.candles.length >= 8) {
+          const meta = liveData.meta;
+          const candles = liveData.candles;
+          const lastCandle = candles[candles.length - 1];
+          const newLtp = lastCandle.close;
+
+          if (targetInterval === '1m') stock.intraday1m = candles;
+          else if (targetInterval === '5m') stock.intraday5m = candles;
+          else if (targetInterval === '15m') stock.intraday15m = candles;
+          else if (targetInterval === '1H') stock.intraday1H = candles;
+          else if (targetInterval === '4H') stock.intraday4H = candles;
+          else if (targetInterval === '1D') {
+            stock.dailyCandles = candles;
+            stock.closes = candles.map(c => c.close);
+            stock.volumes = candles.map(c => c.volume);
+          } else if (targetInterval === '1W') stock.weekly = candles;
+          else if (targetInterval === '1M') stock.monthly = candles;
+
+          stock.ltp = newLtp;
+          if (meta.chartPreviousClose || meta.previousClose) {
+            const pClose = meta.chartPreviousClose || meta.previousClose;
+            stock.dayChangePct = parseFloat((((newLtp - pClose) / pClose) * 100).toFixed(2));
+          }
+
+          if (this.mainChart && this.activeMainStock?.symbol === stock.symbol) {
+            this.mainChart.setInterval(this.mainChart.interval);
+          }
+          if (this.modalChart && this.currentModalStock?.symbol === stock.symbol) {
+            this.modalChart.setInterval(this.modalChart.interval);
+          }
+          this.runScan();
+
+          const livePill = document.getElementById('livePillIndicator');
+          if (livePill) {
+            livePill.innerHTML = '<span class="live-dot" style="background:#10b981;"></span> REAL-TIME (NSE/BSE)';
+            livePill.style.color = '#10b981';
+            livePill.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+          }
+        }
+      } catch (err) {
+        // Fallback already intact
+      }
     }
 
     applyPreset(key) {

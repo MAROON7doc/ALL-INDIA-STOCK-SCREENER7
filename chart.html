@@ -46,6 +46,9 @@
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:14px; font-weight:700; color:var(--text-primary);">Terminal Live Chart</span>
+          <span class="market-pill market-closed" id="marketStatusBadge" title="Indian Market Session: Mon-Fri 09:15-15:30 IST">
+            <span class="market-dot"></span> <span id="marketStatusText">🔴 MARKET CLOSED (EOD Finalized)</span>
+          </span>
           <span class="live-pill" id="livePillIndicator"><span class="live-dot"></span> LIVE</span>
           <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU WebGL</span>
         </div>
@@ -58,11 +61,17 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:5px; background:var(--bg-card); padding:2px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-          <span style="font-size:10.5px; color:var(--text-muted);">Speed:</span>
+          <span style="font-size:10.5px; color:var(--text-muted);">Feed:</span>
+          <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;">
+            <option value="auto" selected>Auto (Real Hours)</option>
+            <option value="simulation">Replay / Sim</option>
+            <option value="paused">Freeze Feed</option>
+          </select>
+          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
           <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">
-            <option value="800">0.8s (Fastest)</option>
-            <option value="1500" selected>1.5s (Normal)</option>
-            <option value="3000">3.0s (Relaxed)</option>
+            <option value="1500">1.5s (High Freq)</option>
+            <option value="3500" selected>3.5s (Live Sync)</option>
+            <option value="5000">5.0s (Steady)</option>
           </select>
           <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10.5px;">
             <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">

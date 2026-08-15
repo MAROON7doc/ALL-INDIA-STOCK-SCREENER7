@@ -1008,9 +1008,17 @@
         p9_rs: true
       };
 
+      this.isMarketLive = true;
+      this.isSimMode = false;
+
       this.setupListeners();
       this.resize();
       this.startAnimationLoop();
+    }
+
+    setMarketLiveState(isLive, isSim = false) {
+      this.isMarketLive = isLive;
+      this.isSimMode = isSim;
     }
 
     startAnimationLoop() {
@@ -1708,33 +1716,42 @@
         ctx.fill(bearBodies);
       }
 
-      // 4. LIVE TICK BEACON & LASER LINE
+      // 4. LIVE TICK BEACON & LASER LINE (ACTIVE OR EOD FINALIZED)
       const livePrice = this.stock.ltp;
       const liveY = Math.round(getY(livePrice)) + 0.5;
+      const isLiveActive = (this.isMarketLive !== false) || this.isSimMode;
       const isTickUp = this.stock.lastTickDir === 'up';
-      const liveColor = isTickUp ? '#10b981' : '#ef4444';
+      const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#64748b';
 
       ctx.strokeStyle = liveColor;
-      ctx.lineWidth = 1.2;
-      ctx.setLineDash([4, 2]);
+      ctx.lineWidth = isLiveActive ? 1.2 : 1.0;
+      ctx.setLineDash(isLiveActive ? [4, 2] : [2, 2]);
       ctx.beginPath();
       ctx.moveTo(paddingLeft, liveY);
       ctx.lineTo(w - paddingRight, liveY);
       ctx.stroke();
       ctx.setLineDash([]);
 
-      const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
-      const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
-      
-      ctx.fillStyle = isTickUp ? `rgba(16, 185, 129, ${pulseAlpha})` : `rgba(239, 68, 68, ${pulseAlpha})`;
-      ctx.beginPath();
-      ctx.arc(lastCandleX, lastCandleY, pulseSize + 4, 0, Math.PI * 2);
-      ctx.fill();
+      if (isLiveActive) {
+        const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
+        const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
+        
+        ctx.fillStyle = isTickUp ? `rgba(16, 185, 129, ${pulseAlpha})` : `rgba(239, 68, 68, ${pulseAlpha})`;
+        ctx.beginPath();
+        ctx.arc(lastCandleX, lastCandleY, pulseSize + 4, 0, Math.PI * 2);
+        ctx.fill();
 
-      ctx.fillStyle = liveColor;
-      ctx.beginPath();
-      ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = liveColor;
+        ctx.beginPath();
+        ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        // Steady EOD closed dot (No phantom erratic movement)
+        ctx.fillStyle = '#64748b';
+        ctx.beginPath();
+        ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
 
       // Horizontal Crosshair Line
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= timeGutterTop) {
@@ -1755,13 +1772,16 @@
 
       ctx.restore(); // END CLIPPING
 
-      // Right Scale Live Price Badge
+      // Right Scale Live Price / EOD Badge
       ctx.fillStyle = liveColor;
       ctx.fillRect(w - paddingRight + 2, liveY - 9, paddingRight - 4, 18);
       ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.font = 'bold 9.5px JetBrains Mono, monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(`₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`, w - paddingRight + 5, liveY + 3.5);
+      const badgeText = isLiveActive 
+        ? `₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`
+        : `₹${livePrice.toFixed(1)} EOD`;
+      ctx.fillText(badgeText, w - paddingRight + 4, liveY + 3.5);
 
       // Right Scale Hover Crosshair Badge
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
@@ -1930,9 +1950,11 @@
       this.activeNewsIdx = 0;
       this.newsList = LIVE_NEWS_DATABASE;
       this.isLive = true;
+      this.feedMode = 'auto'; // 'auto' (respects 09:15-15:30 IST), 'simulation' (24x7 replay), 'paused'
       this.streamInterval = 3500; // 3.5s Auto-Refresh default
       this.liveTimer = null;
       this.newsTimer = null;
+      this.marketTimer = null;
       this.isFullscreen = false;
 
       this.filters = {
@@ -1951,6 +1973,102 @@
       this.init();
     }
 
+    getMarketStatus() {
+      const now = new Date();
+      const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+      const ist = new Date(utc + (3600000 * 5.5)); // IST UTC+5:30
+      const day = ist.getDay(); // 0 = Sun, 6 = Sat
+      const hour = ist.getHours();
+      const min = ist.getMinutes();
+      const totalMin = hour * 60 + min;
+
+      const openMin = 9 * 60 + 15;  // 09:15 IST
+      const closeMin = 15 * 60 + 30; // 15:30 IST
+      const preOpenMin = 9 * 60;     // 09:00 IST
+
+      const timeStr = ist.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+
+      if (day === 0 || day === 6) {
+        return {
+          isOpen: false,
+          statusText: `🔴 MARKET CLOSED (Weekend • ${timeStr} IST)`,
+          shortText: '🔴 MARKET CLOSED (Weekend)',
+          badgeClass: 'market-closed',
+          isWeekend: true
+        };
+      } else if (totalMin >= openMin && totalMin < closeMin) {
+        return {
+          isOpen: true,
+          statusText: `🟢 MARKET LIVE (09:15-15:30 • ${timeStr} IST)`,
+          shortText: '🟢 MARKET LIVE',
+          badgeClass: 'market-open',
+          isWeekend: false
+        };
+      } else if (totalMin >= preOpenMin && totalMin < openMin) {
+        return {
+          isOpen: false,
+          statusText: `🟡 PRE-MARKET (09:00-09:15 • ${timeStr} IST)`,
+          shortText: '🟡 PRE-MARKET',
+          badgeClass: 'market-pre',
+          isWeekend: false
+        };
+      } else {
+        return {
+          isOpen: false,
+          statusText: `🔴 MARKET CLOSED (EOD Finalized • ${timeStr} IST)`,
+          shortText: '🔴 MARKET CLOSED (EOD Finalized)',
+          badgeClass: 'market-closed',
+          isWeekend: false
+        };
+      }
+    }
+
+    updateMarketStatusBadge() {
+      const mStatus = this.getMarketStatus();
+      const badge = document.getElementById('marketStatusBadge');
+      const text = document.getElementById('marketStatusText');
+      const livePill = document.getElementById('livePillIndicator');
+
+      if (this.feedMode === 'simulation') {
+        if (badge) { badge.className = 'market-pill market-pre'; }
+        if (text) { text.textContent = '⚡ REPLAY / SIM (24x7)'; }
+        if (livePill) {
+          livePill.innerHTML = '<span class="live-dot" style="background:#fbbf24; box-shadow:0 0 6px #fbbf24;"></span> SIM 3.5s';
+          livePill.style.color = '#fbbf24';
+          livePill.style.borderColor = 'rgba(251, 191, 36, 0.4)';
+        }
+        this.mainChart?.setMarketLiveState(true, true);
+        this.modalChart?.setMarketLiveState(true, true);
+      } else if (this.feedMode === 'paused' || !this.isLive) {
+        if (badge) { badge.className = 'market-pill market-closed'; }
+        if (text) { text.textContent = '⏸️ FEED PAUSED (Frozen)'; }
+        if (livePill) {
+          livePill.innerHTML = '<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> PAUSED';
+          livePill.style.color = '#94a3b8';
+          livePill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
+        }
+        this.mainChart?.setMarketLiveState(false, false);
+        this.modalChart?.setMarketLiveState(false, false);
+      } else {
+        // Auto Real Market Hours mode
+        if (badge) { badge.className = `market-pill ${mStatus.badgeClass}`; }
+        if (text) { text.textContent = mStatus.shortText; }
+        if (livePill) {
+          if (mStatus.isOpen) {
+            livePill.innerHTML = '<span class="live-dot"></span> LIVE 3.5s';
+            livePill.style.color = 'var(--accent-green)';
+            livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          } else {
+            livePill.innerHTML = '<span class="live-dot" style="background:#ef4444; box-shadow:none;"></span> EOD CLOSED';
+            livePill.style.color = '#f87171';
+            livePill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+          }
+        }
+        this.mainChart?.setMarketLiveState(mStatus.isOpen, false);
+        this.modalChart?.setMarketLiveState(mStatus.isOpen, false);
+      }
+    }
+
     init() {
       if (document.getElementById('mainCanvasContainer')) {
         this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
@@ -1960,6 +2078,9 @@
       }
 
       this.updateGpuBadge();
+      this.updateMarketStatusBadge();
+      this.marketTimer = setInterval(() => this.updateMarketStatusBadge(), 1000);
+
       this.bindUI();
       this.bindLayerToggles();
       this.bindTradingViewToolbar();
@@ -2254,6 +2375,11 @@
           }
           if (this.liveTimer) clearTimeout(this.liveTimer);
         }
+      });
+
+      document.getElementById('selFeedMode')?.addEventListener('change', (e) => {
+        this.feedMode = e.target.value;
+        this.updateMarketStatusBadge();
       });
 
       document.getElementById('selStreamSpeed')?.addEventListener('change', (e) => {
@@ -2776,7 +2902,19 @@
     startLiveStream() {
       if (this.liveTimer) clearTimeout(this.liveTimer);
       const loop = () => {
-        if (!this.isLive) return;
+        const mStatus = this.getMarketStatus();
+        this.updateMarketStatusBadge();
+
+        const allowUpdates = this.isLive && (
+          this.feedMode === 'simulation' || 
+          (this.feedMode === 'auto' && mStatus.isOpen)
+        );
+
+        if (!allowUpdates) {
+          // Market closed or feed paused: Keep prices cleanly frozen at EOD closing levels!
+          this.liveTimer = setTimeout(loop, this.streamInterval);
+          return;
+        }
 
         // Auto-refresh all active stocks in the universe with unified multi-timeframe tick price
         const updated = [];

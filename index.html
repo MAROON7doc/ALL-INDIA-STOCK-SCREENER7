@@ -181,7 +181,7 @@
     <div class="protocol-ribbon">
       <div class="preset-group">
         <span class="preset-label">Active Presets:</span>
-        <button class="preset-chip active" data-preset="user_master">🌟 User Master (All 9)</button>
+        <button class="preset-chip active" data-preset="user_master">🌟 User Master (All 10)</button>
         <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle</button>
         <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Bases</button>
         <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
@@ -193,10 +193,10 @@
   <!-- Main Container -->
   <div class="app-container">
 
-    <!-- Filter Sidebar (9 Custom Protocols) -->
+    <!-- Filter Sidebar (10 Custom Protocols) -->
     <aside class="filter-sidebar">
       <div class="filter-section-title">
-        <span>Protocol Engine (9 Rules)</span>
+        <span>Protocol Engine (10 Rules)</span>
         <button class="btn btn-sm" id="btnResetFilters" style="padding:1px 5px; font-size:9.5px;">Reset</button>
       </div>
 
@@ -392,6 +392,35 @@
         </div>
       </div>
 
+      <!-- Protocol 10: Multi-Timeframe All-Green Bullish Alignment (5m, 15m, 1H, 4H, 1D, 1W) -->
+      <div class="protocol-card active" id="card_p10">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge" style="background:#10b981; color:#fff;">P10</span>
+            <span class="protocol-name">MTF All-Green Alignment</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p10" checked>
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Timeframes (5m, 15m, 1H, 4H, 1D, 1W)</span>
+            <span class="val-pill" id="val_mtfGreen" style="color:var(--accent-green);">6/6 Green</span>
+          </div>
+          <input type="range" class="range-input" id="rng_mtfGreen" min="4" max="6" value="6" step="1">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px; font-size:9.5px; font-family:var(--font-mono); color:var(--text-muted);" id="sidebarMtfPills">
+          <span class="mtf-chip green" id="chip_5m">5m 🟢</span>
+          <span class="mtf-chip green" id="chip_15m">15m 🟢</span>
+          <span class="mtf-chip green" id="chip_1H">1H 🟢</span>
+          <span class="mtf-chip green" id="chip_4H">4H 🟢</span>
+          <span class="mtf-chip green" id="chip_1D">1D 🟢</span>
+          <span class="mtf-chip green" id="chip_1W">1W 🟢</span>
+        </div>
+      </div>
+
     </aside>
 
     <!-- Main Content Area -->
@@ -400,7 +429,7 @@
       <!-- Live Interactive Candlestick Chart Panel (TradingView Grade with Maximize & Pop-out) -->
       <div class="main-chart-card" id="mainChartCard">
         
-        <!-- 9 Interactive Protocol Visual Layer Switches -->
+        <!-- 10 Interactive Protocol Visual Layer Switches -->
         <div class="protocol-layer-ribbon">
           <span class="protocol-layer-label">Visual Protocols:</span>
           <button class="layer-toggle active" data-layer="p1_growth" title="P1: Growth Milestone Pins & Earnings Beats">P1: EPS Growth</button>
@@ -410,6 +439,7 @@
           <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup & Handle Golden Arc, Neckline Pivot & Target Projection">P5: Cup & Handle</button>
           <button class="layer-toggle active" data-layer="p6_sl" title="P6: % Stop Loss & Risk/Reward Position Box">P6: Stop Loss & R:R</button>
           <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield Relative Strength Curve vs NIFTY 50">P9: RS Momentum</button>
+          <button class="layer-toggle active" data-layer="p10_mtf" title="P10: Multi-Timeframe All-Green Bullish Alignment HUD (5m, 15m, 1H, 4H, 1D, 1W)">P10: MTF Green</button>
         </div>
 
         <!-- TradingView Top Toolbar: Interval Selector + Chart Type + Maximize + Pop-out Window -->
@@ -449,12 +479,13 @@
           <!-- TradingView Multi-Timeframe & Type Toolbar + Maximize / Popout Buttons -->
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
             <!-- Timeframe Interval Group -->
-            <div class="tv-btn-group">
+            <div class="tv-btn-group" id="tvIntervalGroup">
               <span class="tv-group-label">Interval:</span>
               <button class="tv-btn active" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
               <button class="tv-btn" data-interval="5m" title="5-Minute Intraday Candlesticks">5m</button>
               <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Candlesticks">15m</button>
               <button class="tv-btn" data-interval="1H" title="1-Hour Hourly Candlesticks">1H</button>
+              <button class="tv-btn" data-interval="4H" title="4-Hour Swing Candlesticks">4H</button>
               <button class="tv-btn" data-interval="1D" title="1-Day Daily Candlesticks (Standard CANSLIM Timeframe)">1D</button>
               <button class="tv-btn" data-interval="1W" title="1-Week Weekly Base Candlesticks">1W</button>
               <button class="tv-btn" data-interval="1M" title="1-Month Multi-Year Candlesticks">1M</button>
@@ -590,6 +621,7 @@
             <tr>
               <th>Stock / Exchange</th>
               <th>Live LTP (₹) & Day Chg</th>
+              <th>MTF Trend (6)</th>
               <th>RS Score</th>
               <th>RSI (14)</th>
               <th>Vol Burst</th>
@@ -599,7 +631,7 @@
               <th>3-5Y CAGR</th>
               <th>ROE / ROCE</th>
               <th>Stop Loss (SL)</th>
-              <th>Match (9)</th>
+              <th>Match (10)</th>
               <th>Action</th>
             </tr>
           </thead>

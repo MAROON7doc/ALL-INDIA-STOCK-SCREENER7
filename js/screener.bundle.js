@@ -875,6 +875,7 @@
       const intraday5m = resampleSeries(intraday1m, 5);
       const intraday15m = generateIntraday15mSeries(initialDayClose, 250);
       const intraday1H = generateHourlySeries(initialDayClose, 250);
+      const intraday4H = resampleSeries(intraday1H, 4);
       const weekly = resampleSeries(dailyCandles, 5);
       const monthly = generateMonthlySeries(stock.basePrice, 120);
 
@@ -883,8 +884,27 @@
       if (intraday5m.length) intraday5m[intraday5m.length - 1].close = initialDayClose;
       if (intraday15m.length) intraday15m[intraday15m.length - 1].close = initialDayClose;
       if (intraday1H.length) intraday1H[intraday1H.length - 1].close = initialDayClose;
+      if (intraday4H.length) intraday4H[intraday4H.length - 1].close = initialDayClose;
       if (weekly.length) weekly[weekly.length - 1].close = initialDayClose;
       if (monthly.length) monthly[monthly.length - 1].close = initialDayClose;
+
+      // MTF All-Green Multi-Timeframe Status Calculation (5m, 15m, 1H, 4H, 1D, 1W)
+      const checkGreen = (arr) => {
+        if (!arr || !arr.length) return false;
+        const c = arr[arr.length - 1];
+        return c.close >= c.open;
+      };
+
+      const mtfStatus = {
+        '5m': checkGreen(intraday5m),
+        '15m': checkGreen(intraday15m),
+        '1H': checkGreen(intraday1H),
+        '4H': checkGreen(intraday4H),
+        '1D': checkGreen(dailyCandles),
+        '1W': checkGreen(weekly)
+      };
+      const mtfGreenCount = Object.values(mtfStatus).filter(Boolean).length;
+      const isMtfAllGreen = mtfGreenCount === 6;
 
       const closes = dailyCandles.map(c => c.close);
       const volumes = dailyCandles.map(c => c.volume);
@@ -914,6 +934,7 @@
         intraday5m,
         intraday15m,
         intraday1H,
+        intraday4H,
         weekly,
         monthly,
         activeInterval: '1D',
@@ -933,7 +954,10 @@
         rsScore,
         recommendedSL,
         slPct,
-        slSource
+        slSource,
+        mtfStatus,
+        mtfGreenCount,
+        isMtfAllGreen
       };
     });
   }
@@ -1005,7 +1029,21 @@
         p4_base7w: true,
         p5_cup: true,
         p6_sl: true,
-        p9_rs: true
+        p9_rs: true,
+        p10_mtf: true
+      };
+
+      this.filterParams = {
+        minSalesGrowth: 15,
+        minEpsGrowth: 15,
+        minRsi: 70,
+        minBurstPct: 40,
+        maxConsolidationRange: 15,
+        maxStopLossPct: 8.0,
+        minRoe: 17,
+        minEps3YCAGR: 20,
+        minRsScore: 80,
+        minMtfGreen: 6
       };
 
       this.isMarketLive = true;
@@ -1014,6 +1052,12 @@
       this.setupListeners();
       this.resize();
       this.startAnimationLoop();
+    }
+
+    setFilterParams(params) {
+      if (!params) return;
+      this.filterParams = { ...this.filterParams, ...params };
+      this.render();
     }
 
     setMarketLiveState(isLive, isSim = false) {
@@ -1044,14 +1088,17 @@
 
     setLayer(layerKey, active) {
       this.layers[layerKey] = active;
+      this.render();
     }
 
     setChartType(type) {
       this.chartType = type;
+      this.render();
     }
 
     setExchangeMode(mode) {
       this.exchangeMode = mode;
+      this.render();
     }
 
     resetZoom() {
@@ -1063,7 +1110,7 @@
 
       if (this.interval === '1m') this.viewCount = 90;
       else if (this.interval === '5m' || this.interval === '15m') this.viewCount = 75;
-      else if (this.interval === '1H') this.viewCount = 65;
+      else if (this.interval === '1H' || this.interval === '4H') this.viewCount = 65;
       else if (this.interval === '1D') this.viewCount = 100;
       else if (this.interval === '1M') this.viewCount = 60;
       else this.viewCount = 80;
@@ -1075,7 +1122,7 @@
       const dpr = window.devicePixelRatio || 1;
 
       this.width = Math.max(320, rect.width || this.container.clientWidth || 800);
-      this.height = Math.max(240, rect.height || this.container.clientHeight || 560);
+      this.height = Math.max(240, rect.height || this.container.clientHeight || 660);
 
       this.canvas.width = Math.floor(this.width * dpr);
       this.canvas.height = Math.floor(this.height * dpr);
@@ -1117,6 +1164,7 @@
       else if (interval === '5m') this.allCandles = this.stock.intraday5m;
       else if (interval === '15m') this.allCandles = this.stock.intraday15m;
       else if (interval === '1H') this.allCandles = this.stock.intraday1H;
+      else if (interval === '4H') this.allCandles = this.stock.intraday4H || this.stock.intraday1H;
       else if (interval === '1D') this.allCandles = this.stock.dailyCandles;
       else if (interval === '1W') this.allCandles = this.stock.weekly;
       else if (interval === '1M') this.allCandles = this.stock.monthly;
@@ -1547,12 +1595,12 @@
         ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
       }
 
-      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX
+      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX (DYNAMICALLY ADJUSTED BY SLIDER)
       if (this.layers.p6_sl) {
         const entryPrice = this.stock.ltp;
         const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m');
-        const defaultSlPct = isIntraday ? 1.2 : (this.stock.slPct || 7.0);
-        const slPrice = isIntraday ? parseFloat((entryPrice * (1 - defaultSlPct / 100)).toFixed(2)) : (this.stock.recommendedSL || (entryPrice * 0.93));
+        const activeSlPct = isIntraday ? 1.2 : (this.filterParams?.maxStopLossPct ?? this.stock.slPct ?? 7.0);
+        const slPrice = parseFloat((entryPrice * (1 - activeSlPct / 100)).toFixed(2));
         const riskPerShare = entryPrice - slPrice;
         const target2Price = parseFloat((entryPrice + riskPerShare * 2).toFixed(2));
         const targetPct = ((target2Price - entryPrice) / entryPrice) * 100;
@@ -1609,7 +1657,51 @@
         ctx.fillStyle = '#ef4444';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${defaultSlPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, Math.min(paddingTop + pricePlotHeight - 4, slY - 4));
+        ctx.fillText(`🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${activeSlPct.toFixed(1)}%) | R:R 1:2.0`, paddingLeft + 6, Math.min(paddingTop + pricePlotHeight - 4, slY - 4));
+      }
+
+      // PROTOCOL 10: MULTI-TIMEFRAME ALL-GREEN CANDLE ALIGNMENT HUD (5m, 15m, 1H, 4H, 1D, 1W)
+      if (this.layers.p10_mtf !== false && this.stock) {
+        const checkC = (arr) => {
+          if (!arr || !arr.length) return false;
+          const c = arr[arr.length - 1];
+          return c.close >= c.open;
+        };
+        const tfs = [
+          { name: '5m', isGreen: checkC(this.stock.intraday5m) },
+          { name: '15m', isGreen: checkC(this.stock.intraday15m) },
+          { name: '1H', isGreen: checkC(this.stock.intraday1H) },
+          { name: '4H', isGreen: checkC(this.stock.intraday4H) },
+          { name: '1D', isGreen: checkC(this.stock.dailyCandles) },
+          { name: '1W', isGreen: checkC(this.stock.weekly) }
+        ];
+        const greenCount = tfs.filter(t => t.isGreen).length;
+        const minReq = this.filterParams?.minMtfGreen || 6;
+        const isSuperTrend = greenCount >= minReq;
+
+        const hudX = paddingLeft + 8;
+        const hudY = paddingTop + 8;
+        const hudW = 340;
+        const hudH = 26;
+
+        ctx.fillStyle = isSuperTrend ? 'rgba(16, 185, 129, 0.18)' : 'rgba(15, 23, 42, 0.88)';
+        ctx.fillRect(hudX, hudY, hudW, hudH);
+        ctx.strokeStyle = isSuperTrend ? '#10b981' : 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(hudX, hudY, hudW, hudH);
+
+        ctx.fillStyle = isSuperTrend ? '#10b981' : '#94a3b8';
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`P10 MTF Trend (${greenCount}/6 Green):`, hudX + 8, hudY + 17);
+
+        let chipX = hudX + 160;
+        tfs.forEach(t => {
+          ctx.fillStyle = t.isGreen ? '#10b981' : '#ef4444';
+          ctx.font = 'bold 9px JetBrains Mono, monospace';
+          ctx.fillText(`${t.name}:${t.isGreen ? '🟢' : '🔴'}`, chipX, hudY + 17);
+          chipX += 28;
+        });
       }
 
       // PROTOCOL 9: MANSFIELD RELATIVE STRENGTH CURVE (FROM CACHE)
@@ -1794,14 +1886,17 @@
         ctx.fillText(`₹${hoverPrice.toFixed(1)}`, w - paddingRight + 5, this.crosshair.y + 3.5);
       }
 
-      // Volumes & P3 Volume Bursts (From Cache)
+      // Volumes & P3 Volume Bursts (Dynamic Threshold Multiplier from Slider)
       const volSMA20 = this.cache.volSma20;
+      const burstThresholdPct = this.filterParams?.minBurstPct ?? 40;
+      const burstMultiplier = 1 + (burstThresholdPct / 100);
+
       visibleCandles.forEach((c, idx) => {
         const cx = getX(idx);
         const isBullish = c.close >= c.open;
         const gIdx = startGlobalIdx + idx;
         const avgVol = (volSMA20 && volSMA20[gIdx]) || 1;
-        const isBurst = (c.volume >= avgVol * 1.45 && avgVol > 0);
+        const isBurst = (c.volume >= avgVol * burstMultiplier && avgVol > 0);
         const burstRatio = ((c.volume / avgVol) - 1) * 100;
 
         const vy = getVolY(c.volume);
@@ -1818,7 +1913,7 @@
         }
       });
 
-      // PROTOCOL 2: RSI PANEL (FROM CACHE)
+      // PROTOCOL 2: RSI PANEL (Dynamic Threshold from Slider)
       const rsiGPUArr = this.cache.rsi;
       if (this.layers.p2_rsi && rsiGPUArr) {
         ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
@@ -1826,26 +1921,33 @@
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
         ctx.strokeRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
 
-        const rsi70Y = getRsiY(70);
+        const minRsi = this.filterParams?.minRsi ?? 70;
+        const rsiThreshY = getRsiY(minRsi);
         const rsi30Y = getRsiY(30);
 
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.06)';
-        ctx.fillRect(paddingLeft, rsi70Y, plotWidth, rsi30Y - rsi70Y);
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
+        ctx.fillRect(paddingLeft, getRsiY(100), plotWidth, Math.max(2, rsiThreshY - getRsiY(100)));
 
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.5)';
-        ctx.setLineDash([2, 2]);
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
+        ctx.lineWidth = 1.2;
+        ctx.setLineDash([3, 2]);
         ctx.beginPath();
-        ctx.moveTo(paddingLeft, rsi70Y);
-        ctx.lineTo(w - paddingRight, rsi70Y);
+        ctx.moveTo(paddingLeft, rsiThreshY);
+        ctx.lineTo(w - paddingRight, rsiThreshY);
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.beginPath();
         ctx.moveTo(paddingLeft, rsi30Y);
         ctx.lineTo(w - paddingRight, rsi30Y);
         ctx.stroke();
         ctx.setLineDash([]);
 
         ctx.fillStyle = '#f59e0b';
-        ctx.font = '9px JetBrains Mono, monospace';
+        ctx.font = 'bold 9px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText('70 RSI', w - paddingRight + 4, rsi70Y + 3);
+        ctx.fillText(`P2 Threshold: ${minRsi} RSI`, w - paddingRight + 4, rsiThreshY + 3);
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
         ctx.fillText('30 RSI', w - paddingRight + 4, rsi30Y + 3);
 
         ctx.strokeStyle = '#f59e0b';
@@ -1967,7 +2069,8 @@
         requireStopLossLimit: true, maxStopLossPct: 8.0,
         requireRoeRoce: true, minRoe: 17, minRoce: 17,
         requireEpsCAGR: true, minEps3YCAGR: 20,
-        requireRsScore: true, minRsScore: 80
+        requireRsScore: true, minRsScore: 80,
+        requireMtfAllGreen: true, minMtfGreen: 6
       };
 
       this.init();
@@ -2270,6 +2373,8 @@
           const v = parseFloat(e.target.value);
           pill.textContent = fmt(v);
           fn(v);
+          if (this.mainChart) this.mainChart.setFilterParams(this.filters);
+          if (this.modalChart) this.modalChart.setFilterParams(this.filters);
           this.runScan();
         });
       };
@@ -2283,6 +2388,7 @@
       bindRng('rng_roe', 'val_roe', v => `${v}%`, v => { this.filters.minRoe = v; this.filters.minRoce = v; });
       bindRng('rng_epsCAGR', 'val_epsCAGR', v => `${v}%`, v => this.filters.minEps3YCAGR = v);
       bindRng('rng_rsScore', 'val_rsScore', v => `${v}`, v => this.filters.minRsScore = v);
+      bindRng('rng_mtfGreen', 'val_mtfGreen', v => `${v}/6 Green`, v => this.filters.minMtfGreen = v);
 
       const bindChk = (id, cardId, fn) => {
         const el = document.getElementById(id), card = document.getElementById(cardId);
@@ -2291,6 +2397,8 @@
           if (e.target.checked) card.classList.add('active');
           else card.classList.remove('active');
           fn(e.target.checked);
+          if (this.mainChart) this.mainChart.setFilterParams(this.filters);
+          if (this.modalChart) this.modalChart.setFilterParams(this.filters);
           this.runScan();
         });
       };
@@ -2304,6 +2412,7 @@
       bindChk('chk_p7', 'card_p7', v => this.filters.requireRoeRoce = v);
       bindChk('chk_p8', 'card_p8', v => this.filters.requireEpsCAGR = v);
       bindChk('chk_p9', 'card_p9', v => this.filters.requireRsScore = v);
+      bindChk('chk_p10', 'card_p10', v => this.filters.requireMtfAllGreen = v);
 
       document.getElementById('txtSearch')?.addEventListener('input', (e) => {
         this.filters.searchTerm = e.target.value.trim();
@@ -2527,6 +2636,22 @@
         else r.classList.remove('selected-stock-row');
       });
 
+      // Update sidebar MTF trend pills for active stock
+      const mtf = stock.mtfStatus || {};
+      const setMtfChip = (id, isGreen) => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.className = `mtf-chip ${isGreen ? 'green' : 'red'}`;
+          el.textContent = `${id.replace('chip_', '')} ${isGreen ? '🟢' : '🔴'}`;
+        }
+      };
+      setMtfChip('chip_5m', mtf['5m']);
+      setMtfChip('chip_15m', mtf['15m']);
+      setMtfChip('chip_1H', mtf['1H']);
+      setMtfChip('chip_4H', mtf['4H']);
+      setMtfChip('chip_1D', mtf['1D']);
+      setMtfChip('chip_1W', mtf['1W']);
+
       const btnNSE = document.getElementById('btnExchNSE');
       const btnBSE = document.getElementById('btnExchBSE');
       if (btnNSE) {
@@ -2562,6 +2687,7 @@
 
       this.updateSourceLinks();
       if (this.mainChart) {
+        this.mainChart.setFilterParams(this.filters);
         this.mainChart.setStock(stock, null, this.activeExchangeMode);
       }
       this.updateGpuBadge();
@@ -2597,10 +2723,12 @@
         this.filters.requireRoeRoce = true; this.filters.minRoe = 17; this.filters.minRoce = 17;
         this.filters.requireEpsCAGR = true; this.filters.minEps3YCAGR = 20;
         this.filters.requireRsScore = true; this.filters.minRsScore = 80;
+        this.filters.requireMtfAllGreen = true; this.filters.minMtfGreen = 6;
 
         setChk('chk_p1', true); setChk('chk_p2', true); setChk('chk_p3', true);
         setChk('chk_p4', false); setChk('chk_p5', false); setChk('chk_p6', true);
         setChk('chk_p7', true); setChk('chk_p8', true); setChk('chk_p9', true);
+        setChk('chk_p10', true);
 
         setSlider('rng_salesGrowth', 'val_salesGrowth', 15, v => `${v}%`);
         setSlider('rng_epsGrowth', 'val_epsGrowth', 15, v => `${v}%`);
@@ -2611,6 +2739,7 @@
         setSlider('rng_roe', 'val_roe', 17, v => `${v}%`);
         setSlider('rng_epsCAGR', 'val_epsCAGR', 20, v => `${v}%`);
         setSlider('rng_rsScore', 'val_rsScore', 80, v => `${v}`);
+        setSlider('rng_mtfGreen', 'val_mtfGreen', 6, v => `${v}/6 Green`);
       } else if (key === 'cup_handle') {
         this.filters.requireGrowth = true;
         this.filters.requireCupWithHandle = true;
@@ -2618,27 +2747,34 @@
         this.filters.requireRsi = false;
         this.filters.requireVolumeBurst = false;
         this.filters.requireRsScore = true;
+        this.filters.requireMtfAllGreen = false;
 
         setChk('chk_p1', true); setChk('chk_p2', false); setChk('chk_p3', false);
         setChk('chk_p4', false); setChk('chk_p5', true); setChk('chk_p6', true);
         setChk('chk_p7', true); setChk('chk_p8', false); setChk('chk_p9', true);
+        setChk('chk_p10', false);
       } else if (key === 'consolidation_7w') {
         this.filters.require7WeekConsolidation = true;
         this.filters.requireCupWithHandle = false;
         this.filters.requireGrowth = true;
         this.filters.requireRsi = false;
+        this.filters.requireMtfAllGreen = false;
 
         setChk('chk_p1', true); setChk('chk_p2', false); setChk('chk_p3', false);
         setChk('chk_p4', true); setChk('chk_p5', false); setChk('chk_p6', true);
         setChk('chk_p7', false); setChk('chk_p8', false); setChk('chk_p9', true);
+        setChk('chk_p10', false);
       } else if (key === 'all') {
-        ['chk_p1','chk_p2','chk_p3','chk_p4','chk_p5','chk_p6','chk_p7','chk_p8','chk_p9'].forEach(id => setChk(id, false));
+        ['chk_p1','chk_p2','chk_p3','chk_p4','chk_p5','chk_p6','chk_p7','chk_p8','chk_p9','chk_p10'].forEach(id => setChk(id, false));
         this.filters.requireGrowth = false; this.filters.requireRsi = false;
         this.filters.requireVolumeBurst = false; this.filters.require7WeekConsolidation = false;
         this.filters.requireCupWithHandle = false; this.filters.requireStopLossLimit = false;
         this.filters.requireRoeRoce = false; this.filters.requireEpsCAGR = false;
-        this.filters.requireRsScore = false;
+        this.filters.requireRsScore = false; this.filters.requireMtfAllGreen = false;
       }
+
+      if (this.mainChart) this.mainChart.setFilterParams(this.filters);
+      if (this.modalChart) this.modalChart.setFilterParams(this.filters);
     }
 
     runScan() {
@@ -2671,7 +2807,8 @@
           p6_stopLoss: (slPct <= this.filters.maxStopLossPct),
           p7_roe_roce: (stock.roe >= this.filters.minRoe || stock.roce >= this.filters.minRoce),
           p8_epsCAGR: (stock.eps3Y_CAGR >= this.filters.minEps3YCAGR || stock.eps5Y_CAGR >= this.filters.minEps3YCAGR),
-          p9_rsScore: (rsScore >= this.filters.minRsScore)
+          p9_rsScore: (rsScore >= this.filters.minRsScore),
+          p10_mtf: ((stock.mtfGreenCount || 0) >= (this.filters.minMtfGreen || 6))
         };
 
         const matchCount = Object.values(protocolMatch).filter(Boolean).length;
@@ -2714,6 +2851,7 @@
         if (this.filters.requireRoeRoce && !stock.protocolMatch.p7_roe_roce) return false;
         if (this.filters.requireEpsCAGR && !stock.protocolMatch.p8_epsCAGR) return false;
         if (this.filters.requireRsScore && !stock.protocolMatch.p9_rsScore) return false;
+        if (this.filters.requireMtfAllGreen && !stock.protocolMatch.p10_mtf) return false;
 
         return true;
       });
@@ -2794,7 +2932,7 @@
       if (!stocks.length) {
         tbody.innerHTML = `
           <tr>
-            <td colspan="13" style="text-align:center; padding:32px; color:var(--text-muted);">
+            <td colspan="14" style="text-align:center; padding:32px; color:var(--text-muted);">
               No stocks matched all active protocols. Try selecting <strong>View All Stocks</strong>.
             </td>
           </tr>
@@ -2804,7 +2942,7 @@
 
       tbody.innerHTML = stocks.map(stock => {
         const isSelected = this.activeMainStock?.symbol === stock.symbol;
-        const matchClass = stock.matchCount >= 7 ? 'match-high' : (stock.matchCount >= 4 ? 'match-med' : 'match-low');
+        const matchClass = stock.matchCount >= 8 ? 'match-high' : (stock.matchCount >= 5 ? 'match-med' : 'match-low');
         const dayChgStyle = stock.dayChangePct >= 0 ? 'color:var(--accent-green);' : 'color:var(--accent-red);';
         const daySign = stock.dayChangePct > 0 ? '+' : '';
 
@@ -2818,6 +2956,8 @@
         const volBurstDisplay = stock.volumeBurst?.burstPct > 0 
           ? `<span style="color:var(--accent-amber); font-weight:600;">+${stock.volumeBurst.burstPct}%</span>`
           : `<span style="color:var(--text-muted);">${stock.volumeBurst?.ratio || 1.0}x</span>`;
+
+        const mtfBadge = `<span class="val-pill" style="font-size:10.5px; font-weight:700; ${stock.mtfGreenCount >= (this.filters.minMtfGreen || 6) ? 'color:var(--accent-green); background:var(--accent-green-bg);' : 'color:var(--accent-amber);'}">${stock.mtfGreenCount}/6 🟢</span>`;
 
         return `
           <tr data-symbol="${stock.symbol}" class="${isSelected ? 'selected-stock-row' : ''}">
@@ -2834,6 +2974,7 @@
               <div class="price-num">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
               <div style="font-size:11px; ${dayChgStyle}">${daySign}${stock.dayChangePct}%</div>
             </td>
+            <td>${mtfBadge}</td>
             <td>
               <span class="val-pill" style="font-size:12px; font-weight:700; ${stock.rsScore >= this.filters.minRsScore ? 'color:var(--accent-green); background:var(--accent-green-bg);' : ''}">
                 ${stock.rsScore}
@@ -2862,7 +3003,7 @@
             </td>
             <td>
               <span class="match-score-badge ${matchClass}">
-                ${stock.matchCount}/9
+                ${stock.matchCount}/10
               </span>
             </td>
             <td>
@@ -2939,9 +3080,27 @@
           syncCandle(stock.intraday5m, 2);
           syncCandle(stock.intraday15m, 4);
           syncCandle(stock.intraday1H, 8);
+          syncCandle(stock.intraday4H, 12);
           syncCandle(stock.dailyCandles, 20);
           syncCandle(stock.weekly, 50);
           syncCandle(stock.monthly, 100);
+
+          // Dynamically re-evaluate MTF green status on live tick
+          const checkGreen = (arr) => {
+            if (!arr || !arr.length) return false;
+            const c = arr[arr.length - 1];
+            return c.close >= c.open;
+          };
+          stock.mtfStatus = {
+            '5m': checkGreen(stock.intraday5m),
+            '15m': checkGreen(stock.intraday15m),
+            '1H': checkGreen(stock.intraday1H),
+            '4H': checkGreen(stock.intraday4H),
+            '1D': checkGreen(stock.dailyCandles),
+            '1W': checkGreen(stock.weekly)
+          };
+          stock.mtfGreenCount = Object.values(stock.mtfStatus).filter(Boolean).length;
+          stock.isMtfAllGreen = stock.mtfGreenCount === 6;
 
           const prevDayClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
           stock.dayChangePct = parseFloat((((newClose - prevDayClose) / prevDayClose) * 100).toFixed(2));

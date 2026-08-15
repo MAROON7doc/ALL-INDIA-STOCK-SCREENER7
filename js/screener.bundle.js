@@ -2574,7 +2574,7 @@
           ctx.fill();
 
           // Sleek session close floating pill callout
-          const closeTagText = `🔒 Last Close: ₹${livePrice.toFixed(2)}`;
+          const closeTagText = `🔒 Offline Graph View - Last Market Close: ₹${livePrice.toFixed(2)}`;
           ctx.font = 'bold 9px JetBrains Mono, monospace';
           const closeTagW = ctx.measureText(closeTagText).width + 12;
           const closeTagX = Math.max(paddingLeft + 4, Math.min(w - paddingRight - closeTagW - 4, lastCandleX - closeTagW / 2));
@@ -2636,7 +2636,7 @@
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`₹${livePrice.toFixed(1)} EOD`, w - paddingRight + 4, liveTagY + 3.5);
+        ctx.fillText(`₹${livePrice.toFixed(1)} OFFLINE`, w - paddingRight + 4, liveTagY + 3.5);
       }
 
       // Right Scale Hover Crosshair Badge

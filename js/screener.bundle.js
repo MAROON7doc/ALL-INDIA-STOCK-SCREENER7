@@ -2517,16 +2517,17 @@
         ctx.fill(bearBodies);
       }
 
-      // 4. LIVE TICK BEACON & LASER LINE (ACTIVE OR EOD FINALIZED)
+      // 4. LIVE TICK BEACON / EOD CLOSING POSITION CALLOUT & LASER BENCHMARK
       const livePrice = this.stock.ltp;
       const liveY = Math.round(getY(livePrice)) + 0.5;
-      const isLiveActive = (this.isMarketLive !== false) || this.isSimMode;
+      const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
       const isTickUp = this.stock.lastTickDir === 'up';
-      const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#64748b';
+      const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#38bdf8';
 
-      ctx.strokeStyle = liveColor;
-      ctx.lineWidth = isLiveActive ? 1.2 : 1.0;
-      ctx.setLineDash(isLiveActive ? [4, 2] : [2, 2]);
+      // Laser Benchmark Line
+      ctx.strokeStyle = isLiveActive ? liveColor : 'rgba(56, 189, 248, 0.75)';
+      ctx.lineWidth = isLiveActive ? 1.3 : 1.1;
+      ctx.setLineDash(isLiveActive ? [4, 2] : [5, 3]);
       ctx.beginPath();
       ctx.moveTo(paddingLeft, liveY);
       ctx.lineTo(w - paddingRight, liveY);
@@ -2534,6 +2535,7 @@
       ctx.setLineDash([]);
 
       if (isLiveActive) {
+        // Active Live Market Ticking Pulse
         const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
         const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
         
@@ -2547,11 +2549,53 @@
         ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
         ctx.fill();
       } else {
-        // Steady EOD closed dot (No phantom erratic movement)
-        ctx.fillStyle = '#64748b';
-        ctx.beginPath();
-        ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
-        ctx.fill();
+        // EOD Closed Session: Explicit Last Candle Close Position Anchor & Callout Tag
+        if (this.viewOffset <= 4 && lastCandleX > 0) {
+          // Vertical guide line down to time axis
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
+          ctx.lineWidth = 1;
+          ctx.setLineDash([2, 2]);
+          ctx.beginPath();
+          ctx.moveTo(lastCandleX, paddingTop);
+          ctx.lineTo(lastCandleX, timeGutterTop);
+          ctx.stroke();
+          ctx.setLineDash([]);
+
+          // Dual-ring anchor beacon precisely on the closing candlestick point
+          ctx.strokeStyle = '#38bdf8';
+          ctx.lineWidth = 1.6;
+          ctx.beginPath();
+          ctx.arc(lastCandleX, lastCandleY, 6, 0, Math.PI * 2);
+          ctx.stroke();
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(lastCandleX, lastCandleY, 3, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Sleek session close floating pill callout
+          const closeTagText = `🔒 Last Close: ₹${livePrice.toFixed(2)}`;
+          ctx.font = 'bold 9px JetBrains Mono, monospace';
+          const closeTagW = ctx.measureText(closeTagText).width + 12;
+          const closeTagX = Math.max(paddingLeft + 4, Math.min(w - paddingRight - closeTagW - 4, lastCandleX - closeTagW / 2));
+          const closeTagY = Math.max(paddingTop + 4, Math.min(timeGutterTop - 24, lastCandleY - 24));
+
+          ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
+          ctx.fillRect(closeTagX, closeTagY, closeTagW, 18);
+          ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(closeTagX, closeTagY, closeTagW, 18);
+
+          ctx.fillStyle = '#38bdf8';
+          ctx.textAlign = 'center';
+          ctx.fillText(closeTagText, closeTagX + closeTagW / 2, closeTagY + 12);
+        } else {
+          // Off-screen anchor
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
       }
 
       // Horizontal Crosshair Line
@@ -2575,15 +2619,25 @@
 
       // Right Scale Live Price / EOD Badge (Pinned strictly to the live price line with overflow protection)
       const liveTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, liveY));
-      ctx.fillStyle = liveColor;
-      ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
-      ctx.fillStyle = '#ffffff';
-      ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-      ctx.textAlign = 'left';
-      const badgeText = isLiveActive 
-        ? `₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`
-        : `₹${livePrice.toFixed(1)} EOD`;
-      ctx.fillText(badgeText, w - paddingRight + 4, liveTagY + 3.5);
+      if (isLiveActive) {
+        ctx.fillStyle = liveColor;
+        ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        const badgeText = `₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`;
+        ctx.fillText(badgeText, w - paddingRight + 4, liveTagY + 3.5);
+      } else {
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`₹${livePrice.toFixed(1)} EOD`, w - paddingRight + 4, liveTagY + 3.5);
+      }
 
       // Right Scale Hover Crosshair Badge
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {

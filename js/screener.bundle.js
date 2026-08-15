@@ -1735,11 +1735,14 @@
 
       // Graceful fallback: If the requested intraday data is missing (e.g. offline market closed), 
       // fallback to the most recent daily EOD candles so the chart doesn't break to a black screen.
+      let fellback = false;
       if (!targetCandles || !targetCandles.length) {
         targetCandles = this.stock.dailyCandles;
+        fellback = true;
       }
       
       this.allCandles = targetCandles || [];
+      this.isFallback = fellback;
       this.updateIndicatorCache();
     }
 
@@ -2166,6 +2169,19 @@
         ctx.font = 'bold 9px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText('Auto (Reset)', w - paddingRight / 2, paddingTop + 13);
+      }
+
+      // Offline Fallback Warning
+      if (this.isFallback && this.interval !== '1D') {
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
+        ctx.fillRect(paddingLeft + 12, paddingTop + 6, 285, 22);
+        ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(paddingLeft + 12, paddingTop + 6, 285, 22);
+        ctx.fillStyle = '#fca5a5';
+        ctx.font = 'bold 10px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        ctx.fillText(`⚠️ ${this.interval} Feed Unavailable. Displaying Daily Fallback.`, paddingLeft + 20, paddingTop + 21);
       }
 
       const visibleCount = visibleCandles.length;

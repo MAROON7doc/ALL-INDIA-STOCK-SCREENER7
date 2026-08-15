@@ -1719,6 +1719,22 @@
       this.resetZoom();
     }
 
+    refreshCandles() {
+      if (!this.stock) return;
+      const interval = this.interval;
+      if (interval === '1m') this.allCandles = this.stock.intraday1m;
+      else if (interval === '5m') this.allCandles = this.stock.intraday5m;
+      else if (interval === '15m') this.allCandles = this.stock.intraday15m;
+      else if (interval === '1H') this.allCandles = this.stock.intraday1H;
+      else if (interval === '4H') this.allCandles = this.stock.intraday4H || this.stock.intraday1H;
+      else if (interval === '1D') this.allCandles = this.stock.dailyCandles;
+      else if (interval === '1W') this.allCandles = this.stock.weekly;
+      else if (interval === '1M') this.allCandles = this.stock.monthly;
+      else this.allCandles = this.stock.dailyCandles;
+
+      this.updateIndicatorCache();
+    }
+
     setRange(range) {
       if (!this.stock) return;
       this.viewOffset = 0;
@@ -2047,8 +2063,13 @@
       const visibleCandles = this.getVisibleCandles();
       if (!visibleCandles.length) return;
 
-      if (!this.cache.sma20 || this.cache.lastComputedLen !== this.allCandles.length) {
+      const latestCandle = (this.allCandles && this.allCandles.length) ? this.allCandles[this.allCandles.length - 1] : null;
+      const livePrice = latestCandle ? latestCandle.close : this.stock.ltp;
+      this.stock.ltp = livePrice;
+
+      if (!this.cache.sma20 || this.cache.lastComputedLen !== this.allCandles.length || this.cache.lastLivePrice !== livePrice) {
         this.updateIndicatorCache();
+        this.cache.lastLivePrice = livePrice;
       }
 
       const ctx = this.ctx;
@@ -3552,10 +3573,10 @@
 
         stock.ltp = newLtp;
         if (this.mainChart && this.activeMainStock?.symbol === stock.symbol) {
-          this.mainChart.setInterval(this.mainChart.interval);
+          this.mainChart.refreshCandles();
         }
         if (this.modalChart && this.currentModalStock?.symbol === stock.symbol) {
-          this.modalChart.setInterval(this.modalChart.interval);
+          this.modalChart.refreshCandles();
         }
         this.runScan();
 
@@ -4041,6 +4062,13 @@
         }
 
         this.runScan();
+
+        if (this.mainChart && this.activeMainStock) {
+          this.mainChart.refreshCandles();
+        }
+        if (this.modalChart && this.currentModalStock) {
+          this.modalChart.refreshCandles();
+        }
 
         // Flash highlighting on updated rows
         updated.slice(0, 4).forEach(t => {

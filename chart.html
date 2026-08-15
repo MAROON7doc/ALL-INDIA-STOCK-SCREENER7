@@ -61,7 +61,14 @@
         </div>
 
         <div style="display:flex; align-items:center; gap:5px; background:var(--bg-card); padding:2px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-          <span style="font-size:10.5px; color:var(--text-muted);">Feed:</span>
+          <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
+          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine">
+            <option value="auto" selected>Auto Multi-Feed</option>
+            <option value="yfinance">YFinance (.NS/.BO)</option>
+            <option value="nsebse">NSE-BSE API (NPM)</option>
+            <option value="smartapi">SmartAPI</option>
+          </select>
+          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
           <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;">
             <option value="auto" selected>Auto (Real Hours)</option>
             <option value="simulation">Replay / Sim</option>

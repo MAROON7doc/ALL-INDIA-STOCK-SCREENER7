@@ -3303,7 +3303,7 @@
           document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
           const tabName = tab.dataset.tab;
-          document.querySelectorAll.forEach && document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+          document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
           const content = document.getElementById(`tab_${tabName}`);
           if (content) content.style.display = 'block';
           if (tabName === 'chart') setTimeout(() => this.modalChart?.resize(), 50);
@@ -3408,7 +3408,7 @@
       if (!container) return;
       const symbols = ['TRENT', 'DIXON', 'KAYNES', 'BEL', 'HAL', 'SOLARINDS', 'CDSL', 'BDL', 'POLYCAB', 'PERSISTENT'];
       container.innerHTML = symbols.map(sym => `
-        <button class="stock-pill ${sym === this.activeMainStock.symbol ? 'active' : ''}" data-symbol="${sym}">
+        <button class="stock-pill ${sym === this.activeMainStock?.symbol ? 'active' : ''}" data-symbol="${sym}">
           ${sym}
         </button>
       `).join('');

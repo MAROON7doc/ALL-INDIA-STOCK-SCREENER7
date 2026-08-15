@@ -3151,10 +3151,10 @@
           <div class="news-title">${item.title}</div>
           <div class="news-snippet">${item.snippet}</div>
           <div class="news-actions">
-            <a href="${item.url}" target="_blank" class="news-link-btn" title="Open original news article on ${item.source}">
+            <a href="${item.url}" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on ${item.source}">
               🌐 ${item.source} ↗
             </a>
-            <a href="${item.exchangeUrl}" target="_blank" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+            <a href="${item.exchangeUrl}" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
               🏛️ Exchange Filing ↗
             </a>
           </div>
@@ -3173,7 +3173,7 @@
       const updateHeadline = () => {
         if (!this.newsList.length || !headlineEl) return;
         const item = this.newsList[this.activeNewsIdx % this.newsList.length];
-        headlineEl.innerHTML = `<strong>${item.source}:</strong> ${item.title} <a href="${item.url}" target="_blank" style="color:var(--accent-blue); margin-left:6px; text-decoration:underline;">Read Article ↗</a>`;
+        headlineEl.innerHTML = `<strong>${item.source}:</strong> ${item.title} <a href="${item.url}" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue); margin-left:6px; text-decoration:underline;">Read Article ↗</a>`;
         this.activeNewsIdx++;
       };
 

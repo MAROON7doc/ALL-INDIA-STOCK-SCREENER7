@@ -1722,16 +1722,24 @@
     refreshCandles() {
       if (!this.stock) return;
       const interval = this.interval;
-      if (interval === '1m') this.allCandles = this.stock.intraday1m;
-      else if (interval === '5m') this.allCandles = this.stock.intraday5m;
-      else if (interval === '15m') this.allCandles = this.stock.intraday15m;
-      else if (interval === '1H') this.allCandles = this.stock.intraday1H;
-      else if (interval === '4H') this.allCandles = this.stock.intraday4H || this.stock.intraday1H;
-      else if (interval === '1D') this.allCandles = this.stock.dailyCandles;
-      else if (interval === '1W') this.allCandles = this.stock.weekly;
-      else if (interval === '1M') this.allCandles = this.stock.monthly;
-      else this.allCandles = this.stock.dailyCandles;
+      let targetCandles = null;
+      if (interval === '1m') targetCandles = this.stock.intraday1m;
+      else if (interval === '5m') targetCandles = this.stock.intraday5m;
+      else if (interval === '15m') targetCandles = this.stock.intraday15m;
+      else if (interval === '1H') targetCandles = this.stock.intraday1H;
+      else if (interval === '4H') targetCandles = this.stock.intraday4H || this.stock.intraday1H;
+      else if (interval === '1D') targetCandles = this.stock.dailyCandles;
+      else if (interval === '1W') targetCandles = this.stock.weekly;
+      else if (interval === '1M') targetCandles = this.stock.monthly;
+      else targetCandles = this.stock.dailyCandles;
 
+      // Graceful fallback: If the requested intraday data is missing (e.g. offline market closed), 
+      // fallback to the most recent daily EOD candles so the chart doesn't break to a black screen.
+      if (!targetCandles || !targetCandles.length) {
+        targetCandles = this.stock.dailyCandles;
+      }
+      
+      this.allCandles = targetCandles || [];
       this.updateIndicatorCache();
     }
 

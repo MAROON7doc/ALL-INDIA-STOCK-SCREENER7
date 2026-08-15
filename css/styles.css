@@ -1413,7 +1413,7 @@ input:checked + .slider:before {
   pointer-events: auto;
 }
 
-.modal-container {
+.modal-container, .modal-card {
   background: var(--bg-surface);
   border: 1px solid var(--border-active);
   border-radius: var(--radius-lg);
@@ -1424,6 +1424,27 @@ input:checked + .slider:before {
   flex-direction: column;
   overflow: hidden;
   box-shadow: var(--shadow-lg);
+}
+
+.modal-footer {
+  padding: 12px 18px;
+  background: #080e1a;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.smartapi-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #f59e0b;
+  display: inline-block;
+  margin-left: 2px;
+}
+
+.smartapi-dot.connected {
+  background-color: #10b981;
+  box-shadow: 0 0 6px #10b981;
+  animation: pulse-live 1.5s infinite ease-in-out;
 }
 
 .modal-header {

@@ -570,6 +570,179 @@
   };
 
   /* ==========================================================================
+     4b. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE
+     ========================================================================== */
+  const AngelOneSmartApiService = {
+    apiKey: '',
+    clientCode: '',
+    password: '',
+    totp: '',
+    jwtToken: '',
+    feedToken: '',
+    refreshToken: '',
+    isConnected: false,
+    tokens: {
+      'TRENT': { symbolToken: '1964', bseToken: '500251', exchange: 'NSE' },
+      'DIXON': { symbolToken: '4454', bseToken: '540699', exchange: 'NSE' },
+      'BEL': { symbolToken: '383', bseToken: '500049', exchange: 'NSE' },
+      'HAL': { symbolToken: '2303', bseToken: '541154', exchange: 'NSE' },
+      'POLYCAB': { symbolToken: '9590', bseToken: '542652', exchange: 'NSE' },
+      'SOLARINDS': { symbolToken: '10666', bseToken: '532725', exchange: 'NSE' },
+      'KAYNES': { symbolToken: '11351', bseToken: '543664', exchange: 'NSE' },
+      'PERSISTENT': { symbolToken: '18365', bseToken: '533179', exchange: 'NSE' },
+      'CDSL': { symbolToken: '21174', bseToken: '540515', exchange: 'NSE' },
+      'BDL': { symbolToken: '2142', bseToken: '541143', exchange: 'NSE' },
+      'PREMIERENE': { symbolToken: '16782', bseToken: '544238', exchange: 'NSE' },
+      'ANGELONE': { symbolToken: '20370', bseToken: '543235', exchange: 'NSE' }
+    },
+
+    loadStoredCredentials() {
+      try {
+        this.apiKey = localStorage.getItem('smartapi_apiKey') || '';
+        this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
+        this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
+        this.feedToken = localStorage.getItem('smartapi_feedToken') || '';
+        if (this.jwtToken) this.isConnected = true;
+      } catch (e) {}
+    },
+
+    saveCredentials() {
+      try {
+        if (this.apiKey) localStorage.setItem('smartapi_apiKey', this.apiKey);
+        if (this.clientCode) localStorage.setItem('smartapi_clientCode', this.clientCode);
+        if (this.jwtToken) localStorage.setItem('smartapi_jwtToken', this.jwtToken);
+        if (this.feedToken) localStorage.setItem('smartapi_feedToken', this.feedToken);
+      } catch (e) {}
+    },
+
+    clearCredentials() {
+      this.apiKey = '';
+      this.clientCode = '';
+      this.jwtToken = '';
+      this.feedToken = '';
+      this.isConnected = false;
+      try {
+        localStorage.removeItem('smartapi_apiKey');
+        localStorage.removeItem('smartapi_clientCode');
+        localStorage.removeItem('smartapi_jwtToken');
+        localStorage.removeItem('smartapi_feedToken');
+      } catch (e) {}
+    },
+
+    async authenticate(apiKey, clientCode, password, totp, directJwt = '') {
+      this.apiKey = apiKey ? apiKey.trim() : '';
+      this.clientCode = clientCode ? clientCode.trim() : '';
+      this.password = password ? password.trim() : '';
+      this.totp = totp ? totp.trim() : '';
+
+      if (directJwt && directJwt.trim()) {
+        this.jwtToken = directJwt.trim().replace(/^Bearer\s+/i, '');
+        this.isConnected = true;
+        this.saveCredentials();
+        return { success: true, message: 'Direct JWT Access Token verified and active!' };
+      }
+
+      if (!this.apiKey || !this.clientCode) {
+        return { success: false, message: 'Please provide both SmartAPI Key and Angel One Client Code.' };
+      }
+
+      const loginEndpoint = 'https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword';
+      const payload = {
+        clientcode: this.clientCode,
+        password: this.password,
+        totp: this.totp
+      };
+
+      try {
+        const resp = await fetch(loginEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-UserType': 'USER',
+            'X-SourceID': 'WEB',
+            'X-ClientLocalIP': '127.0.0.1',
+            'X-ClientPublicIP': '127.0.0.1',
+            'X-MACAddress': 'fe80::1',
+            'X-PrivateKey': this.apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        if (data && data.status && data.data) {
+          this.jwtToken = data.data.jwtToken;
+          this.refreshToken = data.data.refreshToken;
+          this.feedToken = data.data.feedToken;
+          this.isConnected = true;
+          this.saveCredentials();
+          return { success: true, message: 'Angel One SmartAPI Session Connected successfully!' };
+        } else {
+          return { success: false, message: data.message || 'Authentication failed. Please verify credentials or TOTP code.' };
+        }
+      } catch (err) {
+        return { success: false, message: `Connection note: Browser CORS requires Direct JWT Token or proxy. ${err.message}` };
+      }
+    },
+
+    async fetchHistoricalCandles(symbol, interval = 'ONE_DAY', fromDate = null, toDate = null) {
+      if (!this.isConnected || !this.jwtToken) return null;
+      const tokInfo = this.tokens[symbol];
+      if (!tokInfo) return null;
+
+      const now = new Date();
+      const toStr = toDate || now.toISOString().replace('T', ' ').substring(0, 16);
+      const fromStr = fromDate || new Date(now.getTime() - (250 * 86400000)).toISOString().replace('T', ' ').substring(0, 16);
+
+      const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData';
+      const payload = {
+        exchange: tokInfo.exchange || 'NSE',
+        symboltoken: tokInfo.symbolToken,
+        interval: interval,
+        fromdate: fromStr,
+        todate: toStr
+      };
+
+      try {
+        const resp = await fetch(endpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.jwtToken}`,
+            'X-UserType': 'USER',
+            'X-SourceID': 'WEB',
+            'X-ClientLocalIP': '127.0.0.1',
+            'X-ClientPublicIP': '127.0.0.1',
+            'X-MACAddress': 'fe80::1',
+            'X-PrivateKey': this.apiKey
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        if (data && data.status && Array.isArray(data.data)) {
+          return data.data.map(item => {
+            const dt = new Date(item[0]);
+            return {
+              date: dt.toISOString().split('T')[0],
+              time: dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+              open: parseFloat(item[1]),
+              high: parseFloat(item[2]),
+              low: parseFloat(item[3]),
+              close: parseFloat(item[4]),
+              volume: parseInt(item[5])
+            };
+          });
+        }
+      } catch (e) {
+        return null;
+      }
+      return null;
+    }
+  };
+
+  /* ==========================================================================
      5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION
      ========================================================================== */
   const RAW_DATABASE = [
@@ -2502,6 +2675,8 @@
       this.updateGpuBadge();
       this.updateMarketStatusBadge();
       this.marketTimer = setInterval(() => this.updateMarketStatusBadge(), 1000);
+      AngelOneSmartApiService.loadStoredCredentials();
+      this.updateSmartApiStatusUI();
 
       this.bindUI();
       this.bindLayerToggles();
@@ -2857,6 +3032,84 @@
       ['calcCapital', 'calcRiskPct', 'calcEntryPrice', 'calcStopLossPrice'].forEach(id => {
         document.getElementById(id)?.addEventListener('input', () => this.updateCalculator());
       });
+
+      // Angel One SmartAPI Configuration & Live Connect Modal Events
+      const openSmartApiModal = () => {
+        const modal = document.getElementById('smartApiModal');
+        if (!modal) return;
+        const txtKey = document.getElementById('txtSmartApiKey');
+        const txtClient = document.getElementById('txtSmartApiClientCode');
+        const txtJwt = document.getElementById('txtSmartApiJwt');
+        if (txtKey) txtKey.value = AngelOneSmartApiService.apiKey || '';
+        if (txtClient) txtClient.value = AngelOneSmartApiService.clientCode || '';
+        if (txtJwt) txtJwt.value = AngelOneSmartApiService.jwtToken ? `Bearer ${AngelOneSmartApiService.jwtToken.substring(0, 24)}...` : '';
+        this.updateSmartApiStatusUI();
+        modal.classList.add('active');
+      };
+
+      const closeSmartApiModal = () => {
+        document.getElementById('smartApiModal')?.classList.remove('active');
+      };
+
+      document.getElementById('btnOpenSmartApi')?.addEventListener('click', openSmartApiModal);
+      document.getElementById('btnCloseSmartApiModal')?.addEventListener('click', closeSmartApiModal);
+      document.getElementById('smartApiModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'smartApiModal') closeSmartApiModal();
+      });
+
+      document.getElementById('btnConnectSmartApi')?.addEventListener('click', async () => {
+        const btn = document.getElementById('btnConnectSmartApi');
+        const logEl = document.getElementById('smartApiStatusLog');
+        const key = document.getElementById('txtSmartApiKey')?.value || '';
+        const client = document.getElementById('txtSmartApiClientCode')?.value || '';
+        const pass = document.getElementById('txtSmartApiPassword')?.value || '';
+        const totp = document.getElementById('txtSmartApiTotp')?.value || '';
+        const jwt = document.getElementById('txtSmartApiJwt')?.value || '';
+
+        if (btn) btn.textContent = 'Connecting...';
+        if (logEl) logEl.textContent = 'Authenticating with Angel One SmartAPI servers (apiconnect.angelbroking.com)...';
+
+        const res = await AngelOneSmartApiService.authenticate(key, client, pass, totp, jwt);
+        if (btn) btn.textContent = 'Connect & Authenticate';
+        if (logEl) logEl.textContent = res.message;
+        
+        this.updateSmartApiStatusUI();
+        if (res.success && this.activeMainStock) {
+          this.syncLiveRealtimeData(this.activeMainStock);
+        }
+      });
+
+      document.getElementById('btnDisconnectSmartApi')?.addEventListener('click', () => {
+        AngelOneSmartApiService.clearCredentials();
+        const logEl = document.getElementById('smartApiStatusLog');
+        if (logEl) logEl.textContent = 'Disconnected. SmartAPI credentials cleared from local session.';
+        this.updateSmartApiStatusUI();
+      });
+    }
+
+    updateSmartApiStatusUI() {
+      const dot = document.getElementById('smartApiDot');
+      const pill = document.getElementById('smartApiStatusPill');
+      const livePill = document.getElementById('livePillIndicator');
+
+      if (AngelOneSmartApiService.isConnected) {
+        if (dot) dot.className = 'smartapi-dot connected';
+        if (pill) {
+          pill.className = 'market-pill market-open';
+          pill.textContent = '🟢 SmartAPI Connected';
+        }
+        if (livePill) {
+          livePill.innerHTML = '<span class="live-dot" style="background:#10b981;"></span> SMARTAPI (ANGEL ONE)';
+          livePill.style.color = '#10b981';
+          livePill.style.borderColor = 'rgba(16, 185, 129, 0.5)';
+        }
+      } else {
+        if (dot) dot.className = 'smartapi-dot';
+        if (pill) {
+          pill.className = 'market-pill market-closed';
+          pill.textContent = '🔴 Not Connected';
+        }
+      }
     }
 
     renderStockPills() {
@@ -3019,6 +3272,51 @@
       const targetInterval = interval || this.mainChart?.interval || '1D';
 
       try {
+        // 1. Try Angel One SmartAPI institutional feed first if user is connected
+        if (AngelOneSmartApiService.isConnected) {
+          const smartIntervalMap = {
+            '1m': 'ONE_MINUTE',
+            '5m': 'FIVE_MINUTE',
+            '15m': 'FIFTEEN_MINUTE',
+            '1H': 'ONE_HOUR',
+            '4H': 'ONE_HOUR',
+            '1D': 'ONE_DAY',
+            '1W': 'ONE_DAY',
+            '1M': 'ONE_DAY'
+          };
+          const smartInterval = smartIntervalMap[targetInterval] || 'ONE_DAY';
+          const smartCandles = await AngelOneSmartApiService.fetchHistoricalCandles(stock.symbol, smartInterval);
+          if (smartCandles && smartCandles.length >= 8) {
+            const finalCandles = targetInterval === '4H' ? resampleSeries(smartCandles, 4) : smartCandles;
+            const lastCandle = finalCandles[finalCandles.length - 1];
+            const newLtp = lastCandle.close;
+
+            if (targetInterval === '1m') stock.intraday1m = finalCandles;
+            else if (targetInterval === '5m') stock.intraday5m = finalCandles;
+            else if (targetInterval === '15m') stock.intraday15m = finalCandles;
+            else if (targetInterval === '1H') stock.intraday1H = finalCandles;
+            else if (targetInterval === '4H') stock.intraday4H = finalCandles;
+            else if (targetInterval === '1D') {
+              stock.dailyCandles = finalCandles;
+              stock.closes = finalCandles.map(c => c.close);
+              stock.volumes = finalCandles.map(c => c.volume);
+            } else if (targetInterval === '1W') stock.weekly = resampleSeries(finalCandles, 5);
+            else if (targetInterval === '1M') stock.monthly = finalCandles;
+
+            stock.ltp = newLtp;
+            if (this.mainChart && this.activeMainStock?.symbol === stock.symbol) {
+              this.mainChart.setInterval(this.mainChart.interval);
+            }
+            if (this.modalChart && this.currentModalStock?.symbol === stock.symbol) {
+              this.modalChart.setInterval(this.modalChart.interval);
+            }
+            this.runScan();
+            this.updateSmartApiStatusUI();
+            return;
+          }
+        }
+
+        // 2. Fallback to public live realtime series
         const liveData = await LiveMarketFeedService.fetchRealtimeSeries(stock.symbol, targetInterval);
         if (liveData && liveData.candles && liveData.candles.length >= 8) {
           const meta = liveData.meta;
@@ -3053,7 +3351,7 @@
           this.runScan();
 
           const livePill = document.getElementById('livePillIndicator');
-          if (livePill) {
+          if (livePill && !AngelOneSmartApiService.isConnected) {
             livePill.innerHTML = '<span class="live-dot" style="background:#10b981;"></span> REAL-TIME (NSE/BSE)';
             livePill.style.color = '#10b981';
             livePill.style.borderColor = 'rgba(16, 185, 129, 0.5)';

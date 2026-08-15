@@ -135,6 +135,14 @@
           Copy Tickers
         </button>
 
+        <button class="btn btn-sm" id="btnOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Connect Free Angel One SmartAPI for Live Market Feeds & Orders">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          SmartAPI <span class="smartapi-dot" id="smartApiDot"></span>
+        </button>
+
         <button class="btn btn-primary btn-sm" id="btnRunScan" title="Re-Run 10 CANSLIM Protocols Scan">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="23 4 23 10 17 10"></polyline>
@@ -773,5 +781,95 @@
     </div>
   </div>
 
-</body>
+  <!-- Angel One SmartAPI Configuration & Live Connect Modal -->
+  <div class="modal-overlay" id="smartApiModal">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="brand-logo" style="background:#ea580c; border-color:#f97316; color:#ffffff;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px; font-weight:700; color:var(--text-primary);">Angel One SmartAPI Integration</h3>
+            <div style="font-size:11px; color:var(--text-muted);">Free Institutional Real-Time Quotes, Historical OHLCV & WebSocket Stream</div>
+          </div>
+        </div>
+        <button class="btn-close" id="btnCloseSmartApiModal">✕</button>
+      </div>
+
+      <div class="modal-body" style="padding:16px 20px;">
+        <div style="background:rgba(234, 88, 12, 0.1); border:1px solid rgba(234, 88, 12, 0.3); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:11.5px; line-height:1.6; color:#fdba74;">
+          <strong>⚡ Free SmartAPI Tier:</strong> Angel One provides 100% free API access for Indian Equities (NSE/BSE). You can generate your free API Key on the <a href="https://smartapi.angelbroking.com/" target="_blank" style="color:#fbbf24; text-decoration:underline; font-weight:600;">Angel One SmartAPI Developer Portal ↗</a>.
+        </div>
+
+        <div class="calc-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div class="calc-field">
+            <label class="calc-label">SmartAPI Key (App Key):</label>
+            <input type="text" class="calc-input" id="txtSmartApiKey" placeholder="e.g. your_smartapi_key_here">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label">Angel One Client Code (ID):</label>
+            <input type="text" class="calc-input" id="txtSmartApiClientCode" placeholder="e.g. S123456">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label">PIN / Password / MPIN:</label>
+            <input type="password" class="calc-input" id="txtSmartApiPassword" placeholder="••••••">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label">TOTP / 6-Digit Auth Code:</label>
+            <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456 (from Authenticator App)">
+          </div>
+        </div>
+
+        <div class="calc-field" style="margin-bottom:14px;">
+          <label class="calc-label">Or Direct JWT Access Token (Optional):</label>
+          <input type="text" class="calc-input" id="txtSmartApiJwt" placeholder="Bearer eyJhbGciOiJIUzUxMi..." style="font-family:var(--font-mono); font-size:10.5px;">
+        </div>
+
+        <!-- SmartAPI Connection Status Box -->
+        <div id="smartApiStatusBox" style="background:#09101d; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Connection State:</span>
+            <span class="market-pill market-closed" id="smartApiStatusPill">🔴 Not Connected</span>
+          </div>
+          <div id="smartApiStatusLog" style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">
+            Ready. Enter your Angel One SmartAPI credentials to stream live institutional ticks directly from Angel One servers.
+          </div>
+        </div>
+
+        <!-- Preset Universe Mapped Tokens -->
+        <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">
+          Mapped SmartAPI Tokens (NSE Cash Equities):
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--font-mono); font-size:10px; color:var(--text-secondary); background:#060a14; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); max-height:80px; overflow-y:auto;">
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">TRENT: 1964</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">DIXON: 4454</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BEL: 383</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">HAL: 2303</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">POLYCAB: 9590</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">SOLARINDS: 10666</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">KAYNES: 11351</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PERSISTENT: 18365</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">CDSL: 21174</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BDL: 2142</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PREMIERENE: 16782</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">ANGELONE: 20370</span>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <a href="https://trade.angelone.in/" target="_blank" class="btn btn-sm" style="color:#ea580c; border-color:rgba(234, 88, 12, 0.4);">
+          🚀 Open Angel One Trade Terminal ↗
+        </a>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-sm" id="btnDisconnectSmartApi">Disconnect</button>
+          <button class="btn btn-primary btn-sm" id="btnConnectSmartApi" style="background:#ea580c; border-color:#f97316;">
+            Connect & Authenticate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </html>

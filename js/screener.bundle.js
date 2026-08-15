@@ -2891,13 +2891,21 @@
       const text = document.getElementById('marketStatusText');
       const livePill = document.getElementById('livePillIndicator');
 
+      const providerLabels = {
+        'yfinance': 'YFinance (.NS)',
+        'nsebse': 'NSE-BSE (NPM)',
+        'smartapi': 'SmartAPI',
+        'auto': 'Multi-Proxy'
+      };
+      const provLabel = providerLabels[this.dataProvider || 'auto'] || 'Multi-Proxy';
+
       if (this.feedMode === 'simulation') {
-        if (badge) { badge.className = 'market-pill market-pre'; }
-        if (text) { text.textContent = '⚡ REPLAY / SIM (24x7)'; }
+        if (badge) { badge.className = 'market-pill market-open'; }
+        if (text) { text.textContent = '⚡ REPLAY / SIM (24x7 Active)'; }
         if (livePill) {
-          livePill.innerHTML = '<span class="live-dot" style="background:#fbbf24; box-shadow:0 0 6px #fbbf24;"></span> SIM 3.5s';
-          livePill.style.color = '#fbbf24';
-          livePill.style.borderColor = 'rgba(251, 191, 36, 0.4)';
+          livePill.innerHTML = '<span class="live-dot" style="background:#10b981; box-shadow:0 0 6px #10b981;"></span> SIM LIVE 3.5s';
+          livePill.style.color = 'var(--accent-green)';
+          livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
         }
         this.mainChart?.setMarketLiveState(true, true);
         this.modalChart?.setMarketLiveState(true, true);
@@ -2917,13 +2925,14 @@
         if (text) { text.textContent = mStatus.shortText; }
         if (livePill) {
           if (mStatus.isOpen) {
-            livePill.innerHTML = '<span class="live-dot"></span> LIVE 3.5s';
+            livePill.innerHTML = `<span class="live-dot"></span> LIVE (${provLabel})`;
             livePill.style.color = 'var(--accent-green)';
             livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
           } else {
-            livePill.innerHTML = '<span class="live-dot" style="background:#ef4444; box-shadow:none;"></span> EOD CLOSED';
-            livePill.style.color = '#f87171';
-            livePill.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+            livePill.innerHTML = `<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> EOD (${provLabel})`;
+            livePill.style.color = '#94a3b8';
+            livePill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
+            livePill.title = 'Market session closed (Weekend/Holiday/After 15:30). Official EOD data displayed. Switch Feed to "Replay / Sim" for live 24x7 ticks.';
           }
         }
         this.mainChart?.setMarketLiveState(mStatus.isOpen, false);
@@ -3227,23 +3236,23 @@
 
       document.getElementById('btnToggleLive')?.addEventListener('click', () => {
         const btn = document.getElementById('btnToggleLive');
-        const pill = document.getElementById('livePillIndicator');
         this.isLive = !this.isLive;
         if (this.isLive) {
           if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>`;
-          if (pill) {
-            pill.innerHTML = '<span class="live-dot"></span> LIVE 3.5s';
-            pill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-            pill.style.color = 'var(--accent-green)';
+          const mStatus = this.getMarketStatus();
+          if (!mStatus.isOpen && this.feedMode === 'auto') {
+            this.feedMode = 'simulation';
+            const selFeed = document.getElementById('selFeedMode');
+            if (selFeed) selFeed.value = 'simulation';
           }
+          this.updateMarketStatusBadge();
           this.startLiveStream();
         } else {
           if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg><span>Resume</span>`;
-          if (pill) {
-            pill.innerHTML = '<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> PAUSED';
-            pill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
-            pill.style.color = '#94a3b8';
-          }
+          this.feedMode = 'paused';
+          const selFeed = document.getElementById('selFeedMode');
+          if (selFeed) selFeed.value = 'paused';
+          this.updateMarketStatusBadge();
           if (this.liveTimer) clearTimeout(this.liveTimer);
         }
       });

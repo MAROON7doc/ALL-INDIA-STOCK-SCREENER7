@@ -7,6 +7,14 @@
 (function() {
   'use strict';
 
+  /* Polyfill for older browser environments where NodeList.forEach is undefined */
+  if (window.NodeList && !NodeList.prototype.forEach) {
+    NodeList.prototype.forEach = Array.prototype.forEach;
+  }
+  if (window.HTMLCollection && !HTMLCollection.prototype.forEach) {
+    HTMLCollection.prototype.forEach = Array.prototype.forEach;
+  }
+
   /* ==========================================================================
      1. GPU HARDWARE ACCELERATION ENGINE (WebGL 2.0 / WebGL 1.0)
      ========================================================================== */

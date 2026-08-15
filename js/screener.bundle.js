@@ -989,6 +989,8 @@
       
       this.viewOffset = 0;
       this.viewCount = 80;
+      this.minOffset = 0;
+      this.jumpBtnRect = null;
 
       this.priceScaleFactor = 1.0;
       this.pricePanOffset = 0;
@@ -1007,6 +1009,15 @@
       this.velocityX = 0;
       this.lastMouseX = 0;
       this.lastMouseTime = 0;
+
+      // Touch Panning & Pinch Zoom State
+      this.isTouchDragging = false;
+      this.touchStartX = 0;
+      this.touchStartY = 0;
+      this.touchStartOffset = 0;
+      this.touchStartPanOffset = 0;
+      this.touchStartPinchDist = null;
+      this.touchStartViewCount = 80;
 
       this.crosshair = { x: -1, y: -1, active: false, candle: null, timeStr: '' };
       this.pulsePhase = 0;
@@ -1065,19 +1076,43 @@
       this.isSimMode = isSim;
     }
 
+    glideToOffset(target) {
+      const start = this.viewOffset;
+      const startTime = performance.now();
+      const duration = 260; // ms
+
+      const step = (now) => {
+        const elapsed = now - startTime;
+        const progress = Math.min(1, elapsed / duration);
+        const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease out
+        this.viewOffset = start + (target - start) * ease;
+        this.render();
+        if (progress < 1) {
+          requestAnimationFrame(step);
+        } else {
+          this.viewOffset = target;
+          this.velocityX = 0;
+          this.render();
+        }
+      };
+      requestAnimationFrame(step);
+    }
+
     startAnimationLoop() {
       if (this.animReqId) cancelAnimationFrame(this.animReqId);
       const renderFrame = () => {
         this.pulsePhase = (this.pulsePhase + 0.06) % (Math.PI * 2);
 
-        // Apply kinetic inertial gliding if released with velocity
-        if (!this.isDragging && Math.abs(this.velocityX) > 0.08) {
-          const plotWidth = this.width - 85;
+        // Apply kinetic inertial gliding with fluid sub-pixel dampening
+        if (!this.isDragging && !this.isTouchDragging && Math.abs(this.velocityX) > 0.04) {
+          const paddingRight = 75, paddingLeft = 10;
+          const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = this.velocityX / candleWidth;
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(0, Math.min(maxOffset, this.viewOffset + candleShift));
-          this.velocityX *= 0.88; // Friction decay
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + candleShift));
+          this.velocityX *= 0.90; // Smooth kinetic friction decay
+          if (Math.abs(this.velocityX) < 0.04) this.velocityX = 0;
         }
 
         this.render();
@@ -1219,7 +1254,7 @@
         requestAnimationFrame(() => this.resize());
       });
 
-      // TRADINGVIEW CURSOR-ANCHORED ZOOMING
+      // TRADINGVIEW MULTI-INPUT ZOOM & TWO-FINGER HORIZONTAL SWIPE
       this.canvas.addEventListener('wheel', (e) => {
         e.preventDefault();
         const rect = this.canvas.getBoundingClientRect();
@@ -1227,26 +1262,37 @@
         const mouseY = e.clientY - rect.top;
         const paddingRight = 75, paddingLeft = 10;
         const plotWidth = this.width - paddingLeft - paddingRight;
+        const candleWidth = Math.max(2, plotWidth / this.viewCount);
+        const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
         const isOverScale = mouseX >= (this.width - paddingRight);
 
-        if (isOverScale || e.shiftKey || e.ctrlKey || e.altKey) {
+        if (isOverScale || (e.altKey && !e.shiftKey)) {
           // Vertical Price Scale Zoom centered at mouseY
-          const factor = e.deltaY < 0 ? 1.12 : 0.89;
+          const factor = e.deltaY < 0 ? 1.10 : 0.91;
           this.priceScaleFactor = Math.max(0.2, Math.min(8.0, this.priceScaleFactor * factor));
           this.autoScale = false;
+          this.render();
+        } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+          // Direct trackpad two-finger horizontal swipe or Shift+Wheel
+          const delta = (e.deltaX !== 0 ? e.deltaX : e.deltaY);
+          const shift = (delta / candleWidth) * 0.55;
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + shift));
+          this.velocityX = 0;
+          this.render();
         } else {
           // Horizontal Time Zoom centered at mouseX
           const mouseRatio = Math.max(0, Math.min(1, (mouseX - paddingLeft) / plotWidth));
           const oldViewCount = this.viewCount;
-          const delta = e.deltaY < 0 ? -6 : 6;
-          const newViewCount = Math.max(12, Math.min(this.allCandles.length, oldViewCount + delta));
+          const zoomStep = Math.max(2, Math.round(oldViewCount * 0.08));
+          const delta = e.deltaY < 0 ? -zoomStep : zoomStep;
+          const newViewCount = Math.max(10, Math.min(this.allCandles.length, oldViewCount + delta));
           
           if (newViewCount !== oldViewCount) {
             const countDiff = newViewCount - oldViewCount;
-            const shiftOffset = Math.round(countDiff * (1 - mouseRatio));
-            const maxOffset = Math.max(0, this.allCandles.length - newViewCount);
-            this.viewOffset = Math.max(0, Math.min(maxOffset, this.viewOffset + shiftOffset));
+            const shiftOffset = countDiff * (1 - mouseRatio);
+            this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + shiftOffset));
             this.viewCount = newViewCount;
+            this.render();
           }
         }
       }, { passive: false });
@@ -1254,8 +1300,17 @@
       this.canvas.addEventListener('mousedown', (e) => {
         const rect = this.canvas.getBoundingClientRect();
         const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
         const paddingRight = 75;
         this.velocityX = 0;
+
+        // Check if user clicked "Jump to Latest" button
+        if (this.jumpBtnRect && 
+            mouseX >= this.jumpBtnRect.x && mouseX <= this.jumpBtnRect.x + this.jumpBtnRect.w &&
+            mouseY >= this.jumpBtnRect.y && mouseY <= this.jumpBtnRect.y + this.jumpBtnRect.h) {
+          this.glideToOffset(0);
+          return;
+        }
 
         if (mouseX >= (this.width - paddingRight)) {
           this.isDraggingScale = true;
@@ -1275,11 +1330,21 @@
         }
       });
 
-      this.canvas.addEventListener('dblclick', () => {
-        this.priceScaleFactor = 1.0;
-        this.pricePanOffset = 0;
-        this.autoScale = true;
-        this.velocityX = 0;
+      this.canvas.addEventListener('dblclick', (e) => {
+        const rect = this.canvas.getBoundingClientRect();
+        const mouseX = e.clientX - rect.left;
+        const mouseY = e.clientY - rect.top;
+        const timeGutterTop = this.height - 22;
+
+        if (mouseY >= timeGutterTop) {
+          // Double clicking the time axis snaps smoothly back to live
+          this.glideToOffset(0);
+        } else {
+          this.priceScaleFactor = 1.0;
+          this.pricePanOffset = 0;
+          this.autoScale = true;
+          this.velocityX = 0;
+        }
       });
 
       window.addEventListener('mouseup', () => {
@@ -1299,7 +1364,13 @@
         const plotWidth = this.width - paddingLeft - paddingRight;
 
         if (!this.isDragging && !this.isDraggingScale) {
-          this.canvas.style.cursor = x >= (this.width - paddingRight) ? 'ns-resize' : 'crosshair';
+          if (this.jumpBtnRect && 
+              x >= this.jumpBtnRect.x && x <= this.jumpBtnRect.x + this.jumpBtnRect.w &&
+              y >= this.jumpBtnRect.y && y <= this.jumpBtnRect.y + this.jumpBtnRect.h) {
+            this.canvas.style.cursor = 'pointer';
+          } else {
+            this.canvas.style.cursor = x >= (this.width - paddingRight) ? 'ns-resize' : 'crosshair';
+          }
         }
 
         if (this.isDraggingScale) {
@@ -1312,17 +1383,18 @@
 
         if (this.isDragging) {
           const now = performance.now();
-          const dt = now - this.lastMouseTime || 16;
+          const dt = Math.max(8, now - this.lastMouseTime);
           const dx = e.clientX - this.lastMouseX;
-          this.velocityX = (dx / dt) * 12;
+          const vel = (dx / dt) * 14;
+          this.velocityX = this.velocityX * 0.35 + vel * 0.65;
           this.lastMouseX = e.clientX;
           this.lastMouseTime = now;
 
           const deltaX = e.clientX - this.dragStartX;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleShift = Math.round(deltaX / candleWidth);
+          const candleShift = deltaX / candleWidth; // Continuous floating point
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(0, Math.min(maxOffset, this.dragStartOffset + candleShift));
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + candleShift));
 
           const deltaY = e.clientY - this.dragStartY;
           const hasRsi = this.layers.p2_rsi;
@@ -1365,12 +1437,86 @@
         this.crosshair.active = false;
         this.crosshair.candle = null;
       });
+
+      // TOUCHSCREEN PANNING & TWO-FINGER PINCH ZOOM
+      this.canvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          const t = e.touches[0];
+          this.isTouchDragging = true;
+          this.touchStartX = t.clientX;
+          this.touchStartY = t.clientY;
+          this.touchStartOffset = this.viewOffset;
+          this.touchStartPanOffset = this.pricePanOffset;
+          this.lastTouchX = t.clientX;
+          this.lastTouchTime = performance.now();
+          this.velocityX = 0;
+        } else if (e.touches.length === 2) {
+          this.isTouchDragging = false;
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          this.touchStartPinchDist = Math.hypot(dx, dy);
+          this.touchStartViewCount = this.viewCount;
+        }
+      }, { passive: true });
+
+      this.canvas.addEventListener('touchmove', (e) => {
+        if (this.isTouchDragging && e.touches.length === 1) {
+          const t = e.touches[0];
+          const deltaX = t.clientX - this.touchStartX;
+          const paddingRight = 75, paddingLeft = 10;
+          const plotWidth = this.width - paddingLeft - paddingRight;
+          const candleWidth = Math.max(2, plotWidth / this.viewCount);
+          const candleShift = deltaX / candleWidth;
+          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.touchStartOffset + candleShift));
+
+          const now = performance.now();
+          const dt = Math.max(8, now - this.lastTouchTime);
+          const dx = t.clientX - this.lastTouchX;
+          this.velocityX = (dx / dt) * 14;
+          this.lastTouchX = t.clientX;
+          this.lastTouchTime = now;
+          this.render();
+        } else if (e.touches.length === 2 && this.touchStartPinchDist) {
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
+          const scale = this.touchStartPinchDist / Math.max(10, dist);
+          const newViewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
+          this.viewCount = newViewCount;
+          this.render();
+        }
+      }, { passive: true });
+
+      this.canvas.addEventListener('touchend', () => {
+        this.isTouchDragging = false;
+        this.touchStartPinchDist = null;
+      });
+
+      // KEYBOARD ARROW SCRUBBING & HOME/END JUMP
+      window.addEventListener('keydown', (e) => {
+        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+        const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
+        const step = e.shiftKey ? 10 : 3;
+
+        if (e.key === 'ArrowLeft') {
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + step));
+          this.render();
+        } else if (e.key === 'ArrowRight') {
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset - step));
+          this.render();
+        } else if (e.key === 'Home') {
+          this.glideToOffset(maxOffset);
+        } else if (e.key === 'End') {
+          this.glideToOffset(0);
+        }
+      });
     }
 
     getVisibleCandles() {
       if (!this.allCandles || !this.allCandles.length) return [];
-      const end = this.allCandles.length - this.viewOffset;
-      const start = Math.max(0, end - this.viewCount);
+      const end = Math.max(0, this.allCandles.length - Math.floor(this.viewOffset));
+      const start = Math.max(0, end - Math.ceil(this.viewCount));
       return this.allCandles.slice(start, end);
     }
 
@@ -2004,6 +2150,45 @@
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';
         ctx.textAlign = 'center';
         ctx.fillText(this.crosshair.timeStr, this.crosshair.x, timeGutterTop + 14);
+      }
+
+      // Subtle Historical Range Position Track in Bottom Gutter
+      if (this.allCandles && this.allCandles.length > this.viewCount) {
+        const totalLen = this.allCandles.length;
+        const trackPlotW = w - paddingLeft - paddingRight;
+        const visRatio = Math.min(1, this.viewCount / totalLen);
+        const trackW = Math.max(24, trackPlotW * visRatio);
+        const maxOff = Math.max(1, totalLen - this.viewCount);
+        const scrollRatio = (totalLen - this.viewOffset - this.viewCount) / maxOff;
+        const trackX = paddingLeft + (trackPlotW - trackW) * Math.max(0, Math.min(1, scrollRatio));
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
+        ctx.fillRect(trackX, h - 3, trackW, 2);
+      }
+
+      // Floating "Jump to Latest" (Back to Live) Button when scrolled into history
+      if (this.viewOffset > 3) {
+        const btnW = 126, btnH = 24;
+        const btnX = w - paddingRight - btnW - 12;
+        const btnY = timeGutterTop - btnH - 10;
+        this.jumpBtnRect = { x: btnX, y: btnY, w: btnW, h: btnH };
+
+        const isHovered = (this.crosshair.active &&
+          this.crosshair.x >= btnX && this.crosshair.x <= btnX + btnW &&
+          this.crosshair.y >= btnY && this.crosshair.y <= btnY + btnH);
+
+        ctx.fillStyle = isHovered ? '#38bdf8' : 'rgba(15, 23, 42, 0.88)';
+        ctx.fillRect(btnX, btnY, btnW, btnH);
+        ctx.strokeStyle = isHovered ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)';
+        ctx.lineWidth = 1.2;
+        ctx.strokeRect(btnX, btnY, btnW, btnH);
+
+        ctx.fillStyle = isHovered ? '#050a15' : '#38bdf8';
+        ctx.font = 'bold 10px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('⮞ Jump to Live', btnX + btnW / 2, btnY + 16);
+      } else {
+        this.jumpBtnRect = null;
       }
 
       // =========================================================================

@@ -192,10 +192,23 @@
       </div>
     </div>
 
+    <!-- Universal Investor Profiles Ribbon (Section 21) -->
+    <div class="investor-ribbon">
+      <span class="investor-ribbon-label">🎯 Investor Mode:</span>
+      <button class="investor-chip active" data-profile="all">🌐 All Profiles</button>
+      <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">🏛️ Quality Compounder</button>
+      <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales & EPS CAGR >30%, Low Debt">💎 Multibagger Hunter</button>
+      <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG ≤ 1.5, ROCE > 20%)">🚀 GARP / Growth</button>
+      <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield > 3.5%">📊 Deep Value</button>
+      <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">💰 Dividend & Cash</button>
+      <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score > 85, Multi-Quarter Alpha">⚡ Momentum (DMR)</button>
+      <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">🔄 Special Situations</button>
+    </div>
+
     <!-- Protocol Presets Ribbon -->
     <div class="protocol-ribbon">
       <div class="preset-group">
-        <span class="preset-label">Active Presets:</span>
+        <span class="preset-label">CANSLIM Presets:</span>
         <button class="preset-chip active" data-preset="user_master">🌟 User Master (All 10)</button>
         <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle</button>
         <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Bases</button>
@@ -204,7 +217,7 @@
         <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > ₹10 Lakhs">🏛️ SEBI Insider Buys</button>
         <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">💎 SMC Accumulation</button>
         <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">📈 DMR Leaders</button>
-        <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
+        <button class="preset-chip" data-preset="all">📋 View All</button>
       </div>
       <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
     </div>
@@ -602,13 +615,14 @@
           <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">✕ Clear</button>
         </div>
         <div class="nlp-chips-row">
-          <span style="color:var(--text-muted); font-size:10px; font-weight:600;">⚡ QUICK PROMPTS:</span>
-          <button class="nlp-suggestion-chip" data-prompt="low debt companies">"low debt"</button>
+          <span style="color:var(--text-muted); font-size:10px; font-weight:600;">⚡ UNIVERSAL PROMPTS:</span>
+          <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
+          <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
+          <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
           <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker + vwap"</button>
           <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
           <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
           <button class="nlp-suggestion-chip" data-prompt="sector dmr momentum leaders">"dmr leaders"</button>
-          <button class="nlp-suggestion-chip" data-prompt="high roe with cup and handle">"high roe + cup & handle"</button>
           <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
         </div>
       </div>
@@ -621,7 +635,7 @@
               <circle cx="11" cy="11" r="8"></circle>
               <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
-            <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector...">
+            <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
           </div>
 
           <select id="selExchange">
@@ -645,14 +659,17 @@
         <div style="display:flex; align-items:center; gap:6px;">
           <span style="font-size:11px; color:var(--text-muted);">Sort By:</span>
           <select id="selSortBy">
-            <option value="matchCount">Protocol Match Count (9/9)</option>
+            <option value="qualityScore">Quality Score (0-100)</option>
+            <option value="moatScore">Moat Score (0-10)</option>
+            <option value="matchCount">Protocol Match Count (10/10)</option>
             <option value="dmrScore">Dynamic Momentum Rank (DMR)</option>
+            <option value="fcfYield">Free Cash Flow Yield %</option>
             <option value="rsScore">RS Score (Highest First)</option>
             <option value="volumeBurst">Volume Burst / Shocker %</option>
             <option value="deliveryPct">Delivery % (Institutional)</option>
             <option value="epsGrowthYoY">EPS YoY Growth</option>
             <option value="salesGrowthYoY">Sales YoY Growth</option>
-            <option value="roe">ROE %</option>
+            <option value="roe">ROE / ROCE %</option>
             <option value="eps3Y_CAGR">3Y EPS CAGR</option>
             <option value="ltp">Current Price (LTP)</option>
           </select>
@@ -664,11 +681,11 @@
         <table class="screener-table">
           <thead>
             <tr>
-              <th>Stock / Exchange</th>
+              <th>Stock / ISIN</th>
               <th>Live LTP (₹) & Day Chg</th>
               <th>MTF Trend (6)</th>
-              <th>RS Score</th>
-              <th>RSI (14)</th>
+              <th>Quality Score</th>
+              <th>Moat (0-10)</th>
               <th>Vol Burst</th>
               <th>Pattern / Base</th>
               <th>Sales YoY</th>
@@ -739,10 +756,12 @@
         </div>
       </div>
 
-      <!-- Modal Tabs (5 Comprehensive Analysis Horizons) -->
+      <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
       <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="chart">Candlestick Chart & Pattern Overlay</div>
-        <div class="modal-tab" data-tab="calculator">Risk Management & Position Sizing</div>
+        <div class="modal-tab active" data-tab="chart">Candlestick Chart</div>
+        <div class="modal-tab" data-tab="calculator">Risk & Sizing</div>
+        <div class="modal-tab" data-tab="thesis">📜 Equity Thesis & Risks</div>
+        <div class="modal-tab" data-tab="moat_intel">🏰 Moat & Governance</div>
         <div class="modal-tab" data-tab="sebi_intel">🏛️ SEBI Insider & Forensics</div>
         <div class="modal-tab" data-tab="peer_matrix">👥 Sector Peer Matrix</div>
         <div class="modal-tab" data-tab="smc_dmr">⚡ Smart Money & DMR</div>
@@ -817,7 +836,83 @@
           </div>
         </div>
 
-        <!-- Tab 3: SEBI PIT Insider Trading & Forensic Intelligence -->
+        <!-- Tab 3: Institutional Equity Research Thesis & Bear Case (Section 23 & 32) -->
+        <div class="tab-content" id="tab_thesis" style="display:none;">
+          <div class="thesis-container">
+            <div class="thesis-card">
+              <div class="thesis-header">
+                <span>💡 Investment Thesis & Growth Drivers</span>
+                <span class="val-pill" id="modalThesisProfile" style="background:rgba(56,189,248,0.15); color:var(--accent-blue); font-size:10px;">Quality Compounder</span>
+              </div>
+              <div class="thesis-body-text" id="modalThesisText">
+                <!-- Dynamically loaded institutional thesis -->
+              </div>
+              <div class="catalyst-box" id="modalCatalysts">
+                <!-- Catalysts watch -->
+              </div>
+              <div class="bear-case-box" id="modalBearCase">
+                <!-- Bear case risks -->
+              </div>
+            </div>
+
+            <!-- Financial Year & Cash Flow Quality Strip -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
+              <div class="fund-card">
+                <div class="fund-label">Reporting Period</div>
+                <div class="fund-val" id="modalReportingPeriod" style="font-size:12px; color:var(--text-primary);">FY26 (Audited)</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">CFO / PAT Conversion</div>
+                <div class="fund-val" id="modalCfoToPat" style="font-size:13px; color:var(--accent-green);">1.18x</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Free Cash Flow Yield</div>
+                <div class="fund-val" id="modalFcfYield" style="font-size:13px; color:var(--accent-blue);">2.4%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">PEG Ratio</div>
+                <div class="fund-val" id="modalPegRatio" style="font-size:13px;">1.2</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Working Capital Days</div>
+                <div class="fund-val" id="modalWcDays" style="font-size:13px;">18 Days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Moat & Corporate Governance Intelligence (Section 10 & 13) -->
+        <div class="tab-content" id="tab_moat_intel" style="display:none;">
+          <div class="sebi-intel-grid">
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>🏰 Competitive Advantage / Moat</span>
+                <span class="tag-moat" id="modalMoatBadge">Moat: 9.5 / 10</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Evaluates Pricing Power, Brand Elasticity, Switching Friction, Scale Economics, and Regulatory Moats.
+              </p>
+              <div id="modalMoatBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+                <!-- Dynamic moat breakdown -->
+              </div>
+            </div>
+
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>⚖️ Management & Governance Score</span>
+                <span class="tag-quality" id="modalMgmtBadge">Gov: 9.8 / 10</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Evaluates Capital Allocation, Promoter Skin-in-the-game, Dilution History, and RPT transparency.
+              </p>
+              <div id="modalMgmtBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+                <!-- Dynamic mgmt breakdown -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: SEBI PIT Insider Trading & Forensic Intelligence -->
         <div class="tab-content" id="tab_sebi_intel" style="display:none;">
           <div class="sebi-intel-grid">
             <!-- SEBI Form C Insider Disclosures -->

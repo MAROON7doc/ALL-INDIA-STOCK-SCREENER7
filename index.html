@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSE/BSE Live Stock Screener | TradingView Interactive Terminal & 9-Protocol Engine</title>
-  <meta name="description" content="TradingView-Grade Interactive NSE & BSE Stock Screener featuring Pan/Zoom Candlesticks, Multi-Timeframe Analysis (1m to 1W), Fullscreen Maximize Mode, Pop-out Window, Cup with Handle Pattern Recognition, and Direct Exchange Wire Links.">
+  <title>Universal Indian Stock Screener | Multi-Market TradingView Terminal & Institutional Engine</title>
+  <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
   <link rel="stylesheet" href="css/styles.css">
   <script defer src="js/screener.bundle.js"></script>
 </head>
@@ -60,9 +60,9 @@
         </div>
         <div>
           <div style="display:flex; align-items:center; gap:6px;">
-            <h1 class="brand-title">NSE/BSE Screener</h1>
-            <span class="market-pill market-closed" id="marketStatusBadge" title="Indian Market Session: Mon-Fri 09:15-15:30 IST">
-              <span class="market-dot"></span> <span id="marketStatusText">🔴 MARKET CLOSED (EOD Finalized)</span>
+            <h1 class="brand-title">Universal Indian Stock Screener</h1>
+            <span class="market-pill market-open" id="marketStatusBadge" title="Multi-Market Live Feed Active (NSE/BSE, MCX, GIFT Nifty, Global Extended)">
+              <span class="market-dot"></span> <span id="marketStatusText">🟢 UNIVERSAL MARKET LIVE</span>
             </span>
             <span class="live-pill" id="livePillIndicator">
               <span class="live-dot"></span> LIVE
@@ -71,7 +71,7 @@
               <span class="gpu-dot"></span> GPU WebGL
             </span>
           </div>
-          <div class="brand-sub">TradingView Terminal • 9 CANSLIM Visual Protocols • Direct Source Links</div>
+          <div class="brand-sub">Universal Indian Market Terminal • 10 Institutional CANSLIM Protocols • Multi-Asset Live Engine</div>
         </div>
       </div>
 
@@ -515,12 +515,12 @@
             <!-- Timeframe Interval Group -->
             <div class="tv-btn-group" id="tvIntervalGroup">
               <span class="tv-group-label">Interval:</span>
-              <button class="tv-btn active" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
+              <button class="tv-btn" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
               <button class="tv-btn" data-interval="5m" title="5-Minute Intraday Candlesticks">5m</button>
               <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Candlesticks">15m</button>
               <button class="tv-btn" data-interval="1H" title="1-Hour Hourly Candlesticks">1H</button>
               <button class="tv-btn" data-interval="4H" title="4-Hour Swing Candlesticks">4H</button>
-              <button class="tv-btn" data-interval="1D" title="1-Day Daily Candlesticks (Standard CANSLIM Timeframe)">1D</button>
+              <button class="tv-btn active" data-interval="1D" title="1-Day Daily Candlesticks (Standard CANSLIM Timeframe)">1D</button>
               <button class="tv-btn" data-interval="1W" title="1-Week Weekly Base Candlesticks">1W</button>
               <button class="tv-btn" data-interval="1M" title="1-Month Multi-Year Candlesticks">1M</button>
             </div>

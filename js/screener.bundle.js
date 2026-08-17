@@ -3081,8 +3081,8 @@
       }
 
       // 4. LIVE TICK BEACON / EOD CLOSING POSITION CALLOUT & LASER BENCHMARK
-      const livePrice = this.stock.ltp;
-      const liveY = Math.round(getY(livePrice)) + 0.5;
+      const currentPrice = this.stock.ltp;
+      const liveY = Math.round(getY(currentPrice)) + 0.5;
       const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
       const isTickUp = this.stock.lastTickDir === 'up';
       const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#38bdf8';
@@ -3709,16 +3709,16 @@
       const anyLive = nseOpen || mcxOpen || usOpen || giftOpen;
 
       if (nseOpen) {
-        statusText = `🟢 NSE/BSE CASH LIVE (09:15-15:30 • ${timeStr} IST)`;
-        shortText = '🟢 NSE/BSE LIVE';
+        statusText = `🟢 UNIVERSAL INDIAN LIVE (Cash Equity 09:15-15:30 • ${timeStr} IST)`;
+        shortText = '🟢 UNIVERSAL INDIAN LIVE';
         badgeClass = 'market-open';
       } else if (mcxOpen && usOpen) {
         statusText = `🟢 MCX & US MARKETS LIVE (MCX to 23:30 • US to 01:30 • ${timeStr} IST)`;
-        shortText = '🟢 MCX & US LIVE (NSE: EOD)';
+        shortText = '🟢 MCX & US LIVE (Equity: EOD)';
         badgeClass = 'market-open';
       } else if (mcxOpen) {
         statusText = `🟢 MCX COMMODITIES LIVE (09:00-23:30 • ${timeStr} IST)`;
-        shortText = '🟢 MCX LIVE (NSE: EOD)';
+        shortText = '🟢 MCX LIVE (Equity: EOD)';
         badgeClass = 'market-open';
       } else if (usOpen) {
         statusText = `🟢 US MARKETS LIVE (NYSE/NASDAQ • ${timeStr} IST)`;
@@ -3733,8 +3733,8 @@
         shortText = '🟡 NSE PRE-MARKET';
         badgeClass = 'market-pre';
       } else {
-        statusText = `🟢 24x7 GLOBAL ACTIVE (${timeStr} IST)`;
-        shortText = '🟢 24x7 GLOBAL ACTIVE';
+        statusText = `🟢 24x7 UNIVERSAL LIVE (${timeStr} IST)`;
+        shortText = '🟢 24x7 UNIVERSAL LIVE';
         badgeClass = 'market-open';
       }
 

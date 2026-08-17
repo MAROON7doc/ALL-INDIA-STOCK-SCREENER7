@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NSE/BSE Standalone Terminal | Fullscreen Live Chart Engine</title>
-  <meta name="description" content="Fullscreen standalone live TradingView-grade interactive chart engine for Indian Equities (NSE/BSE).">
+  <title>Universal Indian Market Terminal | Fullscreen Live Chart Engine</title>
+  <meta name="description" content="Fullscreen standalone live TradingView-grade interactive chart engine for Universal Indian Markets (Equities, Commodities, GIFT Nifty & Global).">
   <link rel="stylesheet" href="css/styles.css">
   <style>
     body, html {
@@ -45,9 +45,9 @@
           </svg>
         </div>
         <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:14px; font-weight:700; color:var(--text-primary);">Terminal Live Chart</span>
-          <span class="market-pill market-closed" id="marketStatusBadge" title="Indian Market Session: Mon-Fri 09:15-15:30 IST">
-            <span class="market-dot"></span> <span id="marketStatusText">🔴 MARKET CLOSED (EOD Finalized)</span>
+          <span style="font-size:14px; font-weight:700; color:var(--text-primary);">Universal Indian Terminal</span>
+          <span class="market-pill market-open" id="marketStatusBadge" title="Multi-Market Live Feed Active">
+            <span class="market-dot"></span> <span id="marketStatusText">🟢 UNIVERSAL MARKET LIVE</span>
           </span>
           <span class="live-pill" id="livePillIndicator"><span class="live-dot"></span> LIVE</span>
           <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU WebGL</span>
@@ -137,12 +137,12 @@
       <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
         <div class="tv-btn-group" id="tvIntervalGroup">
           <span class="tv-group-label">Interval:</span>
-          <button class="tv-btn active" data-interval="1m">1m</button>
+          <button class="tv-btn" data-interval="1m">1m</button>
           <button class="tv-btn" data-interval="5m">5m</button>
           <button class="tv-btn" data-interval="15m">15m</button>
           <button class="tv-btn" data-interval="1H">1H</button>
           <button class="tv-btn" data-interval="4H">4H</button>
-          <button class="tv-btn" data-interval="1D">1D</button>
+          <button class="tv-btn active" data-interval="1D">1D</button>
           <button class="tv-btn" data-interval="1W">1W</button>
           <button class="tv-btn" data-interval="1M">1M</button>
         </div>

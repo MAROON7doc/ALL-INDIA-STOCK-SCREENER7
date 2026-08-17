@@ -2284,6 +2284,7 @@
       this.allCandles = targetCandles || [];
       this.isFallback = fellback;
       this.updateIndicatorCache();
+      this.render();
     }
 
     setRange(range) {
@@ -3654,7 +3655,7 @@
       this.isLive = true;
       this.feedMode = 'auto'; // 'auto' (respects 09:15-15:30 IST), 'simulation' (24x7 replay), 'paused'
       this.dataProvider = 'auto'; // 'auto', 'yfinance', 'nsebse', 'smartapi'
-      this.streamInterval = 3500; // 3.5s Auto-Refresh default
+      this.streamInterval = 1800; // 1.8s Live Tick Stream default
       this.liveTimer = null;
       this.newsTimer = null;
       this.marketTimer = null;
@@ -5380,6 +5381,10 @@
         if (this.modalChart && this.currentModalStock) {
           this.modalChart.refreshCandles();
         }
+
+        try {
+          if (this.activeMainStock) this.populatePopoutSidebar(this.activeMainStock);
+        } catch (e) {}
 
         updated.slice(0, 4).forEach(t => {
           if (!t.symbol) return;

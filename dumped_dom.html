@@ -61,10 +61,10 @@
           <div style="display:flex; align-items:center; gap:6px;">
             <h1 class="brand-title">Universal Indian Stock Screener</h1>
             <span class="market-pill market-open" id="marketStatusBadge" title="Click to view real-time status across NSE/BSE, MCX, GIFT Nifty, and US Markets">
-              <span class="market-dot"></span> <span id="marketStatusText">≠ÉÉÛ MCX &amp; US LIVE (Equity: EOD)</span>
+              <span class="market-dot"></span> <span id="marketStatusText">≠ÉÉÛ US LIVE (NYSE/NASDAQ)</span>
             </span>
             <span class="live-pill" id="livePillIndicator" title="Continuous real-time multi-market tick feed active (NSE/BSE, MCX, US Markets, Replay Sync)" style="color: var(--accent-green); border-color: rgba(16, 185, 129, 0.4);"><span class="live-dot"></span> LIVE (Multi-Market Sync)</span>
-            <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU ANGLE (0ms)</span>
+            <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU ANGLE (0.1ms)</span>
           </div>
           <div class="brand-sub">Universal Indian Market Terminal ‘«Û 10 Institutional CANSLIM Protocols ‘«Û Multi-Asset Live Engine</div>
         </div>
@@ -472,7 +472,7 @@
         <!-- TradingView Top Toolbar: Interval Selector + Chart Type + Maximize + Pop-out Window -->
         <div class="tv-top-toolbar">
           <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">TRENT <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">(NSE: EQ)</span> <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">‘È¶10,444.75 (0%)</span></div>
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">TRENT <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">(NSE: EQ)</span> <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">‘È¶10,432.77 (0%)</span></div>
 
             <!-- Primary/Secondary Exchange Selector (NSE vs BSE variant) -->
             <div class="tv-btn-group" id="exchangeVariantGroup">
@@ -501,17 +501,20 @@
 
           <!-- TradingView Multi-Timeframe & Type Toolbar + Maximize / Popout Buttons -->
           <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-            <!-- Timeframe Interval Group -->
+            <!-- Unified Timeframe & Range Horizon Group -->
             <div class="tv-btn-group" id="tvIntervalGroup">
-              <span class="tv-group-label">Interval:</span>
-              <button class="tv-btn" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
-              <button class="tv-btn" data-interval="5m" title="5-Minute Intraday Candlesticks">5m</button>
-              <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Candlesticks">15m</button>
+              <span class="tv-group-label">Time Horizon:</span>
+              <button class="tv-btn" data-interval="1m" title="1-Minute Live Intraday Scalp">1m</button>
+              <button class="tv-btn" data-interval="5m" title="5-Minute Intraday Trend">5m</button>
+              <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Swings">15m</button>
               <button class="tv-btn" data-interval="1H" title="1-Hour Hourly Candlesticks">1H</button>
               <button class="tv-btn" data-interval="4H" title="4-Hour Swing Candlesticks">4H</button>
               <button class="tv-btn active" data-interval="1D" title="1-Day Daily Candlesticks (Standard CANSLIM Timeframe)">1D</button>
               <button class="tv-btn" data-interval="1W" title="1-Week Weekly Base Candlesticks">1W</button>
               <button class="tv-btn" data-interval="1M" title="1-Month Multi-Year Candlesticks">1M</button>
+              <button class="tv-btn" data-range="6M" title="6-Month Multi-Candle Horizon View">6M Range</button>
+              <button class="tv-btn" data-range="1Y" title="1-Year Institutional Base View">1Y Range</button>
+              <button class="tv-btn" data-range="ALL" title="All-Time Multi-Year History">ALL</button>
             </div>
 
             <!-- Chart Type Group -->
@@ -546,20 +549,13 @@
         <!-- TradingView Interactive Pan/Zoom Canvas Container (Generous 560px Height) -->
         <div class="chart-container-box" id="mainCanvasContainer"><canvas width="676" height="660" style="width: 676px; height: 660px;"></canvas></div>
 
-        <!-- TradingView Quick-Jump Timeline Bar at Bottom -->
-        <div class="tv-bottom-range-bar">
-          <div class="tv-range-pills">
-            <span style="color:var(--text-muted); font-size:10px; font-weight:600; text-transform:uppercase;">Range:</span>
-            <button class="tv-range-btn" data-range="1D">1D</button>
-            <button class="tv-range-btn" data-range="5D">5D</button>
-            <button class="tv-range-btn" data-range="1M">1M</button>
-            <button class="tv-range-btn" data-range="3M">3M</button>
-            <button class="tv-range-btn active" data-range="6M">6M</button>
-            <button class="tv-range-btn" data-range="1Y">1Y</button>
-            <button class="tv-range-btn" data-range="ALL">ALL</button>
+        <!-- TradingView Quick-Jump Status & Navigation Bar -->
+        <div class="tv-bottom-range-bar" style="padding: 5px 12px; justify-content: space-between;">
+          <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);" id="tvChartNavHint">
+            ≠É∆Ì Scroll wheel to zoom ‘«Û Drag horizontally to pan ‘«Û Hover candle for OHLCV &amp; 10 protocols ‘«Û Double-click to auto-scale
           </div>
-          <div style="color:var(--text-muted); font-size:10px; font-family:var(--font-mono);" id="tvChartNavHint">
-            ≠É∆Ì Scroll wheel to zoom ‘«Û Drag to pan ‘«Û Click ‘¯¬ Fullscreen to expand
+          <div style="color:var(--accent-blue); font-size:10px; font-family:var(--font-mono); font-weight:600;">
+            GPU WebGL Engine
           </div>
         </div>
 
@@ -574,7 +570,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-header">Cup &amp; Handle Breakouts</div>
-          <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">1</div>
+          <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">0</div>
           <div class="stat-sub">High-quality CANSLIM bases</div>
         </div>
         <div class="stat-card">
@@ -684,384 +680,6 @@
             </tr>
           </thead>
           <tbody id="screenerTableBody">
-          <tr data-symbol="TRENT" class="selected-stock-row">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">TRENT</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Retail">DMR 8</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
-                </div>
-                <span class="stock-name">Trent Ltd (Westside &amp; Zudio) ‘«Û BSE: 500251</span>
-                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶14.7Cr</div>
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶10,444.75</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 96/100">96/100</span>
-                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 9.5/10">≠É≈¶ 9.5</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.27x 10D Average">‘‹Ì 3.27x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+77.1%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+53.2%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+67.8%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +54.2%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 28.6%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 31.4%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶9,713.62</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="TRENT">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="TRENT">Details</button>
-              </div>
-            </td>
-          </tr>
-        
-          <tr data-symbol="DIXON" class="">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">DIXON</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in EMS">DMR 8</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
-                </div>
-                <span class="stock-name">Dixon Technologies Ltd ‘«Û BSE: 540699</span>
-                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶7.5Cr</div>
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶19,251.52</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 92/100">92/100</span>
-                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 8.2/10">≠É≈¶ 8.2</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.35x 10D Average">‘‹Ì 3.35x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+81.3%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+101.4%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+82.5%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +46.8%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.4%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 34.2%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶17,903.91</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="DIXON">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="DIXON">Details</button>
-              </div>
-            </td>
-          </tr>
-        
-          <tr data-symbol="BEL" class="">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">BEL</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Defence">DMR 7</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
-                </div>
-                <span class="stock-name">Bharat Electronics Ltd ‘«Û BSE: 500049</span>
-                
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶456.77</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 94/100">94/100</span>
-                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 9/10">≠É≈¶ 9</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.37x 10D Average">‘‹Ì 3.37x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+82.1%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+28.5%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.4%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +29.6%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 26.5%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 35.8%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶424.8</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="BEL">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="BEL">Details</button>
-              </div>
-            </td>
-          </tr>
-        
-          <tr data-symbol="SOLARINDS" class="">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">SOLARINDS</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Defence">DMR 8</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 50</span>
-                </div>
-                <span class="stock-name">Solar Industries India ‘«Û BSE: 532725</span>
-                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶15.5Cr</div>
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶16,430.71</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 89/100">89/100</span>
-                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 9.1/10">≠É≈¶ 9.1</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.94x 10D Average">‘‹Ì 3.94x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+113.5%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-nr" title="Narrowest Range in 7 Sessions">NR7</span>
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+31.4%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+41.2%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.1%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 74.8%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 27.2%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 32.8%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶15,280.56</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="SOLARINDS">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="SOLARINDS">Details</button>
-              </div>
-            </td>
-          </tr>
-        
-          <tr data-symbol="KAYNES" class="">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">KAYNES</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in EMS">DMR 7</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
-                </div>
-                <span class="stock-name">Kaynes Technology Ltd ‘«Û BSE: 543664</span>
-                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶6.7Cr</div>
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶7,500.10</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 86/100">86/100</span>
-                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 8/10">≠É≈¶ 8</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--accent-amber); font-weight:600;">+57.5%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+72.1%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+79.4%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +62.4%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.7%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 19.8%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 22.4%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶6,975.09</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="KAYNES">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="KAYNES">Details</button>
-              </div>
-            </td>
-          </tr>
-        
-          <tr data-symbol="CDSL" class="">
-            <td>
-              <div class="stock-cell">
-                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">CDSL</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Financial">DMR 8</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
-                </div>
-                <span class="stock-name">Central Depository Services ‘«Û BSE: 540515</span>
-                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶13.1Cr</div>
-              </div>
-            </td>
-            <td>
-              <div class="price-num">‘È¶2,195.87</div>
-              <div style="font-size:11px; color:var(--accent-green);">0%</div>
-            </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">3/6 ≠ÉÉÛ</span></td>
-            <td>
-              <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 95/100">95/100</span>
-                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
-              </div>
-            </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 9.8/10">≠É≈¶ 9.8</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--accent-amber); font-weight:600;">+48.7%</span>
-              </div>
-            </td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+52.1%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+61.3%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +38.2%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 83.3%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 31.8%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 42.5%</div>
-            </td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶2,042.16</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
-            </td>
-            <td>
-              <span class="match-score-badge match-med">
-                7/10
-              </span>
-            </td>
-            <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="CDSL">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="CDSL">Details</button>
-              </div>
-            </td>
-          </tr>
-        
           <tr data-symbol="PREMIERENE" class="">
             <td>
               <div class="stock-cell">
@@ -1075,10 +693,10 @@
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶1,542.96</div>
+              <div class="price-num">‘È¶1,767.49</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
                 <span class="tag-quality" title="Institutional Quality Score: 85/100">85/100</span>
@@ -1088,8 +706,8 @@
             <td><span class="tag-moat" title="Competitive Moat Score: 7.8/10">≠É≈¶ 7.8</span></td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3x 10D Average">‘‹Ì 3x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+62.2%</span>
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+47%</span>
               </div>
             </td>
             <td>
@@ -1109,7 +727,71 @@
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 39.8%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶1,434.95</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶1,643.77</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-high">
+                8/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="PREMIERENE" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="PREMIERENE" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="PREMIERENE">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="TRENT" class="selected-stock-row">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">TRENT</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Retail">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
+                </div>
+                <span class="stock-name">Trent Ltd (Westside &amp; Zudio) ‘«Û BSE: 500251</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶14.7Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶10,432.77</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 96/100">96/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.5/10">≠É≈¶ 9.5</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.18x 10D Average">‘‹Ì 3.18x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+72.4%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+53.2%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+67.8%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +54.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 28.6%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 31.4%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶9,702.48</div>
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
             </td>
             <td>
@@ -1118,72 +800,138 @@
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="PREMIERENE">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="PREMIERENE">Details</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="TRENT" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="TRENT" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="TRENT">Details</button>
               </div>
             </td>
           </tr>
         
-          <tr data-symbol="HAL" class="">
+          <tr data-symbol="DIXON" class="">
             <td>
               <div class="stock-cell">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">HAL</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 6 in Defence">DMR 6</span>
+                  <span class="stock-symbol">DIXON</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in EMS">DMR 8</span>
                   <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
                 </div>
-                <span class="stock-name">Hindustan Aeronautics Ltd ‘«Û BSE: 541154</span>
-                
+                <span class="stock-name">Dixon Technologies Ltd ‘«Û BSE: 540699</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶7.5Cr</div>
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶12,780.18</div>
+              <div class="price-num">‘È¶21,104.00</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">3/6 ≠ÉÉÛ</span></td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 93/100">93/100</span>
-                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+                <span class="tag-quality" title="Institutional Quality Score: 92/100">92/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
               </div>
             </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 9.7/10">≠É≈¶ 9.7</span></td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.2/10">≠É≈¶ 8.2</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.76x 10D Average">‘‹Ì 3.76x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+102.6%</span>
+              </div>
+            </td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                 
-                <span style="color:var(--accent-amber); font-weight:600;">+58.3%</span>
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
               </div>
             </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+101.4%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+82.5%</span></td>
             <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span class="tag tag-7w">7W Base (7.8%)</span>
-              </div>
-            </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+18.2%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+29.5%</span></td>
-            <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +33.4%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +46.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.1%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 38.5%</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 34.2%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶12,373.48</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">3.18% (Base Low)</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶19,626.72</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
             </td>
             <td>
               <span class="match-score-badge match-med">
-                6/10
+                7/10
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="HAL">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="HAL">Details</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="DIXON" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="DIXON" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="DIXON">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="BEL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">BEL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Defence">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
+                </div>
+                <span class="stock-name">Bharat Electronics Ltd ‘«Û BSE: 500049</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶417.18</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 94/100">94/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9/10">≠É≈¶ 9</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+41.2%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 7 Sessions">NR7</span>
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+28.5%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.4%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +29.6%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 26.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 35.8%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶387.98</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="BEL" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="BEL" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="BEL">Details</button>
               </div>
             </td>
           </tr>
@@ -1201,10 +949,10 @@
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶9,972.44</div>
+              <div class="price-num">‘È¶10,858.17</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
                 <span class="tag-quality" title="Institutional Quality Score: 90/100">90/100</span>
@@ -1214,13 +962,13 @@
             <td><span class="tag-moat" title="Competitive Moat Score: 8.8/10">≠É≈¶ 8.8</span></td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.2x 10D Average">‘‹Ì 3.2x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+72.8%</span>
+                <span class="tag-vol-shocker" title="Volume Shocker: 4.18x 10D Average">‘‹Ì 4.18x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+126.4%</span>
               </div>
             </td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-nr" title="Narrowest Range in 4 Sessions">NR4</span>
+                
                 <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
               </div>
             </td>
@@ -1235,18 +983,147 @@
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 31.2%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶9,274.37</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶10,098.1</div>
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
             </td>
             <td>
               <span class="match-score-badge match-med">
-                6/10
+                7/10
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="POLYCAB">View</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="POLYCAB" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="POLYCAB" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
                 <button class="btn btn-primary btn-sm btn-analyze" data-symbol="POLYCAB">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="KAYNES" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">KAYNES</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in EMS">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Kaynes Technology Ltd ‘«Û BSE: 543664</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶6.7Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶7,909.62</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 86/100">86/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8/10">≠É≈¶ 8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 4x 10D Average">‘‹Ì 4x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+116.3%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+72.1%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+79.4%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +62.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.7%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 19.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 22.4%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶7,355.95</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="KAYNES" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="KAYNES" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="KAYNES">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="CDSL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">CDSL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Financial">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Central Depository Services ‘«Û BSE: 540515</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶13.1Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶2,324.87</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 95/100">95/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.8/10">≠É≈¶ 9.8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.05x 10D Average">‘‹Ì 3.05x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+64.8%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+52.1%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+61.3%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +38.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 83.3%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 31.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 42.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶2,162.13</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="CDSL" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="CDSL" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="CDSL">Details</button>
               </div>
             </td>
           </tr>
@@ -1264,10 +1141,10 @@
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶3,570.29</div>
+              <div class="price-num">‘È¶3,683.86</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
                 <span class="tag-quality" title="Institutional Quality Score: 88/100">88/100</span>
@@ -1278,13 +1155,13 @@
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                 
-                <span style="color:var(--accent-amber); font-weight:600;">+32.9%</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+61.1%</span>
               </div>
             </td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                 
-                <span class="tag tag-cwh">Cup &amp; Handle (99)</span>
+                <span class="tag tag-7w">7W Base (6.3%)</span>
               </div>
             </td>
             <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+62.4%</span></td>
@@ -1298,71 +1175,72 @@
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 24.6%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶3,364.77</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">5.76% (Cup Low)</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶3,430.51</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">6.88% (Base Low)</div>
             </td>
             <td>
               <span class="match-score-badge match-med">
-                6/10
+                7/10
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="BDL">View</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="BDL" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="BDL" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
                 <button class="btn btn-primary btn-sm btn-analyze" data-symbol="BDL">Details</button>
               </div>
             </td>
           </tr>
         
-          <tr data-symbol="ANGELONE" class="">
+          <tr data-symbol="SOLARINDS" class="">
             <td>
               <div class="stock-cell">
                 <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-                  <span class="stock-symbol">ANGELONE</span>
-                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Financial">DMR 7</span>
-                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                  <span class="stock-symbol">SOLARINDS</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Defence">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 50</span>
                 </div>
-                <span class="stock-name">Angel One Ltd ‘«Û BSE: 543235</span>
-                
+                <span class="stock-name">Solar Industries India ‘«Û BSE: 532725</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶15.5Cr</div>
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶8,151.12</div>
+              <div class="price-num">‘È¶14,381.92</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
             <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
-                <span class="tag-quality" title="Institutional Quality Score: 88/100">88/100</span>
-                <span class="tag-redflag-moderate" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Moderate</span>
+                <span class="tag-quality" title="Institutional Quality Score: 89/100">89/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
               </div>
             </td>
-            <td><span class="tag-moat" title="Competitive Moat Score: 8.4/10">≠É≈¶ 8.4</span></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                <span class="tag-vol-shocker" title="Volume Shocker: 3.02x 10D Average">‘‹Ì 3.02x</span>
-                <span style="color:var(--accent-amber); font-weight:600;">+62.5%</span>
-              </div>
-            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.1/10">≠É≈¶ 9.1</span></td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                 
-                <span class="tag tag-7w">7W Base (4.8%)</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+40.6%</span>
               </div>
             </td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+45.8%</span></td>
-            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.7%</span></td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.5%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 4 Sessions">NR4</span>
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+31.4%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+41.2%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.1%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 74.8%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 38.4%</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 46.2%</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 27.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 32.8%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶7,756.13</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">4.85% (Base Low)</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶13,375.19</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
             </td>
             <td>
               <span class="match-score-badge match-med">
@@ -1370,9 +1248,74 @@
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="ANGELONE">View</button>
-                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="ANGELONE">Details</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="SOLARINDS" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="SOLARINDS" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="SOLARINDS">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="HAL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">HAL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Defence">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
+                </div>
+                <span class="stock-name">Hindustan Aeronautics Ltd ‘«Û BSE: 541154</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶13,684.57</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">2/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 93/100">93/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.7/10">≠É≈¶ 9.7</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+4.3%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 7 Sessions">NR7</span>
+                <span class="tag tag-7w">7W Base (4.3%)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+18.2%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+29.5%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +33.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.1%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 38.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶13,172.81</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">3.74% (Base Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                5/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="HAL" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="HAL" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="HAL">Details</button>
               </div>
             </td>
           </tr>
@@ -1390,10 +1333,10 @@
               </div>
             </td>
             <td>
-              <div class="price-num">‘È¶17,791.88</div>
+              <div class="price-num">‘È¶16,786.05</div>
               <div style="font-size:11px; color:var(--accent-green);">0%</div>
             </td>
-            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">4/6 ≠ÉÉÛ</span></td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
             <td>
               <div style="display:flex; flex-direction:column; gap:2px;">
                 <span class="tag-quality" title="Institutional Quality Score: 89/100">89/100</span>
@@ -1404,13 +1347,13 @@
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
                 
-                <span style="color:var(--accent-amber); font-weight:600;">+15.7%</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+14.2%</span>
               </div>
             </td>
             <td>
               <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
-                
-                <span class="tag tag-7w">7W Base (5.4%)</span>
+                <span class="tag-nr" title="Narrowest Range in 4 Sessions">NR4</span>
+                <span class="tag tag-7w">7W Base (3.9%)</span>
               </div>
             </td>
             <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+19.8%</span></td>
@@ -1424,8 +1367,8 @@
               <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 32.1%</div>
             </td>
             <td>
-              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶16,786.13</div>
-              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">5.65% (Base Low)</div>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶16,192</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">3.54% (Base Low)</div>
             </td>
             <td>
               <span class="match-score-badge match-med">
@@ -1433,9 +1376,74 @@
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="PERSISTENT">View</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="PERSISTENT" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="PERSISTENT" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
                 <button class="btn btn-primary btn-sm btn-analyze" data-symbol="PERSISTENT">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="ANGELONE" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">ANGELONE</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Financial">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Angel One Ltd ‘«Û BSE: 543235</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶7,882.76</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">4/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 88/100">88/100</span>
+                <span class="tag-redflag-moderate" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Moderate</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.4/10">≠É≈¶ 8.4</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+36%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 7 Sessions">NR7</span>
+                <span class="tag tag-7w">7W Base (4.8%)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+45.8%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.7%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 38.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 46.2%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶7,613.42</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">3.42% (Base Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                5/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="ANGELONE" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="ANGELONE" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">‘Â˘ Pop-Out</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="ANGELONE">Details</button>
               </div>
             </td>
           </tr>
@@ -1621,11 +1629,14 @@
           </div>
         </div>
 
-        <div style="display:flex; align-items:center; gap:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
           <div style="text-align:right;">
             <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">‘È¶7,120.50</div>
             <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
           </div>
+          <button class="btn btn-sm" id="btnModalPopoutChart" style="color:var(--accent-green); border-color:rgba(16,185,129,0.4); padding:3px 8px; font-size:11px;" title="Open in Standalone Live Terminal Window">
+            ‘Â˘ Pop-Out Terminal
+          </button>
           <button class="modal-close-btn" id="btnCloseModal" aria-label="Close stock detail modal">+˘</button>
         </div>
       </div>
@@ -1646,7 +1657,7 @@
         
         <!-- Tab 1: Modal Candlestick Chart -->
         <div class="tab-content" id="tab_chart">
-          <div class="chart-container-box" id="modalCanvasContainer" style="height: 480px;"><canvas width="668" height="480" style="width: 668px; height: 480px;"></canvas></div>
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 480px;"><canvas width="641" height="461" style="width: 641px; height: 461px;"></canvas></div>
         </div>
 
         <!-- Tab 2: Risk Management & Position Sizing Calculator -->
@@ -2015,8 +2026,8 @@
   </div>
 
   <!-- Multi-Exchange Market Hours & Global Sessions Modal -->
-  <div class="modal" id="marketSessionsModal" role="dialog" aria-modal="true" aria-labelledby="modalSessionsTitle">
-    <div class="modal-content" style="max-width: 620px;">
+  <div class="modal-overlay" id="marketSessionsModal" role="dialog" aria-modal="true" aria-labelledby="modalSessionsTitle">
+    <div class="modal-card" style="max-width: 620px;">
       <div class="modal-header">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:18px;">≠ÉÓ…</span>
@@ -2029,7 +2040,70 @@
           Real-time operational status across Indian domestic, commodity, and global international exchanges.
         </p>
         <div style="display:flex; flex-direction:column; gap:10px;" id="globalSessionsList">
-          <!-- Dynamically populated by JS Application.openSessionsModal() -->
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">≠É≈¯¥©≈ NSE / BSE India Cash Equity</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">09:15 ‘«Ù 15:30 IST (Mon‘«ÙFri)</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">Nifty 50, Bank Nifty, Sensex, All BSE/NSE Equities</div>
+            </div>
+            <div>
+              <span class="session-status-badge session-status-closed">
+                ≠Éˆ¶ CLOSED (EOD Finalized)
+              </span>
+            </div>
+          </div>
+        
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">≠Éˆ— MCX India Commodity Derivatives</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">09:00 ‘«Ù 23:30 / 23:55 IST (Mon‘«ÙFri)</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">Crude Oil, Gold, Silver, Natural Gas, Base Metals</div>
+            </div>
+            <div>
+              <span class="session-status-badge session-status-closed">
+                ≠Éˆ¶ CLOSED
+              </span>
+            </div>
+          </div>
+        
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">≠É˘¢ US Equities (NYSE / NASDAQ)</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">19:00 ‘«Ù 01:30 IST (09:30 ‘«Ù 16:00 EST)</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">Apple, Nvidia, Microsoft, Tesla, S&amp;P 500, Nasdaq 100</div>
+            </div>
+            <div>
+              <span class="session-status-badge session-status-open">
+                ≠ÉÉÛ LIVE OPEN
+              </span>
+            </div>
+          </div>
+        
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">≠ÉÓ≈ GIFT Nifty (NSE International IFSC)</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">06:30 ‘«Ù 15:40 &amp; 16:35 ‘«Ù 02:45 IST</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">GIFT Nifty 50 Futures &amp; Indian Global Derivatives</div>
+            </div>
+            <div>
+              <span class="session-status-badge session-status-open">
+                ≠ÉÉÛ LIVE OPEN
+              </span>
+            </div>
+          </div>
+        
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">‘‹Ì Global Crypto &amp; 24x7 Forex</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">24 Hours / 7 Days Continuous</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">Bitcoin, Ethereum, Cross-Currency FX Pairs</div>
+            </div>
+            <div>
+              <span class="session-status-badge session-status-open">
+                ≠ÉÉÛ LIVE OPEN (24x7)
+              </span>
+            </div>
+          </div>
         </div>
         <div style="margin-top:16px; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:var(--radius-sm); font-size:11.5px; color:var(--accent-blue); line-height:1.5;">
           ≠É∆Ì <strong>Multi-Market Live Feed Active:</strong> Outside NSE/BSE cash hours (09:15‘«Ù15:30 IST), Indian Commodity derivatives on MCX (open until 23:30 IST), US Markets (19:00‘«Ù01:30 IST), and GIFT Nifty remain open. The screener provides continuous live multi-asset streaming.

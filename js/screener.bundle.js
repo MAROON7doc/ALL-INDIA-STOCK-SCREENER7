@@ -3872,6 +3872,7 @@
       try { this.renderStockPills(); } catch (e) {}
       try { this.renderNewsFeed(); } catch (e) {}
       try { this.startNewsCycle(); } catch (e) {}
+      try { this.renderSessionsList(); } catch (e) {}
       try { this.applyPreset('all'); } catch (e) {}
       try { this.runScan(); } catch (e) { console.error('runScan error:', e); }
 
@@ -5519,9 +5520,7 @@
       if (body) body.scrollTop = 0;
     }
 
-    openSessionsModal() {
-      const modal = document.getElementById('marketSessionsModal');
-      if (!modal) return;
+    renderSessionsList() {
       const list = document.getElementById('globalSessionsList');
       const mStatus = this.getMarketStatus();
       if (list && mStatus.sessions) {
@@ -5540,6 +5539,12 @@
           </div>
         `).join('');
       }
+    }
+
+    openSessionsModal() {
+      const modal = document.getElementById('marketSessionsModal');
+      if (!modal) return;
+      this.renderSessionsList();
       modal.classList.add('active');
     }
 

@@ -1471,28 +1471,29 @@ input:checked + .slider:before {
   border-color: #38bdf8;
 }
 
-/* Modal */
-.modal-overlay {
+/* Modal Overlays & Centered Dialog Boxes */
+.modal-overlay, .modal {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(3, 7, 18, 0.82);
-  backdrop-filter: blur(8px);
-  z-index: 1000;
+  background: rgba(2, 6, 17, 0.86);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.2s ease;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.modal-overlay.active {
+.modal-overlay.active, .modal.active {
   opacity: 1;
   pointer-events: auto;
 }
 
-.modal-container, .modal-card {
+.modal-container, .modal-card, .modal-content {
   background: var(--bg-surface);
   border: 1px solid var(--border-active);
   border-radius: var(--radius-lg);
@@ -1502,7 +1503,18 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.85);
+  transform: scale(0.96);
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal-overlay.active .modal-container,
+.modal-overlay.active .modal-card,
+.modal-overlay.active .modal-content,
+.modal.active .modal-container,
+.modal.active .modal-card,
+.modal.active .modal-content {
+  transform: scale(1);
 }
 
 .modal-footer {

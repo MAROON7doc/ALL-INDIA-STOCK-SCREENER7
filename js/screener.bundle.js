@@ -2203,18 +2203,19 @@
     resize() {
       if (!this.container || !this.canvas) return;
       const rect = this.container.getBoundingClientRect();
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, 3);
 
-      this.width = Math.max(320, rect.width || this.container.clientWidth || 800);
-      this.height = Math.max(240, rect.height || this.container.clientHeight || 660);
+      this.width = Math.max(320, Math.round(rect.width || this.container.clientWidth || 800));
+      this.height = Math.max(240, Math.round(rect.height || this.container.clientHeight || 660));
 
-      this.canvas.width = Math.floor(this.width * dpr);
-      this.canvas.height = Math.floor(this.height * dpr);
+      this.canvas.width = Math.round(this.width * dpr);
+      this.canvas.height = Math.round(this.height * dpr);
       this.canvas.style.width = `${this.width}px`;
       this.canvas.style.height = `${this.height}px`;
 
       this.ctx.setTransform(1, 0, 0, 1, 0, 0);
       this.ctx.scale(dpr, dpr);
+      this.render();
     }
 
     updateIndicatorCache() {
@@ -2630,15 +2631,20 @@
       ctx.fillStyle = '#070c17';
       ctx.fillRect(0, 0, w, h);
 
-      const paddingRight = 75, paddingBottom = 22, paddingLeft = 10, paddingTop = 26;
+      const isWide = w >= 1100;
+      const isTall = h >= 650;
+      const paddingRight = isWide ? 92 : 82;
+      const paddingLeft = isWide ? 22 : 15;
+      const paddingTop = isTall ? 36 : 28;
+      const paddingBottom = 26;
       const plotWidth = w - paddingLeft - paddingRight;
       
       const hasRsiPanel = this.layers.p2_rsi;
-      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.62 : (h - paddingTop - paddingBottom) * 0.80;
+      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.60 : (h - paddingTop - paddingBottom) * 0.78;
       const volumeHeight = (h - paddingTop - paddingBottom) * 0.14;
       const rsiHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.18 : 0;
       
-      const volumeTop = paddingTop + pricePlotHeight + 6;
+      const volumeTop = paddingTop + pricePlotHeight + 8;
       const rsiTop = volumeTop + volumeHeight + 8;
       const timeGutterTop = h - paddingBottom;
 
@@ -2656,7 +2662,7 @@
       }
 
       const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
-      const margin = baseSpan * 0.08;
+      const margin = baseSpan * 0.20; // 20% vertical breathing room headroom & floor (TradingView standard)
       const fullBaseMin = Math.max(0, baseMinPrice - margin);
       const fullBaseMax = baseMaxPrice + margin;
       const centerPrice = (fullBaseMax + fullBaseMin) / 2;
@@ -2668,7 +2674,11 @@
       const maxPrice = adjustedCenter + effectiveSpan / 2;
       const priceRange = maxPrice - minPrice || 1;
 
-      const getX = (idx) => paddingLeft + (idx + 0.5) * (plotWidth / visibleCandles.length);
+      // TradingView Right Bar Margin / Future Space Buffer
+      const rightMarginSpace = Math.min(75, Math.max(28, plotWidth * 0.05));
+      const candlePlotWidth = plotWidth - rightMarginSpace;
+
+      const getX = (idx) => paddingLeft + (idx + 0.5) * (candlePlotWidth / visibleCandles.length);
       const getY = (price) => paddingTop + pricePlotHeight - ((price - minPrice) / priceRange) * pricePlotHeight;
       const getPriceFromY = (y) => minPrice + ((paddingTop + pricePlotHeight - y) / pricePlotHeight) * priceRange;
       const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);

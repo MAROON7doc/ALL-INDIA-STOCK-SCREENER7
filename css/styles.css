@@ -637,18 +637,20 @@ select option {
   max-height: 100vh !important;
   z-index: 999999 !important;
   border-radius: 0 !important;
-  padding: 16px 20px !important;
+  padding: 10px 16px !important;
   background: #050811 !important;
   margin: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   box-shadow: none !important;
+  overflow: hidden !important;
 }
 
 .main-chart-card.fullscreen-mode .chart-container-box {
   flex: 1 1 auto !important;
-  height: calc(100vh - 170px) !important;
+  height: calc(100vh - 145px) !important;
   min-height: 480px !important;
+  width: 100% !important;
 }
 
 .tv-top-toolbar {

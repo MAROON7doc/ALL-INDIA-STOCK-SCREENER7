@@ -289,7 +289,7 @@ select option {
   white-space: nowrap;
 }
 
-/* Indian Stock Market Session Status Badge (NSE/BSE 09:15-15:30 IST) */
+/* Indian & Global Multi-Market Session Status Badge */
 .market-pill {
   display: inline-flex;
   align-items: center;
@@ -301,6 +301,50 @@ select option {
   font-family: var(--font-mono);
   white-space: nowrap;
   letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.market-pill:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+}
+
+.session-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  transition: border-color 0.15s ease;
+}
+
+.session-card:hover {
+  border-color: var(--border-active);
+}
+
+.session-status-badge {
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  font-size: 10px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  white-space: nowrap;
+}
+
+.session-status-open {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  color: var(--accent-green);
+}
+
+.session-status-closed {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  color: #f87171;
 }
 
 .market-pill.market-open {

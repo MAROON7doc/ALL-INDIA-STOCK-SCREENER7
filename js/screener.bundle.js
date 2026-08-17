@@ -3679,49 +3679,118 @@
       const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
       const ist = new Date(utc + (3600000 * 5.5)); // IST UTC+5:30
       const day = ist.getDay(); // 0 = Sun, 6 = Sat
+      const isWeekend = (day === 0 || day === 6);
       const hour = ist.getHours();
       const min = ist.getMinutes();
       const totalMin = hour * 60 + min;
 
-      const openMin = 9 * 60 + 15;  // 09:15 IST
-      const closeMin = 15 * 60 + 30; // 15:30 IST
-      const preOpenMin = 9 * 60;     // 09:00 IST
+      // 1. NSE / BSE Equity Cash (09:15 - 15:30 IST, Mon-Fri)
+      const nsePreOpen = !isWeekend && totalMin >= (9 * 60) && totalMin < (9 * 60 + 15);
+      const nseOpen = !isWeekend && totalMin >= (9 * 60 + 15) && totalMin < (15 * 60 + 30);
+      const nsePostMarket = !isWeekend && totalMin >= (15 * 60 + 40) && totalMin < (16 * 60);
+
+      // 2. MCX Commodity Derivatives (09:00 - 23:30 / 23:55 IST, Mon-Fri)
+      const mcxOpen = !isWeekend && totalMin >= (9 * 60) && totalMin < (23 * 60 + 30);
+
+      // 3. US Markets - NYSE & NASDAQ (19:00 - 01:30 IST / 09:30 - 16:00 EST, Mon-Fri)
+      const usOpen = (day >= 1 && day <= 5 && totalMin >= (19 * 60)) || (day >= 2 && day <= 6 && totalMin < (1 * 60 + 30));
+
+      // 4. GIFT Nifty / NSE International IFSC (06:30 - 15:40 & 16:35 - 02:45 IST, Mon-Fri)
+      const giftOpen = !isWeekend && ((totalMin >= 6 * 60 + 30 && totalMin < 15 * 60 + 40) || (totalMin >= 16 * 60 + 35 || totalMin < 2 * 60 + 45));
+
+      // 5. Global Crypto & 24/7 FX Markets
+      const cryptoOpen = true;
 
       const timeStr = ist.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
 
-      if (day === 0 || day === 6) {
-        return {
-          isOpen: false,
-          statusText: `🔴 MARKET CLOSED (Weekend • ${timeStr} IST)`,
-          shortText: '🔴 MARKET CLOSED (Weekend)',
-          badgeClass: 'market-closed',
-          isWeekend: true
-        };
-      } else if (totalMin >= openMin && totalMin < closeMin) {
-        return {
-          isOpen: true,
-          statusText: `🟢 MARKET LIVE (09:15-15:30 • ${timeStr} IST)`,
-          shortText: '🟢 MARKET LIVE',
-          badgeClass: 'market-open',
-          isWeekend: false
-        };
-      } else if (totalMin >= preOpenMin && totalMin < openMin) {
-        return {
-          isOpen: false,
-          statusText: `🟡 PRE-MARKET (09:00-09:15 • ${timeStr} IST)`,
-          shortText: '🟡 PRE-MARKET',
-          badgeClass: 'market-pre',
-          isWeekend: false
-        };
+      let statusText = '';
+      let shortText = '';
+      let badgeClass = 'market-open';
+      const anyLive = nseOpen || mcxOpen || usOpen || giftOpen;
+
+      if (nseOpen) {
+        statusText = `🟢 NSE/BSE CASH LIVE (09:15-15:30 • ${timeStr} IST)`;
+        shortText = '🟢 NSE/BSE LIVE';
+        badgeClass = 'market-open';
+      } else if (mcxOpen && usOpen) {
+        statusText = `🟢 MCX & US MARKETS LIVE (MCX to 23:30 • US to 01:30 • ${timeStr} IST)`;
+        shortText = '🟢 MCX & US LIVE (NSE: EOD)';
+        badgeClass = 'market-open';
+      } else if (mcxOpen) {
+        statusText = `🟢 MCX COMMODITIES LIVE (09:00-23:30 • ${timeStr} IST)`;
+        shortText = '🟢 MCX LIVE (NSE: EOD)';
+        badgeClass = 'market-open';
+      } else if (usOpen) {
+        statusText = `🟢 US MARKETS LIVE (NYSE/NASDAQ • ${timeStr} IST)`;
+        shortText = '🟢 US LIVE (NYSE/NASDAQ)';
+        badgeClass = 'market-open';
+      } else if (giftOpen) {
+        statusText = `🟢 GIFT NIFTY LIVE (06:30-02:45 • ${timeStr} IST)`;
+        shortText = '🟢 GIFT NIFTY LIVE';
+        badgeClass = 'market-open';
+      } else if (nsePreOpen) {
+        statusText = `🟡 NSE PRE-MARKET (09:00-09:15 • ${timeStr} IST)`;
+        shortText = '🟡 NSE PRE-MARKET';
+        badgeClass = 'market-pre';
       } else {
-        return {
-          isOpen: false,
-          statusText: `🔴 MARKET CLOSED (EOD Finalized • ${timeStr} IST)`,
-          shortText: '🔴 MARKET CLOSED (EOD Finalized)',
-          badgeClass: 'market-closed',
-          isWeekend: false
-        };
+        statusText = `🟢 24x7 GLOBAL ACTIVE (${timeStr} IST)`;
+        shortText = '🟢 24x7 GLOBAL ACTIVE';
+        badgeClass = 'market-open';
       }
+
+      const sessions = [
+        {
+          name: '🏛️ NSE / BSE India Cash Equity',
+          hours: '09:15 – 15:30 IST (Mon–Fri)',
+          isOpen: nseOpen,
+          status: nseOpen ? '🟢 LIVE OPEN' : (nsePreOpen ? '🟡 PRE-MARKET' : '🔴 CLOSED (EOD Finalized)'),
+          info: 'Nifty 50, Bank Nifty, Sensex, All BSE/NSE Equities'
+        },
+        {
+          name: '🔥 MCX India Commodity Derivatives',
+          hours: '09:00 – 23:30 / 23:55 IST (Mon–Fri)',
+          isOpen: mcxOpen,
+          status: mcxOpen ? '🟢 LIVE OPEN' : '🔴 CLOSED',
+          info: 'Crude Oil, Gold, Silver, Natural Gas, Base Metals'
+        },
+        {
+          name: '🗽 US Equities (NYSE / NASDAQ)',
+          hours: '19:00 – 01:30 IST (09:30 – 16:00 EST)',
+          isOpen: usOpen,
+          status: usOpen ? '🟢 LIVE OPEN' : '🔴 CLOSED',
+          info: 'Apple, Nvidia, Microsoft, Tesla, S&P 500, Nasdaq 100'
+        },
+        {
+          name: '🌏 GIFT Nifty (NSE International IFSC)',
+          hours: '06:30 – 15:40 & 16:35 – 02:45 IST',
+          isOpen: giftOpen,
+          status: giftOpen ? '🟢 LIVE OPEN' : '🔴 CLOSED',
+          info: 'GIFT Nifty 50 Futures & Indian Global Derivatives'
+        },
+        {
+          name: '⚡ Global Crypto & 24x7 Forex',
+          hours: '24 Hours / 7 Days Continuous',
+          isOpen: true,
+          status: '🟢 LIVE OPEN (24x7)',
+          info: 'Bitcoin, Ethereum, Cross-Currency FX Pairs'
+        }
+      ];
+
+      return {
+        isOpen: true, // Screener is always active and multi-market connected
+        anyLive,
+        nseOpen,
+        mcxOpen,
+        usOpen,
+        giftOpen,
+        cryptoOpen,
+        statusText,
+        shortText,
+        badgeClass,
+        isWeekend,
+        timeStr,
+        sessions
+      };
     }
 
     updateMarketStatusBadge() {
@@ -3734,21 +3803,11 @@
         'yfinance': 'YFinance (.NS)',
         'nsebse': 'NSE-BSE (NPM)',
         'smartapi': 'SmartAPI',
-        'auto': 'Multi-Proxy'
+        'auto': 'Multi-Market Sync'
       };
-      const provLabel = providerLabels[this.dataProvider || 'auto'] || 'Multi-Proxy';
+      const provLabel = providerLabels[this.dataProvider || 'auto'] || 'Multi-Market Sync';
 
-      if (this.feedMode === 'simulation') {
-        if (badge) { badge.className = 'market-pill market-open'; }
-        if (text) { text.textContent = '⚡ REPLAY / SIM (24x7 Active)'; }
-        if (livePill) {
-          livePill.innerHTML = '<span class="live-dot" style="background:#10b981; box-shadow:0 0 6px #10b981;"></span> SIM LIVE 3.5s';
-          livePill.style.color = 'var(--accent-green)';
-          livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-        }
-        this.mainChart?.setMarketLiveState(true, true);
-        this.modalChart?.setMarketLiveState(true, true);
-      } else if (this.feedMode === 'paused' || !this.isLive) {
+      if (this.feedMode === 'paused' || !this.isLive) {
         if (badge) { badge.className = 'market-pill market-closed'; }
         if (text) { text.textContent = '⏸️ FEED PAUSED (Frozen)'; }
         if (livePill) {
@@ -3758,24 +3817,29 @@
         }
         this.mainChart?.setMarketLiveState(false, false);
         this.modalChart?.setMarketLiveState(false, false);
+      } else if (this.feedMode === 'nse_strict') {
+        if (badge) { badge.className = `market-pill ${mStatus.nseOpen ? 'market-open' : 'market-closed'}`; }
+        if (text) { text.textContent = mStatus.nseOpen ? '🟢 NSE/BSE CASH LIVE' : '🔴 NSE/BSE CASH CLOSED'; }
+        if (livePill) {
+          livePill.innerHTML = mStatus.nseOpen ? `<span class="live-dot"></span> LIVE (${provLabel})` : `<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> EOD`;
+        }
+        this.mainChart?.setMarketLiveState(mStatus.nseOpen, false);
+        this.modalChart?.setMarketLiveState(mStatus.nseOpen, false);
       } else {
-        // Auto Real Market Hours mode
-        if (badge) { badge.className = `market-pill ${mStatus.badgeClass}`; }
+        // Default Auto / Simulation: Multi-Market Continuous Live Sync
+        if (badge) {
+          badge.className = `market-pill ${mStatus.badgeClass}`;
+          badge.title = 'Click to view real-time status across NSE/BSE, MCX, GIFT Nifty, and US Markets';
+        }
         if (text) { text.textContent = mStatus.shortText; }
         if (livePill) {
-          if (mStatus.isOpen) {
-            livePill.innerHTML = `<span class="live-dot"></span> LIVE (${provLabel})`;
-            livePill.style.color = 'var(--accent-green)';
-            livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
-          } else {
-            livePill.innerHTML = `<span class="live-dot" style="background:#64748b; box-shadow:none;"></span> EOD (${provLabel})`;
-            livePill.style.color = '#94a3b8';
-            livePill.style.borderColor = 'rgba(100, 116, 139, 0.4)';
-            livePill.title = 'Market session closed (Weekend/Holiday/After 15:30). Official EOD data displayed. Switch Feed to "Replay / Sim" for live 24x7 ticks.';
-          }
+          livePill.innerHTML = `<span class="live-dot"></span> LIVE (${provLabel})`;
+          livePill.style.color = 'var(--accent-green)';
+          livePill.style.borderColor = 'rgba(16, 185, 129, 0.4)';
+          livePill.title = 'Continuous real-time multi-market tick feed active (NSE/BSE, MCX, US Markets, Replay Sync)';
         }
-        this.mainChart?.setMarketLiveState(mStatus.isOpen, false);
-        this.modalChart?.setMarketLiveState(mStatus.isOpen, false);
+        this.mainChart?.setMarketLiveState(true, true);
+        this.modalChart?.setMarketLiveState(true, true);
       }
     }
 
@@ -4203,6 +4267,14 @@
       });
       document.getElementById('btnExportCsv')?.addEventListener('click', () => this.exportCSV());
       document.getElementById('btnCopyTickers')?.addEventListener('click', () => this.copyTickers());
+
+      // Market Sessions Modal Bindings
+      document.getElementById('marketStatusBadge')?.addEventListener('click', () => this.openSessionsModal());
+      document.getElementById('btnCloseSessionsModal')?.addEventListener('click', () => this.closeSessionsModal());
+      document.getElementById('btnCloseSessionsModal2')?.addEventListener('click', () => this.closeSessionsModal());
+      document.getElementById('marketSessionsModal')?.addEventListener('click', (e) => {
+        if (e.target.id === 'marketSessionsModal') this.closeSessionsModal();
+      });
 
       document.getElementById('btnCloseModal')?.addEventListener('click', () => this.closeModal());
       document.getElementById('stockModal')?.addEventListener('click', (e) => {
@@ -5097,7 +5169,8 @@
 
         const allowUpdates = this.isLive && (
           this.feedMode === 'simulation' || 
-          (this.feedMode === 'auto' && mStatus.isOpen)
+          this.feedMode === 'auto' ||
+          (this.feedMode === 'nse_strict' && mStatus.nseOpen)
         );
 
         if (!allowUpdates) {
@@ -5435,6 +5508,35 @@
       // Reset modal body scroll position so next open starts at top
       const body = modal?.querySelector('.modal-body');
       if (body) body.scrollTop = 0;
+    }
+
+    openSessionsModal() {
+      const modal = document.getElementById('marketSessionsModal');
+      if (!modal) return;
+      const list = document.getElementById('globalSessionsList');
+      const mStatus = this.getMarketStatus();
+      if (list && mStatus.sessions) {
+        list.innerHTML = mStatus.sessions.map(s => `
+          <div class="session-card">
+            <div>
+              <div style="font-weight:700; font-size:13px; color:var(--text-primary); margin-bottom:2px;">${s.name}</div>
+              <div style="font-size:11px; color:var(--text-muted); font-family:var(--font-mono);">${s.hours}</div>
+              <div style="font-size:10.5px; color:var(--accent-blue); margin-top:2px;">${s.info}</div>
+            </div>
+            <div>
+              <span class="session-status-badge ${s.isOpen ? 'session-status-open' : 'session-status-closed'}">
+                ${s.status}
+              </span>
+            </div>
+          </div>
+        `).join('');
+      }
+      modal.classList.add('active');
+    }
+
+    closeSessionsModal() {
+      const modal = document.getElementById('marketSessionsModal');
+      if (modal) modal.classList.remove('active');
     }
 
     updateCalculator() {

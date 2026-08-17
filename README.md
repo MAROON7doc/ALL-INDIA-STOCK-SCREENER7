@@ -1,100 +1,85 @@
-# 🚀 NSE/BSE Quantitative Stock Screener
+# 🚀 Universal Indian Stock Screener & Super Screener (NSE / BSE)
 
-An advanced, quantitative stock screening platform tailored for Indian equities (**NSE & BSE**) implementing CANSLIM growth criteria, William O'Neil pattern recognition, and risk management protocols.
+An institutional-grade, quantitative stock screening and equity research platform tailored for Indian equities (**NSE & BSE**) implementing CANSLIM growth criteria, Moat & Corporate Governance Intelligence, Dynamic Momentum Ranking (DMR), Smart Money Concepts (SMC), SEBI PIT Insider Trading Disclosures, and multi-timeframe GPU candlestick analytics.
+
+🌐 **Live GitHub Pages Web App**: [https://maroon7doc.github.io/BSE-NSE-STOCK-screener/](https://maroon7doc.github.io/BSE-NSE-STOCK-screener/)
 
 ![NSE/BSE Screener](https://img.shields.io/badge/Exchange-NSE%20%7C%20BSE-0284c7?style=for-the-badge)
-![Protocols](https://img.shields.io/badge/Protocols-9%20Rules-10b981?style=for-the-badge)
-![Patterns](https://img.shields.io/badge/Patterns-Cup%20%26%20Handle%20%7C%207W%20Base-f59e0b?style=for-the-badge)
+![Protocols](https://img.shields.io/badge/CANSLIM%20Protocols-10%20Rules-10b981?style=for-the-badge)
+![Profiles](https://img.shields.io/badge/Investor%20Profiles-7%20Modes-8b5cf6?style=for-the-badge)
+![Patterns](https://img.shields.io/badge/Patterns-Cup%20%26%20Handle%20%7C%207W%20Base%20%7C%20NR4%2FNR7-f59e0b?style=for-the-badge)
 
 ---
 
-## ⚡ 9 Quantitative Protocols & Mathematical Logic
+## ⚡ Universal Indian Screener Modules
 
-| # | Protocol | Description & Formula | Default Threshold |
-|---|---|---|---|
-| **1** | **EPS & Sales YoY Growth** | Evaluates quarterly earnings and top-line sales acceleration. | $\text{Sales YoY} \ge 15\%$, $\text{EPS YoY} \ge 15\%$ |
-| **2** | **RSI Momentum** | 14-period standard Wilder's Relative Strength Index to identify institutional momentum. | $\text{RSI}(14) \ge 70-80$ |
-| **3** | **Volume Burst** | Institutional accumulation spike compared against 20-day Simple Moving Average volume. | $\text{Volume} \ge 1.5 \times \text{SMA}_{20}(\text{Volume})$ ($+50\%$ surge) |
-| **4** | **7-Week Consolidation** | Identifies tight price base formation over 7-8 weeks (35-40 sessions) with Volatility Contraction (VCP). | $\text{Range} = \frac{\text{High} - \text{Low}}{\text{Low}} \le 15\%$ |
-| **5** | **Cup with Handle Pattern** | Algorithmic detection of Left Rim Peak $\rightarrow$ Rounded U-Bottom (12-35% depth) $\rightarrow$ Right Rim Recovery $\rightarrow$ Handle pullback (5-12% drift with volume dry-up). | Automated Pattern Recognition Score $\ge 70$ |
-| **6** | **% Stop Loss Risk Filter** | Calculates dynamic stop loss based on handle low / base low or default $7\%$ with exact position sizing. | $\text{Stop Loss} \le 8\%$ below entry |
-| **7** | **ROE & ROCE** | Capital efficiency filters measuring Return on Equity and Return on Capital Employed. | $\text{ROE} \ge 17\% \text{ or } \text{ROCE} \ge 17\%$ |
-| **8** | **EPS >> Last 3-5 Years** | Multi-year earnings compounding trajectory over 3-year and 5-year horizons. | $3\text{Y EPS CAGR} \ge 20\%$, $5\text{Y EPS CAGR} \ge 15\%$ |
-| **9** | **Mansfield RS Score** | 12-month weighted price performance relative to the **NIFTY 50** benchmark, percentiled from 1 to 99. | $\text{RS Score} \ge 80$ (Top 20% of market) |
+### 1. 🎯 7 Universal Investor Profiles
+- **Conservative Compounder**: ROCE $\ge 25\%$, Low Debt ($D/E \le 0.25$), $CFO/PAT \ge 0.90$.
+- **Multibagger Hunter**: Sales YoY $> 25\%$, 3Y EPS CAGR $> 30\%$, Moat Score $\ge 8.0/10$.
+- **GARP (Growth at Reasonable Price)**: $PEG \le 1.6$, ROCE $\ge 20\%$.
+- **Deep Value / Cash Rich**: FCF Yield $\ge 3.0\%$ or P/E $\le 45\text{x}$.
+- **Dividend & Cash Flow**: FCF Yield $\ge 2.5\%$, Conservative Balance Sheet.
+- **Momentum Leader (DMR Decile 9–10)**: DMR Decile $\ge 9$, Mansfield RS $\ge 85$.
+- **Special Situations / Turnaround**: De-leveraging balance sheets with cash conversion inflection.
+
+### 2. 🏰 Moat & Governance Intelligence (0–10 Scoring)
+- **Moat Scoring (0–10)**: Pricing power, switching costs, distribution scale, and brand elasticity.
+- **Governance Scoring (0–10)**: Big-4 statutory audits, promoter integrity, capital allocation, and zero pledge verification.
+- **Forensic Red-Flag Meter (0–100)**: Quantitative accounting audit and governance safety categorization.
+
+### 3. 📜 Dynamic Equity Research Thesis & Risks
+- **Investment Thesis**: Live contextual research thesis for each tracked instrument.
+- **Upcoming Catalysts**: Order book pipeline, PLI disbursements, capacity additions.
+- **Bear-Case Invalidation Risks**: Specific downside triggers (SSSG drop, raw material spikes, OEM in-sourcing).
+- **Cash Flow Quality**: Live $CFO/PAT$ ratio, Free Cash Flow Yield %, PEG Ratio, and Working Capital Days.
+
+### 4. ⚡ Real-Time Intraday & Technical Engine
+- **Live Volume Shockers (`⚡ 3.4x`)**: Intraday volume surge detection relative to 10-day time-adjusted moving average.
+- **Narrow Range Contraction (`🎯 NR4`, `🎯 NR7`, Inside Day)**: Volatility squeeze detection.
+- **Smart Money Concepts (SMC)**: Demand/Supply Order Blocks, Point of Control (POC), Value Area High/Low.
+- **SEBI PIT Reg 7(2) Insider Trading Log**: Direct disclosure tracking for promoter buys $> ₹10\text{ Lakhs}$.
+
+### 5. 📊 Unlimited Broker-Ready CSV Export
+- Enriched with all **33 institutional fields** including ISIN codes, NSE series, BSE scrip codes, Moat scores, Quality scores, Governance ratings, CFO/PAT ratios, FCF yield, PEG ratios, and thesis summaries.
 
 ---
 
-## 🖥️ Web Screener Features
+## 🚀 Live Deployment & How to Run
 
-- **Interactive Candlestick & Pattern Visualizer**:
-  - Live HTML5 Canvas candlestick chart with annotated Cup & Handle curves, handle pullback channels, pivot breakout levels, stop-loss markers, and target levels.
-  - 7-Week Consolidation base bounding boxes.
-  - Interactive crosshair and OHLCV tooltip data.
-- **Dynamic Multi-Protocol Filters & Presets**:
-  - 1-Click presets: *User Master Protocol (All 9)*, *Cup & Handle Breakouts*, *7-Week Tight Bases*, *High RS Momentum*, *Fundamental Growth Leaders*.
-  - Real-time sliders and switches with live updating results.
-- **Risk Management & Position Sizing Calculator**:
-  - Automatically calculates exact share quantity to purchase based on account capital, risk percentage (e.g. 1%), entry price, and stop loss.
-  - Outputs 1:1, 1:2, and 1:3 Risk-to-Reward profit targets.
-- **Data Export & Workflow Integration**:
-  - 1-Click **Export to CSV** for custom analysis.
-  - **Copy Tickers** formatted for instant pasting into TradingView, Zerodha Kite, or Chartink watchlists.
+### Option 1: Live Cloud URL (GitHub Pages)
+Access the live application directly in your browser:
+👉 **[https://maroon7doc.github.io/BSE-NSE-STOCK-screener/](https://maroon7doc.github.io/BSE-NSE-STOCK-screener/)**
 
----
-
-## 🚀 How to Run the Web Application
-
-Simply open `index.html` in any modern web browser (Brave, Chrome, Edge, Firefox):
+### Option 2: Local Windows Execution
+Double-click `run_live_screener.bat` or open `index.html` directly in your browser:
 
 ```powershell
-# Open directly in Windows default browser
 Start-Process "index.html"
 ```
 
-Or serve via any static HTTP server:
-```bash
-# Using Python (if installed)
-python -m http.server 8000
-
-# Using Node (if installed)
-npx serve .
-```
-
 ---
 
-## 🐍 Python CLI Screener (Optional Backend)
-
-If you have Python installed, you can also run the terminal-based screener:
-
-```bash
-cd python
-pip install -r requirements.txt
-python screener.py
-```
-
----
-
-## 📁 Project Directory Structure
+## 📁 Project Structure
 
 ```
 BSE-NSE-STOCK-screener/
-├── index.html               # Main interactive Web Screener UI
+├── .github/workflows/
+│   └── deploy.yml           # Automated GitHub Pages CI/CD workflow
+├── index.html               # Main interactive Super Screener UI
+├── chart.html               # Standalone TradingView-grade interactive chart view
 ├── css/
-│   └── styles.css           # High-performance dark financial terminal styling
+│   └── styles.css           # Institutional financial terminal styling
 ├── js/
-│   ├── data.js              # NSE/BSE stocks database, company fundamentals & historical OHLCV data
-│   ├── indicators.js        # Mathematical formulas: RSI, Volume burst, RS rating, CwH, 7W base, SL
-│   ├── scanner.js           # Multi-protocol filtering and ranking engine
-│   ├── chart.js             # Canvas Candlestick Chart with Pattern Annotations
-│   └── app.js               # Application orchestrator, modal handlers, tabs, calculator & CSV export
-├── python/
-│   ├── screener.py          # Python CLI Screener using yfinance & rich tables
-│   ├── patterns.py          # Python pattern recognition algorithms
-│   └── requirements.txt     # Python dependencies
-└── README.md                # Comprehensive documentation
+│   └── screener.bundle.js   # Unified high-performance JavaScript engine
+├── run_live_screener.bat    # 1-Click launcher for local execution
+├── debug_test_suite.ps1     # Automated diagnostic test suite
+├── test_error_scan.ps1      # Static analysis & error scanner
+├── test_engine_math.ps1     # Quantitative math & edge-case test suite
+└── README.md                # Platform documentation
 ```
 
 ---
 
-## 📜 License
-MIT License. Built for algorithmic and quantitative traders in Indian stock markets.
+## 📜 Regulatory Disclaimer
+This application is designed for educational, analytical, and quantitative screening purposes in accordance with SEBI guidelines. Algorithmic parameters do not constitute SEBI-registered investment advisory or financial recommendations.
+

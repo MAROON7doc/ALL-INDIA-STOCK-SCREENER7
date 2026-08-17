@@ -5405,8 +5405,12 @@
           const s = this.universe.find(item => item.symbol === sym);
           if (s) {
             this.updateMainChart(s);
-            const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
-            if (chartNav) chartNav.click();
+            if (window.switchMobileTab) {
+              window.switchMobileTab('viewChart');
+            } else {
+              const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
+              if (chartNav) chartNav.click();
+            }
           }
         });
       });
@@ -5434,8 +5438,12 @@
           const s = this.universe.find(item => item.symbol === sym);
           if (s) {
             this.updateMainChart(s);
-            const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
-            if (chartNav) chartNav.click();
+            if (window.switchMobileTab) {
+              window.switchMobileTab('viewChart');
+            } else {
+              const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
+              if (chartNav) chartNav.click();
+            }
           }
         });
       });

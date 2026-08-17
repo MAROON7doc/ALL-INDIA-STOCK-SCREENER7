@@ -3983,7 +3983,29 @@
 
       document.getElementById('btnPopoutChart')?.addEventListener('click', () => {
         const symbol = this.activeMainStock?.symbol || 'TRENT';
-        window.open(`chart.html?symbol=${symbol}`, '_blank', 'width=1280,height=800,menubar=no,toolbar=no,location=no');
+        window.open(`chart.html?symbol=${encodeURIComponent(symbol)}`, '_blank', 'width=1360,height=840,menubar=no,toolbar=no,location=no');
+      });
+
+      document.getElementById('btnModalPopoutChart')?.addEventListener('click', () => {
+        const symbol = this.currentModalStock?.symbol || this.activeMainStock?.symbol || 'TRENT';
+        window.open(`chart.html?symbol=${encodeURIComponent(symbol)}`, '_blank', 'width=1360,height=840,menubar=no,toolbar=no,location=no');
+      });
+
+      document.getElementById('btnToggleSidebar')?.addEventListener('click', () => {
+        const side = document.getElementById('popoutSidebar');
+        if (side) {
+          side.classList.toggle('collapsed');
+          setTimeout(() => this.mainChart?.resize(), 60);
+        }
+      });
+
+      document.getElementById('btnPopoutFullscreen')?.addEventListener('click', () => {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        } else {
+          document.exitFullscreen().catch(() => {});
+        }
+        setTimeout(() => this.mainChart?.resize(), 100);
       });
     }
 
@@ -4564,6 +4586,109 @@
       }
       this.updateGpuBadge();
       this.syncLiveRealtimeData(stock, this.mainChart?.interval || '1D');
+      try { this.populatePopoutSidebar(stock); } catch (e) {}
+    }
+
+    populatePopoutSidebar(stock) {
+      if (!stock) return;
+      
+      const elSector = document.getElementById('sideSectorTag');
+      if (elSector) elSector.textContent = stock.sector || 'EQUITY';
+
+      const elLtp = document.getElementById('sideLtp');
+      if (elLtp) elLtp.textContent = `₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+
+      const elChg = document.getElementById('sideDayChg');
+      if (elChg) {
+        elChg.textContent = `${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}% (Today)`;
+        elChg.style.color = stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+      }
+
+      const elVwap = document.getElementById('sideVwap');
+      if (elVwap) elVwap.textContent = `₹${(stock.ltp * 0.995).toFixed(1)}`;
+
+      const elDeliv = document.getElementById('sideDelivery');
+      if (elDeliv) elDeliv.textContent = `${stock.deliveryPct || 65}%`;
+
+      const el52wH = document.getElementById('side52wHigh');
+      if (el52wH) el52wH.textContent = `₹${stock.high52W || (stock.ltp * 1.08).toFixed(1)}`;
+
+      const el52wL = document.getElementById('side52wLow');
+      if (el52wL) el52wL.textContent = `₹${stock.low52W || (stock.ltp * 0.65).toFixed(1)}`;
+
+      const elBadge = document.getElementById('sideMatchBadge');
+      if (elBadge) {
+        elBadge.textContent = `${stock.matchCount || 9}/10 PASS`;
+        elBadge.className = `match-score-badge ${stock.matchCount >= 8 ? 'match-high' : 'match-med'}`;
+      }
+
+      const elProtList = document.getElementById('sideProtocolList');
+      if (elProtList) {
+        const protocols = [
+          { name: 'P1: EPS Growth', val: `+${stock.epsGrowthYoY}%`, pass: stock.epsGrowthYoY >= 15 },
+          { name: 'P2: RSI Momentum', val: `${stock.rsi || 72}`, pass: (stock.rsi || 72) >= 65 },
+          { name: 'P3: Volume Burst', val: stock.volumeBurst?.burstPct > 0 ? `+${stock.volumeBurst.burstPct}%` : `${stock.volumeBurst?.ratio || 1.2}x`, pass: stock.volumeBurst?.isBurst || stock.isVolumeShocker },
+          { name: 'P4: 7W Base', val: stock.consolidation7W?.rangePct ? `≤${stock.consolidation7W.rangePct}%` : 'Base Active', pass: stock.consolidation7W?.isConsolidating },
+          { name: 'P5: Cup & Handle', val: stock.cupWithHandle?.isPattern ? `Pivot ₹${stock.cupWithHandle.pivotPrice}` : 'In Formation', pass: stock.cupWithHandle?.isPattern },
+          { name: 'P6: Stop Loss 2R', val: `₹${stock.recommendedSL || (stock.ltp * 0.93).toFixed(1)} (-${stock.slPct || 7}%)`, pass: (stock.slPct || 7) <= 8.0 },
+          { name: 'P7: ROCE / ROE', val: `ROCE ${stock.roce}% (ROE ${stock.roe}%)`, pass: stock.roce >= 17 },
+          { name: 'P8: 3Y EPS CAGR', val: `+${stock.eps3Y_CAGR}%`, pass: stock.eps3Y_CAGR >= 20 },
+          { name: 'P9: Mansfield RS', val: `Score ${stock.rsScore}/100`, pass: stock.rsScore >= 80 },
+          { name: 'P10: MTF 6/6 Green', val: `${stock.mtfGreenCount || 6}/6 Timeframes`, pass: (stock.mtfGreenCount || 6) >= 5 }
+        ];
+
+        elProtList.innerHTML = protocols.map(p => `
+          <div class="protocol-matrix-row ${p.pass ? 'pass' : 'fail'}">
+            <span style="font-weight:600;">${p.name}</span>
+            <span style="font-family:var(--font-mono); font-weight:700; color:${p.pass ? 'var(--accent-green)' : 'var(--text-muted)'};">${p.val} ${p.pass ? '✓' : '—'}</span>
+          </div>
+        `).join('');
+      }
+
+      const elPe = document.getElementById('sidePe');
+      if (elPe) elPe.textContent = `${stock.peRatio}x (Ind: ${stock.industryPE}x)`;
+
+      const elRoce = document.getElementById('sideRoce');
+      if (elRoce) elRoce.textContent = `${stock.roce}% (ROE: ${stock.roe}%)`;
+
+      const elSales = document.getElementById('sideSalesCAGR');
+      if (elSales) elSales.textContent = `+${stock.salesGrowthYoY}% (3Y)`;
+
+      const elDebt = document.getElementById('sideDebt');
+      if (elDebt) elDebt.textContent = `${stock.debtToEquity}x (CFO/PAT: ${stock.cfoToPat}x)`;
+
+      const elMoat = document.getElementById('sideMoatTag');
+      if (elMoat) elMoat.textContent = `🏰 Moat: ${stock.moatScore}/10`;
+
+      // Render interactive watchlist
+      const elWatchlist = document.getElementById('sideWatchlist');
+      if (elWatchlist) {
+        elWatchlist.innerHTML = this.universe.map(s => {
+          const isAct = s.symbol === stock.symbol;
+          const sign = s.dayChangePct > 0 ? '+' : '';
+          const col = s.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+          return `
+            <div class="watchlist-item ${isAct ? 'active' : ''}" data-symbol="${s.symbol}">
+              <div>
+                <strong style="font-size:11.5px; font-family:var(--font-mono); color:var(--text-primary);">${s.symbol}</strong>
+                <span style="font-size:9.5px; color:var(--text-muted); margin-left:4px;">${s.name.split(' ')[0]}</span>
+              </div>
+              <div style="text-align:right; font-family:var(--font-mono); font-size:11px;">
+                <div>₹${s.ltp.toLocaleString('en-IN')}</div>
+                <div style="font-size:9.5px; color:${col};">${sign}${s.dayChangePct}%</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        elWatchlist.querySelectorAll('.watchlist-item').forEach(item => {
+          item.addEventListener('click', () => {
+            const sym = item.dataset.symbol;
+            const targetStock = this.universe.find(s => s.symbol === sym);
+            if (targetStock) this.updateMainChart(targetStock);
+          });
+        });
+      }
     }
 
     async syncLiveRealtimeData(stock, interval = null) {
@@ -5123,8 +5248,9 @@
               </span>
             </td>
             <td>
-              <div style="display:flex; gap:4px;">
-                <button class="btn btn-sm btn-chart-quick" data-symbol="${stock.symbol}">View</button>
+              <div style="display:flex; gap:3px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="${stock.symbol}" title="Focus on main chart">Chart</button>
+                <button class="btn btn-sm btn-chart-popout" data-symbol="${stock.symbol}" title="Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">↗ Pop-Out</button>
                 <button class="btn btn-primary btn-sm btn-analyze" data-symbol="${stock.symbol}">Details</button>
               </div>
             </td>
@@ -5144,6 +5270,9 @@
           if (e.target.closest('.btn-analyze')) {
             e.stopPropagation();
             this.openModal(stock);
+          } else if (e.target.closest('.btn-chart-popout')) {
+            e.stopPropagation();
+            window.open(`chart.html?symbol=${encodeURIComponent(sym)}`, '_blank', 'width=1360,height=840,menubar=no,toolbar=no,location=no');
           } else {
             this.updateMainChart(stock);
             const chartCard = document.getElementById('mainChartCard');

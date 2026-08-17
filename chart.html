@@ -3,101 +3,225 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Universal Indian Market Terminal | Fullscreen Live Chart Engine</title>
-  <meta name="description" content="Fullscreen standalone live TradingView-grade interactive chart engine for Universal Indian Markets (Equities, Commodities, GIFT Nifty & Global).">
+  <title>Universal Indian Stock Terminal | Pop-Out Live Quantitative Workstation</title>
+  <meta name="description" content="Fullscreen standalone live TradingView-grade interactive chart and quantitative analysis workstation for Universal Indian Markets.">
   <link rel="stylesheet" href="css/styles.css">
   <style>
     body, html {
       height: 100%;
       margin: 0;
       padding: 0;
-      background-color: #060a12;
+      background-color: #050811;
+      color: #e2e8f0;
       overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
-    .standalone-container {
+    .popout-terminal-layout {
       display: flex;
       flex-direction: column;
       height: 100vh;
       width: 100vw;
-      padding: 8px 12px;
       box-sizing: border-box;
+      background: #050811;
     }
-    .standalone-chart-box {
+    .popout-header {
+      padding: 6px 12px;
+      background: #080f1e;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+    .popout-main-body {
+      display: flex;
+      flex: 1 1 auto;
+      height: calc(100vh - 120px);
+      overflow: hidden;
+      position: relative;
+    }
+    .popout-chart-pane {
+      flex: 1 1 auto;
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      min-width: 0;
+      background: #070c17;
+      position: relative;
+    }
+    .popout-canvas-box {
       flex: 1 1 auto;
       width: 100%;
-      height: calc(100vh - 125px) !important;
-      min-height: 400px;
+      height: 100% !important;
+      position: relative;
+    }
+    .popout-sidebar-pane {
+      width: 330px;
+      flex-shrink: 0;
+      height: 100%;
+      background: #091224;
+      border-left: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      transition: width 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .popout-sidebar-pane.collapsed {
+      width: 0px;
+      border-left: none;
+      display: none;
+    }
+    .sidebar-section {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .sidebar-section-title {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent-blue);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .metrics-grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6px;
+    }
+    .metric-chip-box {
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .metric-chip-label {
+      font-size: 9.5px;
+      color: var(--text-muted);
+      margin-bottom: 2px;
+    }
+    .metric-chip-val {
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+    .protocol-matrix-list {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+    .protocol-matrix-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 3px 6px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.5);
+      font-size: 10.5px;
+    }
+    .protocol-matrix-row.pass {
+      border-left: 2px solid var(--accent-green);
+    }
+    .protocol-matrix-row.fail {
+      border-left: 2px solid rgba(239, 68, 68, 0.5);
+      color: var(--text-muted);
+    }
+    .watchlist-scroll-list {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .watchlist-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 8px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.4);
+      border: 1px solid transparent;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .watchlist-item:hover {
+      background: rgba(56, 189, 248, 0.12);
+      border-color: rgba(56, 189, 248, 0.3);
+    }
+    .watchlist-item.active {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent-blue);
     }
   </style>
   <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
 
-  <div class="standalone-container">
+  <div class="popout-terminal-layout">
     
-    <!-- Top Header -->
-    <div class="header-main" style="padding: 4px 8px; border-bottom: 1px solid var(--border-subtle); margin-bottom: 6px;">
-      <div class="brand-section">
-        <div class="brand-logo" style="width:26px; height:26px;">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <!-- Top Workstation Header -->
+    <header class="popout-header">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="brand-logo" style="width:24px; height:24px;">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
             <polyline points="16 7 22 7 22 13"></polyline>
           </svg>
         </div>
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:14px; font-weight:700; color:var(--text-primary);">Universal Indian Terminal</span>
-          <span class="market-pill market-open" id="marketStatusBadge" title="Multi-Market Live Feed Active">
-            <span class="market-dot"></span> <span id="marketStatusText">🟢 UNIVERSAL MARKET LIVE</span>
-          </span>
-          <span class="live-pill" id="livePillIndicator"><span class="live-dot"></span> LIVE</span>
-          <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU WebGL</span>
+        <div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:13px; font-weight:700; color:var(--text-primary);">Universal Indian Terminal</span>
+            <span class="market-pill market-open" id="marketStatusBadge" title="Click to inspect multi-market operational hours">
+              <span class="market-dot"></span> <span id="marketStatusText">🟢 UNIVERSAL MARKET LIVE</span>
+            </span>
+            <span class="live-pill" id="livePillIndicator"><span class="live-dot"></span> LIVE</span>
+            <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU WebGL</span>
+          </div>
         </div>
       </div>
 
-      <div class="header-actions">
-        <!-- Stock Selector Quick Ribbon -->
-        <div class="stock-pill-selector" id="stockPillSelector">
-          <!-- Populated by JS -->
-        </div>
-
-        <div style="display:flex; align-items:center; gap:5px; background:var(--bg-card); padding:2px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
-          <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
-          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine">
+      <!-- Quick Actions, Source Engines & Window Controls -->
+      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:2px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle);">
+          <span style="font-size:10px; color:var(--text-muted);">Source:</span>
+          <select id="selDataProvider" style="padding:2px 14px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine">
             <option value="auto" selected>Auto Multi-Feed</option>
             <option value="yfinance">YFinance (.NS/.BO)</option>
             <option value="nsebse">NSE-BSE API (NPM)</option>
             <option value="smartapi">SmartAPI</option>
           </select>
-          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
-          <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;">
-            <option value="auto" selected>Auto (Global & Multi-Market Live)</option>
-            <option value="simulation">24x7 Continuous Simulation</option>
-            <option value="nse_strict">NSE/BSE Cash Hours Strict (09:15-15:30)</option>
-            <option value="paused">Freeze Feed (EOD Snapshot)</option>
+          <span style="font-size:10px; color:var(--text-muted); margin-left:2px;">Feed:</span>
+          <select id="selFeedMode" style="padding:2px 14px 2px 4px; font-size:10.5px;">
+            <option value="auto" selected>Auto Multi-Market</option>
+            <option value="simulation">24x7 Sim Mode</option>
+            <option value="nse_strict">NSE/BSE Cash Strict</option>
+            <option value="paused">Freeze Feed</option>
           </select>
-          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
-          <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">
-            <option value="1500">1.5s (High Freq)</option>
-            <option value="3500" selected>3.5s (Live Sync)</option>
-            <option value="5000">5.0s (Steady)</option>
-          </select>
-          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10.5px;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="6" y="4" width="4" height="16"></rect>
-              <rect x="14" y="4" width="4" height="16"></rect>
-            </svg>
-            <span>Pause</span>
+          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10px;">
+            Pause
           </button>
         </div>
 
-        <button class="btn btn-sm" onclick="window.close()" title="Close Standalone Window">
+        <button class="btn btn-sm" id="btnToggleSidebar" title="Toggle Live Quantitative Analysis Sidebar" style="color:var(--accent-blue);">
+          📊 Toggle Analytics
+        </button>
+
+        <button class="btn btn-sm" id="btnPopoutFullscreen" title="Toggle Fullscreen" style="color:var(--accent-green);">
+          ⛶ Fullscreen
+        </button>
+
+        <button class="btn btn-sm" onclick="window.close()" title="Close Pop-Out Terminal Window">
           ✕ Close
         </button>
       </div>
-    </div>
+    </header>
 
     <!-- Visual Protocols Ribbon -->
-    <div class="protocol-layer-ribbon" style="margin-bottom: 6px;">
+    <div class="protocol-layer-ribbon" style="padding: 4px 10px; margin: 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
       <span class="protocol-layer-label">Visual Protocols:</span>
       <button class="layer-toggle active" data-layer="p1_growth" title="P1: Growth Milestone Pins & Earnings Beats">P1: EPS Growth</button>
       <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI(14) Momentum Oscillator Sub-Panel">P2: RSI Momentum</button>
@@ -109,31 +233,30 @@
       <button class="layer-toggle active" data-layer="p10_mtf" title="P10: Multi-Timeframe All-Green Bullish Alignment HUD (5m, 15m, 1H, 4H, 1D, 1W)">P10: MTF Green</button>
     </div>
 
-    <!-- TradingView Toolbar -->
-    <div class="tv-top-toolbar" style="margin-bottom: 6px;">
+    <!-- Active Stock Title & TradingView Top Toolbar -->
+    <div class="tv-top-toolbar" style="padding: 5px 12px; margin: 0; border-bottom: 1px solid rgba(255,255,255,0.05); background:#070d1a;">
       <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-        <div style="font-weight:700; font-size:14px; color:var(--text-primary);" id="mainChartStockTitle">
-          TRENT <span style="font-size:12.5px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
+        <div style="font-weight:700; font-size:14.5px; color:var(--text-primary);" id="mainChartStockTitle">
+          TRENT <span style="font-size:13px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
         </div>
 
-        <!-- Primary/Secondary Exchange Selector (NSE vs BSE variant) -->
         <div class="tv-btn-group" id="exchangeVariantGroup">
-          <button class="exch-pill-btn active" id="btnExchNSE" data-exch="NSE" title="Switch to National Stock Exchange (NSE: EQ)">NSE: EQ</button>
-          <button class="exch-pill-btn" id="btnExchBSE" data-exch="BSE" title="Switch to Bombay Stock Exchange (BSE: Scrip Code)">BSE: 500251</button>
+          <button class="exch-pill-btn active" id="btnExchNSE" data-exch="NSE">NSE: EQ</button>
+          <button class="exch-pill-btn" id="btnExchBSE" data-exch="BSE">BSE</button>
         </div>
 
-        <!-- Sub-Categorization & Index Membership Tag -->
         <span class="tag-index" id="mainChartIndexBadge">NIFTY 50 • Large Cap</span>
         <span class="tag tag-cwh" id="mainChartPatternBadge">Cup & Handle (95)</span>
         
         <div style="display:flex; align-items:center; gap:4px;" id="mainChartSourceLinks">
-          <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkNseSource" title="View live quote on official exchange portal">🏛️ NSE India</a>
-          <a href="https://www.screener.in/company/TRENT/consolidated/" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkScreenerSource" title="View deep financials on Screener.in">📊 Screener.in</a>
-          <a href="https://in.tradingview.com/chart/?symbol=NSE%3ATRENT&interval=D" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkTradingViewSource" title="View interactive chart on TradingView">📈 TradingView</a>
-          <a href="https://www.google.com/finance/quote/TRENT:NSE" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkGFinanceSource" title="View live quote on Google Finance">🌐 Google Finance</a>
+          <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkNseSource">🏛️ NSE India</a>
+          <a href="https://www.screener.in/company/TRENT/consolidated/" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkScreenerSource">📊 Screener.in</a>
+          <a href="https://in.tradingview.com/chart/?symbol=NSE%3ATRENT&interval=D" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkTradingViewSource">📈 TradingView</a>
+          <a href="https://www.google.com/finance/quote/TRENT:NSE" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkGFinanceSource">🌐 Google Finance</a>
         </div>
-        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-        <div class="tv-btn-group" id="tvIntervalGroup">
+
+        <!-- Unified Time Horizon Toolbar -->
+        <div class="tv-btn-group" id="tvIntervalGroup" style="margin-left:auto;">
           <span class="tv-group-label">Time Horizon:</span>
           <button class="tv-btn" data-interval="1m">1m</button>
           <button class="tv-btn" data-interval="5m">5m</button>
@@ -152,22 +275,114 @@
           <button class="tv-btn active" id="btnChartTypeCandle">🕯️ Candles</button>
           <button class="tv-btn" id="btnChartTypeArea">📈 Area</button>
         </div>
+
+        <div class="tv-btn-group">
+          <button class="tv-btn" id="btnResetChartZoom">🔍 Fit</button>
+        </div>
       </div>
     </div>
 
-    <!-- Fullscreen Dedicated Canvas Box -->
-    <div class="chart-container-box standalone-chart-box" id="mainCanvasContainer">
-      <!-- GPU Canvas Rendered by JS -->
-    </div>
+    <!-- Main Workstation Body: Chart Pane + Quantitative Sidebar -->
+    <div class="popout-main-body">
+      
+      <!-- GPU WebGL Canvas Area -->
+      <div class="popout-chart-pane">
+        <div class="popout-canvas-box" id="mainCanvasContainer">
+          <!-- Rendered at 60 FPS GPU WebGL -->
+        </div>
+        
+        <!-- Bottom Status Bar -->
+        <div class="tv-bottom-range-bar" style="padding: 4px 12px; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05);">
+          <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);" id="tvChartNavHint">
+            💡 Scroll wheel to zoom • Drag horizontally to pan • Hover candle for OHLCV & 10 protocols • Double-click to auto-scale
+          </div>
+          <div style="color:var(--accent-blue); font-size:10px; font-family:var(--font-mono); font-weight:600;">
+            GPU WebGL 60 FPS Engine
+          </div>
+        </div>
+      </div>
 
-    <!-- Bottom Status & Navigation Bar -->
-    <div class="tv-bottom-range-bar" style="padding: 5px 12px; justify-content: space-between;">
-      <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);" id="tvChartNavHint">
-        💡 Scroll wheel to zoom • Drag horizontally to pan • Hover candle for OHLCV & 10 protocols • Double-click to auto-scale
-      </div>
-      <div style="color:var(--accent-blue); font-size:10px; font-family:var(--font-mono); font-weight:600;">
-        GPU WebGL Engine
-      </div>
+      <!-- Live Quantitative Forensics & Watchlist Sidebar -->
+      <aside class="popout-sidebar-pane" id="popoutSidebar">
+        
+        <!-- Stock Overview & 52W Range -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span>Live Quote & Range</span>
+            <span id="sideSectorTag" style="color:var(--text-muted); font-size:9px;">CONSUMER</span>
+          </div>
+          <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:8px;">
+            <div>
+              <div style="font-size:20px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);" id="sideLtp">₹7,120.50</div>
+              <div style="font-size:11px; font-weight:600; color:var(--accent-green);" id="sideDayChg">+3.4% (Today)</div>
+            </div>
+            <div style="text-align:right; font-size:10px; color:var(--text-muted);">
+              <div>VWAP: <strong style="color:var(--text-primary);" id="sideVwap">₹7,080.00</strong></div>
+              <div>Deliv: <strong style="color:var(--accent-green);" id="sideDelivery">64.5%</strong></div>
+            </div>
+          </div>
+          
+          <div class="metrics-grid-2">
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">52W High</div>
+              <div class="metric-chip-val" id="side52wHigh">₹7,350.00</div>
+            </div>
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">52W Low</div>
+              <div class="metric-chip-val" id="side52wLow">₹4,200.00</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 10 CANSLIM Protocols Live Score Matrix -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span>10 Protocols Evaluation</span>
+            <span class="match-score-badge match-high" id="sideMatchBadge">10/10 PASS</span>
+          </div>
+          <div class="protocol-matrix-list" id="sideProtocolList">
+            <!-- Dynamically rendered -->
+          </div>
+        </div>
+
+        <!-- Fundamental Quality & Valuation Multiples -->
+        <div class="sidebar-section">
+          <div class="sidebar-section-title">
+            <span>Institutional Fundamentals</span>
+            <span style="color:var(--accent-gold); font-size:9.5px;" id="sideMoatTag">🏰 Moat: 9.5</span>
+          </div>
+          <div class="metrics-grid-2">
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">P/E vs Industry</div>
+              <div class="metric-chip-val" id="sidePe">48.2x</div>
+            </div>
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">ROCE / ROE</div>
+              <div class="metric-chip-val" style="color:var(--accent-green);" id="sideRoce">32.4%</div>
+            </div>
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">3Y Sales CAGR</div>
+              <div class="metric-chip-val" id="sideSalesCAGR">+38.5%</div>
+            </div>
+            <div class="metric-chip-box">
+              <div class="metric-chip-label">Debt to Equity</div>
+              <div class="metric-chip-val" style="color:var(--accent-blue);" id="sideDebt">0.05x</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick Symbol Switcher Watchlist -->
+        <div class="sidebar-section" style="border-bottom:none; flex:1;">
+          <div class="sidebar-section-title">
+            <span>Universe Watchlist</span>
+            <span style="color:var(--text-muted); font-size:9.5px;">12 Stocks</span>
+          </div>
+          <div class="watchlist-scroll-list" id="sideWatchlist">
+            <!-- Dynamically populated -->
+          </div>
+        </div>
+
+      </aside>
     </div>
 
   </div>
@@ -187,10 +402,7 @@
           Real-time operational status across Indian domestic, commodity, and global international exchanges.
         </p>
         <div style="display:flex; flex-direction:column; gap:10px;" id="globalSessionsList">
-          <!-- Dynamically populated by JS Application.openSessionsModal() -->
-        </div>
-        <div style="margin-top:16px; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:var(--radius-sm); font-size:11.5px; color:var(--accent-blue); line-height:1.5;">
-          💡 <strong>Multi-Market Live Feed Active:</strong> Outside NSE/BSE cash hours (09:15–15:30 IST), Indian Commodity derivatives on MCX (open until 23:30 IST), US Markets (19:00–01:30 IST), and GIFT Nifty remain open. The screener provides continuous live multi-asset streaming.
+          <!-- Dynamically populated by JS -->
         </div>
       </div>
       <div class="modal-footer" style="display:flex; justify-content:flex-end;">

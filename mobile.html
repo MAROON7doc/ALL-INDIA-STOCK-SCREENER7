@@ -7,533 +7,1096 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Universal Indian Screener | Android Native Mobile Trading Station</title>
-  <meta name="description" content="Dedicated touch-optimized mobile trading station for Universal Indian Stock Screener with 10 CANSLIM protocols and 60 FPS GPU charts.">
+  <title>Universal Indian Screener — Android Trading Station</title>
+  <meta name="description" content="Native Android WebView trading station for Universal Indian Stock Screener — 60 FPS GPU chart, live data feed controls, 10 CANSLIM protocols.">
   <link rel="stylesheet" href="css/styles.css">
   <style>
-    /* Dedicated Android WebView & Mobile App Shell Styles */
+    /* ============================================================
+       ROOT TOKENS & DVH MOBILE SHELL
+       ============================================================ */
     :root {
-      --mobile-nav-height: 58px;
+      --nav-h: 58px;
+      --header-h: 52px;
+      --ticker-h: 34px;
+      --chart-ctrl-h: 108px; /* toolbar rows + ohlcv bar */
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+      --font-card: clamp(11px, 3.2vw, 14px);
+      --font-label: clamp(8.5px, 2.5vw, 11px);
+      --font-price: clamp(13.5px, 4vw, 17px);
+      --font-symbol: clamp(13px, 3.8vw, 16px);
     }
-    body {
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      height: 100dvh;
+      margin: 0; padding: 0;
       background: #050811;
       color: #e2e8f0;
-      margin: 0;
-      padding: 0;
-      padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 12px));
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
       -webkit-tap-highlight-color: transparent;
       user-select: none;
       -webkit-user-select: none;
-      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      overscroll-behavior: none;
     }
-    .mobile-app-header {
-      position: sticky;
-      top: 0;
-      z-index: 100;
+
+    /* Page shell — flex column pinned to viewport */
+    #mobileShell {
+      display: flex;
+      flex-direction: column;
+      height: 100dvh;
+      padding-bottom: calc(var(--nav-h) + var(--safe-bottom));
+      padding-top: var(--safe-top);
+      overflow: hidden;
+    }
+
+    /* ============================================================
+       TOP APP BAR
+       ============================================================ */
+    .m-header {
+      flex: 0 0 auto;
+      height: var(--header-h);
       background: #080f1e;
-      border-bottom: 1px solid var(--border-subtle);
-      padding: 8px 12px;
+      border-bottom: 1px solid rgba(255,255,255,0.07);
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding: 0 12px;
       gap: 8px;
+      z-index: 100;
     }
-    .mobile-tab-view {
-      display: none;
-      padding: 10px 10px;
+    .m-brand { display: flex; align-items: center; gap: 8px; }
+    .m-brand-icon {
+      width: 28px; height: 28px;
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; font-weight: 900; color: #fff;
     }
-    .mobile-tab-view.active {
-      display: block;
-      animation: fadeIn 0.18s ease-out;
+    .m-brand-name {
+      font-size: 13px; font-weight: 700; color: #f1f5f9;
+      line-height: 1.2;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(4px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .m-brand-sub {
+      font-size: 9.5px; color: var(--text-muted);
+      display: flex; align-items: center; gap: 4px;
     }
-    .mobile-bottom-nav {
-      position: fixed;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      height: var(--mobile-nav-height);
-      background: #091224;
-      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    .m-header-actions { display: flex; align-items: center; gap: 5px; }
+    .m-pill-btn {
+      display: inline-flex; align-items: center; gap: 3px;
+      padding: 4px 9px;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.05);
+      font-size: 10px; font-weight: 600; color: var(--text-secondary);
+      cursor: pointer; touch-action: manipulation;
+      transition: all 0.15s ease;
+      text-decoration: none;
+      white-space: nowrap;
+    }
+    .m-pill-btn:active { background: rgba(255,255,255,0.12); }
+    .m-pill-btn.primary { border-color: rgba(56,189,248,0.4); color: var(--accent-blue); }
+    .m-pill-btn.success { border-color: rgba(16,185,129,0.4); color: var(--accent-green); }
+
+    /* ============================================================
+       MARKET TICKER TAPE
+       ============================================================ */
+    .m-ticker {
+      flex: 0 0 var(--ticker-h);
+      height: var(--ticker-h);
+      background: rgba(5,8,17,0.95);
+      border-bottom: 1px solid rgba(255,255,255,0.06);
       display: flex;
       align-items: center;
-      justify-content: space-around;
-      z-index: 999;
-      padding-bottom: env(safe-area-inset-bottom, 0px);
-      backdrop-filter: blur(12px);
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      gap: 0;
+      -webkit-overflow-scrolling: touch;
     }
-    .mobile-nav-item {
+    .m-ticker::-webkit-scrollbar { display: none; }
+    .m-ticker-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0 12px;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .m-ticker-name { font-size: 9px; font-weight: 700; color: var(--text-muted); font-family: var(--font-mono); }
+    .m-ticker-val { font-size: 10px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
+    .m-ticker-chg { font-size: 9.5px; font-weight: 600; }
+    .m-ticker-chg.pos { color: var(--accent-green); }
+    .m-ticker-chg.neg { color: var(--accent-red); }
+
+    /* ============================================================
+       TAB CONTENT AREA — scrollable flex region
+       ============================================================ */
+    #mobileContent {
+      flex: 1 1 0;
+      min-height: 0;
+      position: relative;
+      overflow: hidden;
+    }
+    .m-tab-view {
+      display: none;
+      position: absolute;
+      inset: 0;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      padding: 10px;
+    }
+    .m-tab-view.active {
+      display: block;
+      animation: mFadeIn 0.16s ease-out;
+    }
+
+    /* Chart tab: full-height flex column, NO scroll */
+    #viewChart {
+      display: none;
+      flex-direction: column;
+      padding: 8px;
+      gap: 6px;
+      overflow: hidden; /* chart fills remaining space */
+    }
+    #viewChart.active { display: flex; }
+
+    @keyframes mFadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ============================================================
+       BOTTOM NAV BAR
+       ============================================================ */
+    .m-bottom-nav {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      height: var(--nav-h);
+      background: rgba(8,18,36,0.97);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      display: flex;
+      align-items: stretch;
+      z-index: 999;
+      padding-bottom: var(--safe-bottom);
+    }
+    .m-nav-btn {
+      flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       gap: 3px;
-      flex: 1;
-      height: 100%;
       background: transparent;
       border: none;
-      color: var(--text-muted);
+      color: rgba(148,163,184,0.6);
       cursor: pointer;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 600;
-      transition: all 0.15s ease;
+      letter-spacing: 0.3px;
       touch-action: manipulation;
+      transition: color 0.15s ease;
+      position: relative;
     }
-    .mobile-nav-item svg {
-      width: 18px;
-      height: 18px;
+    .m-nav-btn svg {
+      width: 18px; height: 18px;
       stroke: currentColor;
+      transition: transform 0.15s ease, stroke 0.15s ease;
     }
-    .mobile-nav-item.active {
+    .m-nav-btn.active {
       color: var(--accent-blue);
     }
-    .mobile-nav-item.active svg {
+    .m-nav-btn.active svg {
       stroke: var(--accent-blue);
       transform: translateY(-1px);
     }
-    .mobile-stock-card {
+    .m-nav-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%;
+      transform: translateX(-50%);
+      width: 20px; height: 2px;
+      background: var(--accent-blue);
+      border-radius: 2px 2px 0 0;
+    }
+
+    /* ============================================================
+       WATCHLIST STOCK CARDS
+       ============================================================ */
+    .m-stock-card {
       background: var(--bg-card);
-      border: 1px solid var(--border-subtle);
-      border-radius: var(--radius-md);
-      padding: 12px;
-      margin-bottom: 8px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px;
+      padding: 11px 12px;
+      margin-bottom: 7px;
       cursor: pointer;
-      transition: all 0.15s ease;
+      transition: border-color 0.15s ease, background 0.15s ease;
     }
-    .mobile-stock-card:active {
-      background: rgba(56, 189, 248, 0.08);
-      border-color: var(--accent-blue);
+    .m-stock-card:active {
+      background: rgba(56,189,248,0.07);
+      border-color: rgba(56,189,248,0.4);
     }
-    .mobile-card-top {
+    .m-card-row1 {
       display: flex;
-      align-items: flex-start;
       justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
     }
-    .mobile-card-metrics {
+    .m-card-symbol {
+      font-size: var(--font-symbol);
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+    .m-card-name {
+      font-size: var(--font-label);
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    .m-card-price {
+      font-size: var(--font-price);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      text-align: right;
+    }
+    .m-card-chg {
+      font-size: var(--font-label);
+      font-weight: 700;
+      text-align: right;
+      margin-top: 2px;
+    }
+    .m-card-metrics {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 4px;
-      background: rgba(0, 0, 0, 0.25);
-      border-radius: 6px;
+      background: rgba(0,0,0,0.22);
+      border-radius: 7px;
       padding: 6px 8px;
+      margin-bottom: 8px;
     }
-    .mobile-card-actions {
+    .m-metric-cell { }
+    .m-metric-lbl {
+      font-size: clamp(7.5px, 2.2vw, 9.5px);
+      color: rgba(148,163,184,0.65);
+      margin-bottom: 1px;
+    }
+    .m-metric-val {
+      font-size: clamp(9.5px, 2.8vw, 11.5px);
+      font-weight: 700;
+      font-family: var(--font-mono);
+    }
+    .m-card-actions {
+      display: flex;
+      gap: 5px;
+    }
+    .m-card-actions .btn {
+      flex: 1;
+      justify-content: center;
+      text-align: center;
+      padding: 7px 6px;
+      font-size: clamp(10px, 2.8vw, 12px);
+    }
+
+    /* ============================================================
+       CHART TAB — OHLCV BAR
+       ============================================================ */
+    .m-ohlcv-bar {
       display: flex;
       align-items: center;
-      gap: 6px;
-      margin-top: 2px;
+      gap: 0;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 7px;
+      padding: 5px 10px;
+      overflow-x: auto;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      flex-shrink: 0;
     }
-    .mobile-card-actions .btn {
-      flex: 1;
-      text-align: center;
+    .m-ohlcv-bar::-webkit-scrollbar { display: none; }
+    .m-ohlcv-cell {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 8px;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .m-ohlcv-cell:last-child { border-right: none; }
+    .m-ohlcv-lbl { font-size: 8.5px; color: rgba(148,163,184,0.55); font-weight: 700; }
+    .m-ohlcv-val { font-size: 10.5px; font-weight: 700; font-family: var(--font-mono); color: var(--text-primary); }
+    .m-ohlcv-vol { color: var(--accent-blue); }
+
+    /* ============================================================
+       CHART TAB — DATA FEED CONTROL PANEL
+       ============================================================ */
+    .m-feed-panel-wrap {
+      flex-shrink: 0;
+    }
+    .m-feed-trigger {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(5,8,17,0.7);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      padding: 6px 10px;
+      cursor: pointer;
+      touch-action: manipulation;
+      transition: border-color 0.15s;
+    }
+    .m-feed-trigger:active { border-color: rgba(56,189,248,0.4); }
+    .m-feed-trigger-left {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 10.5px; font-weight: 700; color: var(--text-secondary);
+    }
+    .m-feed-status-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--accent-green);
+      box-shadow: 0 0 6px rgba(16,185,129,0.6);
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.6; transform: scale(0.85); }
+    }
+    .m-feed-chevron {
+      font-size: 10px;
+      color: var(--text-muted);
+      transition: transform 0.2s ease;
+    }
+    .m-feed-panel {
+      display: none;
+      flex-direction: column;
+      gap: 8px;
+      background: rgba(8,15,28,0.98);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      padding: 10px;
+    }
+    .m-feed-panel.open { display: flex; }
+    .m-feed-section-lbl {
+      font-size: 9px; font-weight: 800; color: rgba(148,163,184,0.5);
+      letter-spacing: 0.8px; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .m-chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+    .m-chip {
+      padding: 5px 10px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px;
+      background: rgba(255,255,255,0.04);
+      font-size: 10px; font-weight: 600; color: var(--text-muted);
+      cursor: pointer; touch-action: manipulation;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .m-chip:active, .m-chip.active {
+      background: rgba(56,189,248,0.15);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    .m-chip.active-green {
+      background: rgba(16,185,129,0.15);
+      border-color: var(--accent-green);
+      color: var(--accent-green);
+    }
+    .m-speed-row {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 4px;
+    }
+    .m-speed-chip {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1px;
+      padding: 5px 3px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 7px;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer; touch-action: manipulation;
+      transition: all 0.15s ease;
+    }
+    .m-speed-chip .speed-val { font-size: 10.5px; font-weight: 800; color: var(--text-secondary); font-family: var(--font-mono); }
+    .m-speed-chip .speed-desc { font-size: 7.5px; color: var(--text-muted); }
+    .m-speed-chip.active {
+      background: rgba(56,189,248,0.12);
+      border-color: var(--accent-blue);
+    }
+    .m-speed-chip.active .speed-val { color: var(--accent-blue); }
+
+    /* ============================================================
+       CHART TAB — TOOLBARS (2-row grouped)
+       ============================================================ */
+    .m-chart-toolbar-row {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      flex-shrink: 0;
+    }
+    .m-chart-toolbar-row::-webkit-scrollbar { display: none; }
+    .m-tf-chip {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      padding: 6px 8px;
-      font-size: 11px;
+      min-width: 34px;
+      padding: 5px 7px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.04);
+      font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+      cursor: pointer; touch-action: manipulation;
+      white-space: nowrap;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      transition: all 0.15s ease;
     }
+    .m-tf-chip:active, .m-tf-chip.active {
+      background: rgba(56,189,248,0.18);
+      border-color: var(--accent-blue);
+      color: var(--accent-blue);
+    }
+    .m-tf-sep {
+      flex-shrink: 0;
+      width: 1px;
+      height: 18px;
+      background: rgba(255,255,255,0.1);
+    }
+    .m-layer-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 4px 7px;
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 6px;
+      background: rgba(255,255,255,0.03);
+      font-size: 9.5px; font-weight: 700; color: rgba(148,163,184,0.5);
+      cursor: pointer; touch-action: manipulation;
+      white-space: nowrap;
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      transition: all 0.15s ease;
+    }
+    .m-layer-chip.active {
+      background: rgba(16,185,129,0.12);
+      border-color: rgba(16,185,129,0.35);
+      color: var(--accent-green);
+    }
+
+    /* ============================================================
+       CHART CANVAS — fills all remaining flex space
+       ============================================================ */
+    #mobileChartCanvas {
+      flex: 1 1 0;
+      min-height: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    /* ============================================================
+       CHART TAB — STOCK HEADER
+       ============================================================ */
+    .m-chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-shrink: 0;
+    }
+    .m-chart-symbol {
+      font-size: clamp(14px, 4.2vw, 18px);
+      font-weight: 800;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+    }
+    .m-chart-price {
+      font-size: clamp(12px, 3.5vw, 15px);
+      font-weight: 700;
+      margin-left: 6px;
+    }
+    .m-chart-actions { display: flex; gap: 4px; align-items: center; }
+
+    /* ============================================================
+       PROTOCOL CARDS (View 3)
+       ============================================================ */
+    .m-proto-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 9px;
+      padding: 10px 12px;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .m-proto-card.on { border-color: rgba(16,185,129,0.2); background: rgba(16,185,129,0.04); }
+    .m-proto-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 28px; height: 28px;
+      background: rgba(56,189,248,0.12);
+      border: 1px solid rgba(56,189,248,0.25);
+      border-radius: 7px;
+      font-size: 9px; font-weight: 800;
+      color: var(--accent-blue);
+      flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+    .m-proto-card.on .m-proto-badge {
+      background: rgba(16,185,129,0.15);
+      border-color: rgba(16,185,129,0.35);
+      color: var(--accent-green);
+    }
+    .m-proto-name {
+      font-size: clamp(10.5px, 3vw, 12.5px);
+      font-weight: 600;
+      color: var(--text-secondary);
+      flex: 1;
+    }
+
+    /* ============================================================
+       CALCULATOR (View 5)
+       ============================================================ */
+    .m-calc-input {
+      width: 100%;
+      background: rgba(0,0,0,0.3);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: clamp(13px, 3.8vw, 15px);
+      font-weight: 700;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      margin-top: 4px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .m-calc-input:focus { border-color: rgba(56,189,248,0.5); }
+    .m-calc-label {
+      font-size: 10.5px; font-weight: 700; color: var(--text-muted);
+    }
+    .m-calc-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    .m-result-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 7px;
+    }
+    .m-result-card {
+      background: var(--bg-card);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 9px;
+      padding: 10px 12px;
+    }
+    .m-result-lbl { font-size: 9.5px; color: var(--text-muted); margin-bottom: 3px; }
+    .m-result-val { font-size: clamp(12px, 3.5vw, 15px); font-weight: 800; font-family: var(--font-mono); }
+
+    /* ============================================================
+       HIDDEN BUNDLE SYNC ELEMENTS
+       ============================================================ */
+    #bundleSyncArea { display: none; }
   </style>
   <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
 
-  <!-- Top Mobile App Bar -->
-  <header class="mobile-app-header">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <div class="brand-logo" style="width:26px; height:26px; font-size:13px;">₹</div>
+<div id="mobileShell">
+
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  TOP APP BAR                                     ║
+       ╚══════════════════════════════════════════════════╝ -->
+  <header class="m-header">
+    <div class="m-brand">
+      <div class="m-brand-icon">₹</div>
       <div>
-        <div style="font-size:13px; font-weight:700; color:var(--text-primary);">Universal Indian Screener</div>
-        <div style="font-size:9.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
-          <span class="live-dot" style="width:5px; height:5px;"></span>
-          <span id="marketStatusText">🟢 UNIVERSAL LIVE</span>
+        <div class="m-brand-name">Universal Indian Screener</div>
+        <div class="m-brand-sub">
+          <span class="live-dot" style="width:5px;height:5px;"></span>
+          <span id="marketStatusText">🟢 LIVE</span>
         </div>
       </div>
     </div>
-
-    <div style="display:flex; align-items:center; gap:6px;">
-      <button class="btn btn-sm" id="btnToggleLive" style="padding:3px 6px; font-size:10px;">
-        Pause
-      </button>
-      <a href="index.html" class="btn btn-sm" style="color:var(--accent-blue); border-color:rgba(56,189,248,0.4); text-decoration:none; padding:3px 8px; font-size:10.5px;" title="Switch to Full Desktop Screener Terminal">
-        🖥️ Desktop
-      </a>
+    <div class="m-header-actions">
+      <button class="m-pill-btn" id="btnMobilePauseLive">⏸ Pause</button>
+      <a href="index.html" class="m-pill-btn primary" title="Full Desktop Terminal">🖥️ Desktop</a>
     </div>
   </header>
 
-  <!-- Live Market Ticker Tape -->
-  <div class="market-ticker-tape" id="marketTickerTape" style="border-radius:0;">
-    <div class="ticker-item">
-      <span class="ticker-name">NIFTY 50</span>
-      <span class="ticker-val" id="valNifty">24,835.10</span>
-      <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  MARKET TICKER TAPE                              ║
+       ╚══════════════════════════════════════════════════╝ -->
+  <div class="m-ticker">
+    <div class="m-ticker-item">
+      <span class="m-ticker-name">NIFTY</span>
+      <span class="m-ticker-val" id="valNifty">24,835.10</span>
+      <span class="m-ticker-chg pos" id="chgNifty">+0.58%</span>
     </div>
-    <div class="ticker-item">
-      <span class="ticker-name">BSE SENSEX</span>
-      <span class="ticker-val" id="valSensex">81,380.40</span>
-      <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
+    <div class="m-ticker-item">
+      <span class="m-ticker-name">SENSEX</span>
+      <span class="m-ticker-val" id="valSensex">81,380.40</span>
+      <span class="m-ticker-chg pos" id="chgSensex">+0.51%</span>
     </div>
-    <div class="ticker-item">
-      <span class="ticker-name">INDIA VIX</span>
-      <span class="ticker-val">12.85</span>
-      <span class="ticker-chg neg">-0.45</span>
+    <div class="m-ticker-item">
+      <span class="m-ticker-name">INDIA VIX</span>
+      <span class="m-ticker-val">12.85</span>
+      <span class="m-ticker-chg neg">-3.38%</span>
+    </div>
+    <div class="m-ticker-item">
+      <span class="m-ticker-name">BANK NIFTY</span>
+      <span class="m-ticker-val">52,140.60</span>
+      <span class="m-ticker-chg pos">+0.73%</span>
+    </div>
+    <div class="m-ticker-item">
+      <span class="m-ticker-name">USD/INR</span>
+      <span class="m-ticker-val">83.42</span>
+      <span class="m-ticker-chg neg">-0.12%</span>
     </div>
   </div>
 
-  <!-- =========================================================================
-       VIEW 1: WATCHLIST & SCANNER CARDS
-       ========================================================================= -->
-  <section class="mobile-tab-view active" id="viewWatchlist">
-    
-    <!-- Investor Mode Chips -->
-    <div class="investor-modes-ribbon" style="margin-bottom:8px;">
-      <button class="investor-chip active" data-profile="all">🌐 All Profiles</button>
-      <button class="investor-chip" data-profile="compounder">🏛️ Compounder</button>
-      <button class="investor-chip" data-profile="multibagger">💎 Multibagger</button>
-      <button class="investor-chip" data-profile="garp">🚀 GARP</button>
-      <button class="investor-chip" data-profile="deep_value">📊 Deep Value</button>
-      <button class="investor-chip" data-profile="dividend">💰 Dividend</button>
-      <button class="investor-chip" data-profile="momentum">⚡ Momentum</button>
-    </div>
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  SCROLLABLE CONTENT REGION                       ║
+       ╚══════════════════════════════════════════════════╝ -->
+  <div id="mobileContent">
 
-    <!-- Presets Ribbon -->
-    <div class="protocol-ribbon" style="margin-bottom:10px;">
-      <div class="preset-group">
-        <button class="preset-chip active" data-preset="all">📋 All (12)</button>
-        <button class="preset-chip" data-preset="user_master">🌟 10 Rules</button>
-        <button class="preset-chip" data-preset="cup_handle">☕ Cup & Handle</button>
-        <button class="preset-chip" data-preset="consolidation_7w">🧱 7W Base</button>
-        <button class="preset-chip" data-preset="vol_shocker">⚡ Vol Shocker</button>
-        <button class="preset-chip" data-preset="nr_breakout">🎯 NR4/NR7</button>
-        <button class="preset-chip" data-preset="sebi_insider">🏛️ SEBI Insider</button>
-        <button class="preset-chip" data-preset="smc_accum">💎 SMC</button>
-        <button class="preset-chip" data-preset="dmr_leaders">📈 DMR</button>
+    <!-- ════════════════════════════════
+         TAB 1: WATCHLIST SCANNER CARDS
+         ════════════════════════════════ -->
+    <section class="m-tab-view active" id="viewWatchlist">
+
+      <!-- Investor Profile Chips -->
+      <div class="investor-modes-ribbon" style="margin-bottom:8px;">
+        <button class="investor-chip active" data-profile="all">🌐 All</button>
+        <button class="investor-chip" data-profile="compounder">🏛️ Compounder</button>
+        <button class="investor-chip" data-profile="multibagger">💎 Multibagger</button>
+        <button class="investor-chip" data-profile="garp">🚀 GARP</button>
+        <button class="investor-chip" data-profile="deep_value">📊 Deep Value</button>
+        <button class="investor-chip" data-profile="dividend">💰 Dividend</button>
+        <button class="investor-chip" data-profile="momentum">⚡ Momentum</button>
       </div>
-    </div>
 
-    <!-- AI NLP Search Input -->
-    <div class="nlp-search-box" style="margin-bottom:10px;">
-      <div class="nlp-input-row">
-        <span style="color:var(--accent-blue); font-size:13px;">✨</span>
-        <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Ask AI Screener (e.g. 'High ROCE low debt')...">
-        <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;">✕</button>
-      </div>
-    </div>
-
-    <!-- Screener Results Header -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 2px;">
-      <div style="font-size:12px; font-weight:700; color:var(--text-primary);">
-        Scanned Universe (<span id="statScannedCount" style="color:var(--accent-blue);">12</span>)
-      </div>
-      <div style="font-size:11px; font-weight:600; color:var(--accent-green);" id="statAvgReturn">
-        Avg Return: +3.4%
-      </div>
-    </div>
-
-    <!-- Native Stock Cards List Container -->
-    <div id="mobileStockCardsList">
-      <!-- Dynamically populated from JS universe -->
-    </div>
-
-    <!-- Fallback Hidden Table for Bundle Sync -->
-    <div style="display:none;">
-      <tbody id="screenerTableBody"></tbody>
-      <span id="marketStatusBadge"></span>
-      <span id="livePillIndicator"></span>
-      <span id="gpuStatusBadge"></span>
-      <select id="selDataProvider"><option value="auto" selected></option></select>
-      <select id="selFeedMode"><option value="auto" selected></option></select>
-      <select id="selStreamSpeed"><option value="1800" selected></option></select>
-      <select id="selExchange"><option value="ALL" selected></option></select>
-      <select id="selSector"><option value="ALL" selected></option></select>
-      <select id="selSortBy"><option value="matchCount" selected></option></select>
-      <span id="statMatchRate"></span>
-      <span id="statVolSurge"></span>
-      <span id="statRiskScore"></span>
-      <span id="breadthAdvances"></span>
-      <span id="breadthDeclines"></span>
-      <span id="breadthSentiment"></span>
-    </div>
-
-  </section>
-
-  <!-- =========================================================================
-       VIEW 2: FULL-SCREEN INTERACTIVE GPU CANDLESTICK CHART
-       ========================================================================= -->
-  <section class="mobile-tab-view" id="viewChart">
-    
-    <!-- Active Stock Header -->
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
-      <div>
-        <div style="font-size:15px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);" id="mainChartStockTitle">
-          TRENT <span style="font-size:13px; color:var(--accent-green);" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
-        </div>
-        <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
-          <span class="tag-index" id="mainChartIndexBadge" style="font-size:9px; padding:1px 5px;">NIFTY 50</span>
-          <span class="tag tag-cwh" id="mainChartPatternBadge" style="font-size:9px; padding:1px 5px;">Cup & Handle</span>
+      <!-- Preset Scan Chips -->
+      <div class="protocol-ribbon" style="margin-bottom:8px;">
+        <div class="preset-group">
+          <button class="preset-chip active" data-preset="all">📋 All</button>
+          <button class="preset-chip" data-preset="user_master">🌟 10 Rules</button>
+          <button class="preset-chip" data-preset="cup_handle">☕ Cup & Handle</button>
+          <button class="preset-chip" data-preset="consolidation_7w">🧱 7W Base</button>
+          <button class="preset-chip" data-preset="vol_shocker">⚡ Vol Shock</button>
+          <button class="preset-chip" data-preset="nr_breakout">🎯 NR4/NR7</button>
+          <button class="preset-chip" data-preset="sebi_insider">🏛️ SEBI</button>
+          <button class="preset-chip" data-preset="smc_accum">💎 SMC</button>
+          <button class="preset-chip" data-preset="dmr_leaders">📈 DMR</button>
         </div>
       </div>
 
-      <div style="display:flex; gap:4px;">
-        <button class="btn btn-sm" id="btnResetChartZoom" style="padding:4px 8px; font-size:11px;">🔍 Fit</button>
-        <button class="btn btn-sm" id="btnPopoutChart" style="color:var(--accent-green); padding:4px 8px; font-size:11px;">↗ Pop-Out</button>
+      <!-- AI NLP Search -->
+      <div class="nlp-search-box" style="margin-bottom:8px;">
+        <div class="nlp-input-row">
+          <span style="color:var(--accent-blue);font-size:13px;">✨</span>
+          <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Search (e.g. 'high ROCE low debt')...">
+          <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;">✕</button>
+        </div>
       </div>
-    </div>
 
-    <!-- Stock Selector Pills -->
-    <div class="stock-pill-selector" id="stockPillSelector" style="margin-bottom:8px; max-width:100%;">
-      <!-- Dynamically filled -->
-    </div>
+      <!-- Results Header -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;padding:0 2px;">
+        <span style="font-size:11.5px;font-weight:700;color:var(--text-primary);">
+          Universe (<span id="statScannedCount" style="color:var(--accent-blue);">12</span>)
+        </span>
+        <span style="font-size:10.5px;font-weight:600;color:var(--accent-green);" id="statAvgReturn">Avg: +3.4%</span>
+      </div>
 
-    <!-- Time Horizon Toolbar -->
-    <div class="tv-btn-group" id="tvIntervalGroup" style="margin-bottom:8px; overflow-x:auto; flex-wrap:nowrap;">
-      <span class="tv-group-label" style="font-size:8.5px;">Horizon:</span>
-      <button class="tv-btn" data-interval="1m">1m</button>
-      <button class="tv-btn" data-interval="5m">5m</button>
-      <button class="tv-btn" data-interval="15m">15m</button>
-      <button class="tv-btn" data-interval="1H">1H</button>
-      <button class="tv-btn" data-interval="4H">4H</button>
-      <button class="tv-btn active" data-interval="1D">1D</button>
-      <button class="tv-btn" data-interval="1W">1W</button>
-      <button class="tv-btn" data-interval="1M">1M</button>
-      <button class="tv-btn" data-range="6M">6M</button>
-      <button class="tv-btn" data-range="1Y">1Y</button>
-      <button class="tv-btn" data-range="ALL">ALL</button>
-    </div>
+      <!-- Stock Cards Container -->
+      <div id="mobileStockCardsList"></div>
 
-    <!-- Visual Protocols Ribbon -->
-    <div class="protocol-layer-ribbon" style="margin-bottom:8px;">
-      <button class="layer-toggle active" data-layer="p1_growth">P1: EPS</button>
-      <button class="layer-toggle active" data-layer="p2_rsi">P2: RSI</button>
-      <button class="layer-toggle active" data-layer="p3_vol">P3: Vol</button>
-      <button class="layer-toggle active" data-layer="p4_base7w">P4: 7W</button>
-      <button class="layer-toggle active" data-layer="p5_cup">P5: Cup</button>
-      <button class="layer-toggle active" data-layer="p6_sl">P6: SL</button>
-      <button class="layer-toggle active" data-layer="p9_rs">P9: RS</button>
-      <button class="layer-toggle active" data-layer="p10_mtf">P10: MTF</button>
-    </div>
+      <!-- Bundle Sync Hidden Stubs -->
+      <div id="bundleSyncArea">
+        <tbody id="screenerTableBody"></tbody>
+        <span id="marketStatusBadge"></span>
+        <span id="livePillIndicator"></span>
+        <span id="gpuStatusBadge"></span>
+        <select id="selDataProvider"><option value="auto" selected></option></select>
+        <select id="selFeedMode"><option value="auto" selected></option></select>
+        <select id="selStreamSpeed"><option value="1800" selected></option></select>
+        <select id="selExchange"><option value="ALL" selected></option></select>
+        <select id="selSector"><option value="ALL" selected></option></select>
+        <select id="selSortBy"><option value="matchCount" selected></option></select>
+        <span id="statMatchRate"></span>
+        <span id="statVolSurge"></span>
+        <span id="statRiskScore"></span>
+        <span id="breadthAdvances"></span>
+        <span id="breadthDeclines"></span>
+        <span id="breadthSentiment"></span>
+      </div>
+    </section>
 
-    <!-- GPU WebGL Canvas Area -->
-    <div class="chart-container-box" id="mainCanvasContainer" style="height:440px; min-height:360px; margin-bottom:8px;">
-      <!-- GPU WebGL 60 FPS Engine -->
-    </div>
+    <!-- ════════════════════════════════════
+         TAB 2: LIVE GPU CANDLESTICK CHART
+         (flex-column, fills viewport exactly)
+         ════════════════════════════════════ -->
+    <section class="m-tab-view" id="viewChart">
 
-    <div style="font-size:10px; color:var(--text-muted); text-align:center; font-family:var(--font-mono);">
-      💡 Swipe 1-finger to pan • 2-fingers pinch to zoom • Tap candle for OHLCV
-    </div>
-
-  </section>
-
-  <!-- =========================================================================
-       VIEW 3: 10 CANSLIM PROTOCOLS CONFIGURATION
-       ========================================================================= -->
-  <section class="mobile-tab-view" id="viewProtocols">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
-      <h3 style="margin:0; font-size:14px; font-weight:700;">10 CANSLIM Protocols Engine</h3>
-      <button class="btn btn-sm" id="btnResetFilters" style="padding:3px 8px; font-size:10.5px;">Reset Rules</button>
-    </div>
-
-    <div class="protocol-list" style="display:flex; flex-direction:column; gap:8px;">
-      
-      <!-- P1 -->
-      <div class="protocol-card active" id="card_p1">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P1</span>
-            <span class="protocol-name">EPS & Sales Growth (>15%)</span>
+      <!-- Stock Header Row -->
+      <div class="m-chart-header">
+        <div>
+          <div>
+            <span class="m-chart-symbol" id="mobileChartSymbol">TRENT</span>
+            <span class="m-chart-price" id="mobileChartPrice" style="color:var(--accent-green);">₹7,120 (+3.4%)</span>
           </div>
+          <div style="display:flex;align-items:center;gap:4px;margin-top:2px;">
+            <span class="tag-index" id="mobileChartIndex" style="font-size:8.5px;padding:1px 5px;">NIFTY50</span>
+            <span class="tag tag-cwh" id="mobileChartPattern" style="font-size:8.5px;padding:1px 5px;">Cup & Handle</span>
+          </div>
+        </div>
+        <div class="m-chart-actions">
+          <button class="m-pill-btn" id="btnMobileFitChart">🔍 Fit</button>
+          <button class="m-pill-btn success" id="btnMobilePopout">↗</button>
+        </div>
+      </div>
+
+      <!-- ── LIVE OHLCV BAR ──────────────────────── -->
+      <div class="m-ohlcv-bar" id="mobileOhlcvBar">
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">O</span>
+          <span class="m-ohlcv-val" id="ohlcvOpen">₹6,980</span>
+        </div>
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">H</span>
+          <span class="m-ohlcv-val" style="color:var(--accent-green);" id="ohlcvHigh">₹7,158</span>
+        </div>
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">L</span>
+          <span class="m-ohlcv-val" style="color:var(--accent-red);" id="ohlcvLow">₹6,950</span>
+        </div>
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">C</span>
+          <span class="m-ohlcv-val" id="ohlcvClose">₹7,120</span>
+        </div>
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">VOL</span>
+          <span class="m-ohlcv-val m-ohlcv-vol" id="ohlcvVol">3.4M</span>
+        </div>
+        <div class="m-ohlcv-cell">
+          <span class="m-ohlcv-lbl">RSI</span>
+          <span class="m-ohlcv-val" id="ohlcvRsi">68.4</span>
+        </div>
+      </div>
+
+      <!-- ── DATA FEED CONTROL PANEL ─────────────── -->
+      <div class="m-feed-panel-wrap">
+        <div class="m-feed-trigger" id="mFeedTrigger">
+          <div class="m-feed-trigger-left">
+            <div class="m-feed-status-dot" id="mFeedDot"></div>
+            <span>Live Feed: <strong id="mFeedLabel" style="color:var(--accent-blue);">Auto-Best · Simulated · 1.8s</strong></span>
+          </div>
+          <span class="m-feed-chevron" id="mFeedChevron">▾</span>
+        </div>
+        <div class="m-feed-panel" id="mFeedPanel">
+          <!-- Data Source -->
+          <div>
+            <div class="m-feed-section-lbl">Data Source / Provider</div>
+            <div class="m-chip-row" id="mChipProvider">
+              <button class="m-chip active" data-val="auto">🤖 Auto-Best</button>
+              <button class="m-chip" data-val="nse">📊 NSE Direct</button>
+              <button class="m-chip" data-val="bse">🏛️ BSE Direct</button>
+              <button class="m-chip" data-val="smartapi">⚡ SmartAPI</button>
+            </div>
+          </div>
+          <!-- Feed Mode -->
+          <div>
+            <div class="m-feed-section-lbl">Feed Mode</div>
+            <div class="m-chip-row" id="mChipFeedMode">
+              <button class="m-chip active-green active" data-val="auto">🟢 Simulated</button>
+              <button class="m-chip" data-val="websocket">🔴 WebSocket Live</button>
+              <button class="m-chip" data-val="rest">🟡 REST Polling</button>
+            </div>
+          </div>
+          <!-- Stream Speed -->
+          <div>
+            <div class="m-feed-section-lbl">Stream Refresh Speed</div>
+            <div class="m-speed-row" id="mChipSpeed">
+              <button class="m-speed-chip" data-val="500">
+                <span class="speed-val">0.5s</span>
+                <span class="speed-desc">Ultra</span>
+              </button>
+              <button class="m-speed-chip" data-val="1000">
+                <span class="speed-val">1s</span>
+                <span class="speed-desc">Fast</span>
+              </button>
+              <button class="m-speed-chip active" data-val="1800">
+                <span class="speed-val">1.8s</span>
+                <span class="speed-desc">Balanced</span>
+              </button>
+              <button class="m-speed-chip" data-val="3000">
+                <span class="speed-val">3s</span>
+                <span class="speed-desc">Eco</span>
+              </button>
+              <button class="m-speed-chip" data-val="5000">
+                <span class="speed-val">5s</span>
+                <span class="speed-desc">Slow</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── TOOLBAR ROW 1: TIMEFRAME + RANGE ────── -->
+      <div class="m-chart-toolbar-row" id="mTfRow">
+        <span style="font-size:8.5px;font-weight:800;color:rgba(148,163,184,0.4);flex-shrink:0;">TF</span>
+        <button class="m-tf-chip" data-interval="1m">1m</button>
+        <button class="m-tf-chip" data-interval="5m">5m</button>
+        <button class="m-tf-chip" data-interval="15m">15m</button>
+        <button class="m-tf-chip" data-interval="1H">1H</button>
+        <button class="m-tf-chip" data-interval="4H">4H</button>
+        <button class="m-tf-chip active" data-interval="1D">1D</button>
+        <button class="m-tf-chip" data-interval="1W">1W</button>
+        <button class="m-tf-chip" data-interval="1M">1M</button>
+        <div class="m-tf-sep"></div>
+        <button class="m-tf-chip" data-range="6M">6M</button>
+        <button class="m-tf-chip" data-range="1Y">1Y</button>
+        <button class="m-tf-chip" data-range="ALL">ALL</button>
+      </div>
+
+      <!-- ── TOOLBAR ROW 2: PROTOCOL LAYERS ──────── -->
+      <div class="m-chart-toolbar-row" id="mLayerRow">
+        <span style="font-size:8.5px;font-weight:800;color:rgba(148,163,184,0.4);flex-shrink:0;">ON</span>
+        <button class="m-layer-chip active" data-layer="p1_growth">P1·EPS</button>
+        <button class="m-layer-chip active" data-layer="p2_rsi">P2·RSI</button>
+        <button class="m-layer-chip active" data-layer="p3_vol">P3·Vol</button>
+        <button class="m-layer-chip active" data-layer="p4_base7w">P4·7W</button>
+        <button class="m-layer-chip active" data-layer="p5_cup">P5·Cup</button>
+        <button class="m-layer-chip active" data-layer="p6_sl">P6·SL</button>
+        <button class="m-layer-chip active" data-layer="p9_rs">P9·RS</button>
+        <button class="m-layer-chip active" data-layer="p10_mtf">P10·MTF</button>
+      </div>
+
+      <!-- ── GPU CANVAS (fills all remaining height) -->
+      <div class="chart-container-box" id="mobileChartCanvas">
+        <!-- 60 FPS GPU Engine renders here -->
+      </div>
+
+      <!-- ── GESTURE HINT ──────────────────────── -->
+      <div style="text-align:center;font-size:9.5px;color:rgba(148,163,184,0.35);font-family:var(--font-mono);flex-shrink:0;padding-bottom:2px;">
+        1-finger pan · 2-finger pinch zoom · tap candle for OHLCV
+      </div>
+
+    </section>
+
+    <!-- ════════════════════════════════
+         TAB 3: 10 PROTOCOLS
+         ════════════════════════════════ -->
+    <section class="m-tab-view" id="viewProtocols">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:14px;font-weight:800;">10 CANSLIM Protocols</h3>
+        <button class="m-pill-btn" id="btnResetFilters">↺ Reset</button>
+      </div>
+      <div id="mProtoList">
+        <!-- P1 -->
+        <div class="m-proto-card on" id="card_p1">
+          <div class="m-proto-badge">P1</div>
+          <div class="m-proto-name">EPS & Sales Growth (>15%)</div>
           <label class="switch"><input type="checkbox" id="chk_p1" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P2 -->
-      <div class="protocol-card active" id="card_p2">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P2</span>
-            <span class="protocol-name">RSI(14) Momentum (≥65)</span>
-          </div>
+        <!-- P2 -->
+        <div class="m-proto-card on" id="card_p2">
+          <div class="m-proto-badge">P2</div>
+          <div class="m-proto-name">RSI(14) Momentum (≥65)</div>
           <label class="switch"><input type="checkbox" id="chk_p2" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P3 -->
-      <div class="protocol-card active" id="card_p3">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P3</span>
-            <span class="protocol-name">Volume Surge (>40% above SMA20)</span>
-          </div>
+        <!-- P3 -->
+        <div class="m-proto-card on" id="card_p3">
+          <div class="m-proto-badge">P3</div>
+          <div class="m-proto-name">Volume Surge (>40% above SMA20)</div>
           <label class="switch"><input type="checkbox" id="chk_p3" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P4 -->
-      <div class="protocol-card" id="card_p4">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P4</span>
-            <span class="protocol-name">7-Week Base Consolidation (≤18%)</span>
-          </div>
+        <!-- P4 -->
+        <div class="m-proto-card" id="card_p4">
+          <div class="m-proto-badge">P4</div>
+          <div class="m-proto-name">7-Week Base Consolidation (≤18%)</div>
           <label class="switch"><input type="checkbox" id="chk_p4"><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P5 -->
-      <div class="protocol-card" id="card_p5">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P5</span>
-            <span class="protocol-name">Cup with Handle Pivot Breakout</span>
-          </div>
+        <!-- P5 -->
+        <div class="m-proto-card" id="card_p5">
+          <div class="m-proto-badge">P5</div>
+          <div class="m-proto-name">Cup with Handle Pivot Breakout</div>
           <label class="switch"><input type="checkbox" id="chk_p5"><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P6 -->
-      <div class="protocol-card active" id="card_p6">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P6</span>
-            <span class="protocol-name">Risk Management SL (≤8.0%)</span>
-          </div>
+        <!-- P6 -->
+        <div class="m-proto-card on" id="card_p6">
+          <div class="m-proto-badge">P6</div>
+          <div class="m-proto-name">Risk Management SL (≤8.0%)</div>
           <label class="switch"><input type="checkbox" id="chk_p6" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P7 -->
-      <div class="protocol-card active" id="card_p7">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P7</span>
-            <span class="protocol-name">ROCE / ROE Quality (≥17%)</span>
-          </div>
+        <!-- P7 -->
+        <div class="m-proto-card on" id="card_p7">
+          <div class="m-proto-badge">P7</div>
+          <div class="m-proto-name">ROCE / ROE Quality (≥17%)</div>
           <label class="switch"><input type="checkbox" id="chk_p7" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P8 -->
-      <div class="protocol-card active" id="card_p8">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P8</span>
-            <span class="protocol-name">3-Year EPS CAGR (≥20%)</span>
-          </div>
+        <!-- P8 -->
+        <div class="m-proto-card on" id="card_p8">
+          <div class="m-proto-badge">P8</div>
+          <div class="m-proto-name">3-Year EPS CAGR (≥20%)</div>
           <label class="switch"><input type="checkbox" id="chk_p8" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P9 -->
-      <div class="protocol-card active" id="card_p9">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P9</span>
-            <span class="protocol-name">Mansfield RS vs Nifty (≥80)</span>
-          </div>
+        <!-- P9 -->
+        <div class="m-proto-card on" id="card_p9">
+          <div class="m-proto-badge">P9</div>
+          <div class="m-proto-name">Mansfield RS vs Nifty (≥80)</div>
           <label class="switch"><input type="checkbox" id="chk_p9" checked><span class="slider"></span></label>
         </div>
-      </div>
-
-      <!-- P10 -->
-      <div class="protocol-card active" id="card_p10">
-        <div class="protocol-header">
-          <div class="protocol-title-wrap">
-            <span class="protocol-badge">P10</span>
-            <span class="protocol-name">Multi-Timeframe 6/6 Green Alignment</span>
-          </div>
+        <!-- P10 -->
+        <div class="m-proto-card on" id="card_p10">
+          <div class="m-proto-badge">P10</div>
+          <div class="m-proto-name">Multi-Timeframe 6/6 Green Alignment</div>
           <label class="switch"><input type="checkbox" id="chk_p10" checked><span class="slider"></span></label>
         </div>
       </div>
 
-    </div>
-  </section>
+      <!-- Sync protocol cards with toggle state -->
+      <script>
+        document.querySelectorAll('#mProtoList .switch input').forEach(chk => {
+          chk.addEventListener('change', () => {
+            const card = chk.closest('.m-proto-card');
+            if (chk.checked) card.classList.add('on');
+            else card.classList.remove('on');
+          });
+        });
+      </script>
+    </section>
 
-  <!-- =========================================================================
-       VIEW 4: LIVE FINANCIAL NEWS WIRE
-       ========================================================================= -->
-  <section class="mobile-tab-view" id="viewNews">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
-      <h3 style="margin:0; font-size:14px; font-weight:700;">Live Market News Wire</h3>
-      <span class="val-pill" style="font-size:10px;">SEBI & Exchange Filings</span>
-    </div>
-    <div class="news-feed-list" id="newsFeedList" style="display:flex; flex-direction:column; gap:8px;">
-      <!-- Dynamically filled -->
-    </div>
-  </section>
+    <!-- ════════════════════════════════
+         TAB 4: LIVE NEWS WIRE
+         ════════════════════════════════ -->
+    <section class="m-tab-view" id="viewNews">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <h3 style="margin:0;font-size:14px;font-weight:800;">Live Market News Wire</h3>
+        <span class="val-pill" style="font-size:9.5px;">SEBI · NSE · BSE</span>
+      </div>
+      <div class="news-feed-list" id="newsFeedList" style="display:flex;flex-direction:column;gap:7px;"></div>
+    </section>
 
-  <!-- =========================================================================
-       VIEW 5: POSITION SIZING & RISK CALCULATOR
-       ========================================================================= -->
-  <section class="mobile-tab-view" id="viewCalc">
-    <div style="margin-bottom:10px;">
-      <h3 style="margin:0; font-size:14px; font-weight:700;">Institutional Position Sizing</h3>
-      <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-secondary);">2R Profit Target & Stop-Loss Calculator</p>
-    </div>
+    <!-- ════════════════════════════════
+         TAB 5: POSITION SIZING CALC
+         ════════════════════════════════ -->
+    <section class="m-tab-view" id="viewCalc">
+      <div style="margin-bottom:10px;">
+        <h3 style="margin:0;font-size:14px;font-weight:800;">Position Sizing Calculator</h3>
+        <p style="margin:3px 0 0;font-size:10.5px;color:var(--text-muted);">2R Profit Target · Stop-Loss Sizing</p>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
+        <div class="m-calc-card">
+          <div class="m-calc-label">Total Capital (₹)</div>
+          <input type="number" class="m-calc-input" id="calcCapital" value="500000" step="10000" inputmode="numeric">
+        </div>
+        <div class="m-calc-card">
+          <div class="m-calc-label">Max Risk Per Trade (%)</div>
+          <input type="number" class="m-calc-input" id="calcRiskPct" value="1.0" step="0.25" max="3.0" inputmode="decimal">
+        </div>
+        <div class="m-calc-card">
+          <div class="m-calc-label">Entry Price (₹)</div>
+          <input type="number" class="m-calc-input" id="calcEntryPrice" value="7120.50" inputmode="decimal">
+        </div>
+        <div class="m-calc-card">
+          <div class="m-calc-label">Stop-Loss Price (₹)</div>
+          <input type="number" class="m-calc-input" id="calcStopLossPrice" value="6622.05" inputmode="decimal">
+        </div>
+      </div>
+      <div class="m-result-grid">
+        <div class="m-result-card">
+          <div class="m-result-lbl">Max Risk (₹)</div>
+          <div class="m-result-val" style="color:var(--accent-red);" id="resMaxRisk">₹5,000</div>
+        </div>
+        <div class="m-result-card">
+          <div class="m-result-lbl">Qty (Shares)</div>
+          <div class="m-result-val" style="color:var(--accent-blue);" id="resMaxShares">10</div>
+        </div>
+        <div class="m-result-card">
+          <div class="m-result-lbl">Position Value (₹)</div>
+          <div class="m-result-val" id="resPositionVal">₹71,205</div>
+        </div>
+        <div class="m-result-card">
+          <div class="m-result-lbl">2R Target (₹)</div>
+          <div class="m-result-val" style="color:var(--accent-green);" id="res2RTarget">₹8,117</div>
+        </div>
+      </div>
 
-    <div class="calc-grid" style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;">
-      <div class="calc-card">
-        <div class="calc-label">Total Trading Capital (₹)</div>
-        <input type="number" class="calc-input" id="calcCapital" value="500000" step="10000">
-      </div>
-      <div class="calc-card">
-        <div class="calc-label">Max Risk Per Trade (%)</div>
-        <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25" max="3.0">
-      </div>
-      <div class="calc-card">
-        <div class="calc-label">Entry Price (₹)</div>
-        <input type="number" class="calc-input" id="calcEntryPrice" value="7120.50">
-      </div>
-      <div class="calc-card">
-        <div class="calc-label">Stop-Loss Price (₹)</div>
-        <input type="number" class="calc-input" id="calcStopLossPrice" value="6622.05">
-      </div>
-    </div>
+      <!-- Live calculator logic -->
+      <script>
+        function calcPosition() {
+          const cap   = parseFloat(document.getElementById('calcCapital')?.value) || 500000;
+          const risk  = parseFloat(document.getElementById('calcRiskPct')?.value) || 1.0;
+          const entry = parseFloat(document.getElementById('calcEntryPrice')?.value) || 0;
+          const sl    = parseFloat(document.getElementById('calcStopLossPrice')?.value) || 0;
+          if (!entry || !sl || sl >= entry) return;
+          const maxRisk = cap * (risk / 100);
+          const slPer   = entry - sl;
+          const shares  = slPer > 0 ? Math.floor(maxRisk / slPer) : 0;
+          const posVal  = shares * entry;
+          const target  = entry + (slPer * 2);
+          const fmt = v => '₹' + v.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+          document.getElementById('resMaxRisk').textContent  = fmt(maxRisk);
+          document.getElementById('resMaxShares').textContent = shares;
+          document.getElementById('resPositionVal').textContent = fmt(posVal);
+          document.getElementById('res2RTarget').textContent  = fmt(target);
+        }
+        ['calcCapital','calcRiskPct','calcEntryPrice','calcStopLossPrice'].forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.addEventListener('input', calcPosition);
+        });
+        calcPosition();
+      </script>
+    </section>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-      <div class="metric-chip-box">
-        <div class="metric-chip-label">Allowed Risk (₹)</div>
-        <div class="metric-chip-val" style="color:var(--accent-red);" id="resMaxRisk">₹5,000</div>
-      </div>
-      <div class="metric-chip-box">
-        <div class="metric-chip-label">Recommended Shares</div>
-        <div class="metric-chip-val" style="color:var(--accent-blue);" id="resMaxShares">10 Shares</div>
-      </div>
-      <div class="metric-chip-box">
-        <div class="metric-chip-label">Position Value (₹)</div>
-        <div class="metric-chip-val" id="resPositionVal">₹71,205</div>
-      </div>
-      <div class="metric-chip-box">
-        <div class="metric-chip-label">2R Profit Target (₹)</div>
-        <div class="metric-chip-val" style="color:var(--accent-green);" id="res2RTarget">₹8,117.40 (+14%)</div>
-      </div>
-    </div>
-  </section>
+  </div> <!-- #mobileContent -->
 
-  <!-- =========================================================================
-       NATIVE BOTTOM NAVIGATION BAR
-       ========================================================================= -->
-  <nav class="mobile-bottom-nav">
-    <button class="mobile-nav-item active" data-target="viewWatchlist">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+  <!-- ╔══════════════════════════════════════════════════╗
+       ║  FIXED BOTTOM NAVIGATION                         ║
+       ╚══════════════════════════════════════════════════╝ -->
+  <nav class="m-bottom-nav">
+    <button class="m-nav-btn active" data-target="viewWatchlist">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
       <span>Watchlist</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewChart">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+    <button class="m-nav-btn" data-target="viewChart">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></svg>
       <span>Chart</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewProtocols">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+    <button class="m-nav-btn" data-target="viewProtocols">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
       <span>Protocols</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewNews">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path><path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path></svg>
+    <button class="m-nav-btn" data-target="viewNews">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"/><path d="M18 14h4v7a1 1 0 0 1-1 1h-3"/></svg>
       <span>News</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewCalc">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+    <button class="m-nav-btn" data-target="viewCalc">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"/><line x1="8" y1="6" x2="16" y2="6"/><path d="M8 10h.01M12 10h.01M16 10h.01M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
       <span>Calculator</span>
     </button>
   </nav>
@@ -545,36 +1108,31 @@
         <div class="modal-title-group">
           <div class="brand-logo" id="modalLogo">₹</div>
           <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <h2 id="modalStockSymbol" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <h2 id="modalStockSymbol" style="font-size:16px;font-weight:700;font-family:var(--font-mono);">TRENT</h2>
               <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
             </div>
-            <div id="modalStockName" style="font-size:11px; color:var(--text-muted);">Trent Ltd</div>
+            <div id="modalStockName" style="font-size:11px;color:var(--text-muted);">Trent Ltd</div>
           </div>
         </div>
-
-        <div style="display:flex; align-items:center; gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;">
           <div style="text-align:right;">
-            <div id="modalLTP" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
-            <div id="modalDayChg" style="font-size:10.5px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+            <div id="modalLTP" style="font-size:16px;font-weight:700;font-family:var(--font-mono);">₹7,120.50</div>
+            <div id="modalDayChg" style="font-size:10.5px;font-weight:600;color:var(--accent-green);">+3.4%</div>
           </div>
           <button class="modal-close-btn" id="btnCloseModal">&times;</button>
         </div>
       </div>
-
       <div class="modal-tabs">
         <div class="modal-tab active" data-tab="chart">Chart</div>
-        <div class="modal-tab" data-tab="calculator">Position Sizing</div>
+        <div class="modal-tab" data-tab="calculator">Position</div>
         <div class="modal-tab" data-tab="thesis">Thesis</div>
       </div>
-
       <div class="modal-body">
         <div class="tab-pane active" id="tab-chart">
-          <div id="chartTabCanvasBox" style="height:340px; min-height:300px; width:100%;"></div>
+          <div id="chartTabCanvasBox" style="height:320px;min-height:260px;width:100%;"></div>
         </div>
-        <div class="tab-pane" id="tab-calculator">
-          <!-- Calculator UI -->
-        </div>
+        <div class="tab-pane" id="tab-calculator"></div>
         <div class="tab-pane" id="tab-thesis">
           <div id="thesisCardContent"></div>
         </div>
@@ -582,23 +1140,283 @@
     </div>
   </div>
 
-  <script>
-    // Bottom Navigation Switcher
-    document.querySelectorAll('.mobile-nav-item').forEach(btn => {
-      btn.addEventListener('click', () => {
-        document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.mobile-tab-view').forEach(v => v.classList.remove('active'));
-        btn.classList.add('active');
-        const targetId = btn.dataset.target;
-        const targetView = document.getElementById(targetId);
-        if (targetView) {
-          targetView.classList.add('active');
-          if (targetId === 'viewChart' && window.app?.mainChart) {
-            setTimeout(() => window.app.mainChart.resize(), 60);
-          }
+</div><!-- #mobileShell -->
+
+<!-- ╔══════════════════════════════════════════════════════════╗
+     ║  MOBILE APP CONTROLLER SCRIPT                           ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+<script>
+(function() {
+
+  /* ── 1. BOTTOM NAV TAB SWITCHING ────────────────────── */
+  const navBtns = document.querySelectorAll('.m-nav-btn');
+  const tabViews = document.querySelectorAll('.m-tab-view');
+
+  navBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      navBtns.forEach(b => b.classList.remove('active'));
+      tabViews.forEach(v => v.classList.remove('active'));
+      btn.classList.add('active');
+      const target = document.getElementById(btn.dataset.target);
+      if (target) {
+        target.classList.add('active');
+        if (btn.dataset.target === 'viewChart') {
+          // Allow browser to finish layout, then resize chart
+          requestAnimationFrame(() => {
+            setTimeout(() => {
+              if (window.app?.mainChart) window.app.mainChart.resize();
+              // Hook canvas into mobile slot if not yet done
+              assignMobileChart();
+              updateOhlcvBar();
+            }, 80);
+          });
         }
-      });
+      }
     });
-  </script>
+  });
+
+  /* ── 2. ASSIGN CHART CANVAS TO MOBILE SLOT ─────────── */
+  function assignMobileChart() {
+    const slot = document.getElementById('mobileChartCanvas');
+    if (!slot || !window.app?.mainChart) return;
+    const canvas = window.app.mainChart.canvas;
+    if (canvas && canvas.parentElement !== slot) {
+      slot.appendChild(canvas);
+      window.app.mainChart.container = slot;
+      window.app.mainChart.resize();
+    }
+  }
+
+  /* ── 3. DYNAMIC CHART HEIGHT via visualViewport ─────── */
+  function updateChartHeight() {
+    const vp = window.visualViewport;
+    const vpH = vp ? vp.height : window.innerHeight;
+    const HEADER  = 52;
+    const TICKER  = 34;
+    const OHLCV   = 38;
+    const FEED    = document.getElementById('mFeedPanel')?.classList.contains('open') ? 160 : 40;
+    const TF_ROW  = 36;
+    const L_ROW   = 32;
+    const HINT    = 20;
+    const NAV     = 58;
+    const GAPS    = 38; // padding/gap accumulation
+    const safeBot = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
+    const avail = Math.max(160, vpH - HEADER - TICKER - OHLCV - FEED - TF_ROW - L_ROW - HINT - NAV - GAPS - safeBot);
+    const canvas = document.getElementById('mobileChartCanvas');
+    if (canvas) canvas.style.height = avail + 'px';
+    if (window.app?.mainChart) window.app.mainChart.resize();
+  }
+
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', updateChartHeight);
+    window.visualViewport.addEventListener('scroll', updateChartHeight);
+  } else {
+    window.addEventListener('resize', updateChartHeight);
+  }
+  window.addEventListener('orientationchange', () => setTimeout(updateChartHeight, 200));
+
+  /* ── 4. TIMEFRAME CHIPS ─────────────────────────────── */
+  document.querySelectorAll('#mTfRow .m-tf-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#mTfRow .m-tf-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      if (window.app?.mainChart) {
+        if (chip.dataset.interval) window.app.mainChart.setInterval(chip.dataset.interval);
+        else if (chip.dataset.range) window.app.mainChart.setRange(chip.dataset.range);
+      }
+      updateOhlcvBar();
+    });
+  });
+
+  /* ── 5. PROTOCOL LAYER TOGGLES ──────────────────────── */
+  document.querySelectorAll('#mLayerRow .m-layer-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      chip.classList.toggle('active');
+      if (window.app?.mainChart) {
+        const layer = chip.dataset.layer;
+        const isOn  = chip.classList.contains('active');
+        if (window.app.mainChart.layerToggles) window.app.mainChart.layerToggles[layer] = isOn;
+        window.app.mainChart.render?.();
+      }
+    });
+  });
+
+  /* ── 6. DATA FEED CONTROL PANEL ─────────────────────── */
+  const feedTrigger = document.getElementById('mFeedTrigger');
+  const feedPanel   = document.getElementById('mFeedPanel');
+  const feedChevron = document.getElementById('mFeedChevron');
+
+  feedTrigger?.addEventListener('click', () => {
+    const isOpen = feedPanel.classList.toggle('open');
+    feedChevron.textContent = isOpen ? '▴' : '▾';
+    feedTrigger.style.borderRadius = isOpen ? '8px 8px 0 0' : '8px';
+    // Recompute chart height when panel expands/collapses
+    setTimeout(updateChartHeight, 50);
+  });
+
+  function syncFeedLabel() {
+    const p  = document.querySelector('#mChipProvider .m-chip.active')?.textContent.trim() || 'Auto-Best';
+    const fm = document.querySelector('#mChipFeedMode .m-chip.active')?.textContent.trim() || 'Simulated';
+    const sp = document.querySelector('#mChipSpeed .m-speed-chip.active .speed-val')?.textContent.trim() || '1.8s';
+    const lbl = document.getElementById('mFeedLabel');
+    if (lbl) lbl.textContent = `${p} · ${fm} · ${sp}`;
+  }
+
+  // Provider chips
+  document.querySelectorAll('#mChipProvider .m-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#mChipProvider .m-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const sel = document.getElementById('selDataProvider');
+      if (sel) { sel.value = chip.dataset.val; sel.dispatchEvent(new Event('change')); }
+      syncFeedLabel();
+    });
+  });
+
+  // Feed mode chips
+  document.querySelectorAll('#mChipFeedMode .m-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#mChipFeedMode .m-chip').forEach(c => {
+        c.classList.remove('active', 'active-green');
+      });
+      chip.classList.add('active');
+      if (chip.dataset.val === 'auto') chip.classList.add('active-green');
+      const sel = document.getElementById('selFeedMode');
+      if (sel) { sel.value = chip.dataset.val; sel.dispatchEvent(new Event('change')); }
+      syncFeedLabel();
+    });
+  });
+
+  // Speed chips
+  document.querySelectorAll('#mChipSpeed .m-speed-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('#mChipSpeed .m-speed-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const sel = document.getElementById('selStreamSpeed');
+      if (sel) { sel.value = chip.dataset.val; sel.dispatchEvent(new Event('change')); }
+      syncFeedLabel();
+    });
+  });
+
+  /* ── 7. LIVE OHLCV BAR UPDATE ───────────────────────── */
+  function updateOhlcvBar() {
+    const chart = window.app?.mainChart;
+    if (!chart || !chart.allCandles?.length) return;
+    const candles = chart.allCandles;
+    const visible = candles.slice(Math.max(0, candles.length - (chart.viewCount || 60)));
+    const last = visible[visible.length - 1];
+    if (!last) return;
+    const first = visible[0];
+    const highs = visible.map(c => c.high);
+    const lows  = visible.map(c => c.low);
+    const H = Math.max(...highs);
+    const L = Math.min(...lows);
+    const vol = last.volume;
+    const volFmt = vol >= 1e7 ? (vol/1e7).toFixed(1)+'Cr' : vol >= 1e5 ? (vol/1e5).toFixed(1)+'L' : vol >= 1e3 ? (vol/1e3).toFixed(1)+'K' : vol;
+
+    // RSI from cached indicators
+    let rsiVal = '--';
+    if (chart.indicators?.rsi?.length) {
+      const rsiArr = chart.indicators.rsi;
+      rsiVal = rsiArr[rsiArr.length - 1]?.toFixed(1) || '--';
+    }
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('ohlcvOpen',  '₹' + first.open.toLocaleString('en-IN', { maximumFractionDigits: 1 }));
+    set('ohlcvHigh',  '₹' + H.toLocaleString('en-IN', { maximumFractionDigits: 1 }));
+    set('ohlcvLow',   '₹' + L.toLocaleString('en-IN', { maximumFractionDigits: 1 }));
+    set('ohlcvClose', '₹' + last.close.toLocaleString('en-IN', { maximumFractionDigits: 1 }));
+    set('ohlcvVol',   volFmt);
+    set('ohlcvRsi',   rsiVal);
+  }
+
+  /* ── 8. CHART HEADER SYNC ───────────────────────────── */
+  function syncChartHeader(stock) {
+    if (!stock) return;
+    const isPos = stock.dayChangePct >= 0;
+    const sign  = isPos ? '+' : '';
+    const col   = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+    const set = (id, v, c) => { const el = document.getElementById(id); if (el) { el.textContent = v; if (c) el.style.color = c; } };
+    set('mobileChartSymbol', stock.symbol);
+    set('mobileChartPrice',  `₹${stock.ltp.toLocaleString('en-IN', { maximumFractionDigits: 1 })} (${sign}${stock.dayChangePct}%)`, col);
+    set('mobileChartIndex',  stock.index || 'NSE');
+    set('mobileChartPattern', stock.pattern || 'Equity');
+  }
+
+  /* ── 9. POP-OUT & FIT BUTTONS ───────────────────────── */
+  document.getElementById('btnMobilePopout')?.addEventListener('click', () => {
+    const sym = window.app?.mainChart?.stock?.symbol || 'TRENT';
+    window.open(`chart.html?symbol=${encodeURIComponent(sym)}`, '_blank', 'width=1360,height=840,menubar=no,toolbar=no');
+  });
+
+  document.getElementById('btnMobileFitChart')?.addEventListener('click', () => {
+    if (window.app?.mainChart) {
+      window.app.mainChart.autoScale = true;
+      window.app.mainChart.viewOffset = 0;
+      window.app.mainChart.priceScaleFactor = 1.0;
+      window.app.mainChart.pricePanOffset = 0;
+      window.app.mainChart.render?.();
+    }
+  });
+
+  /* ── 10. PAUSE/RESUME LIVE STREAM ───────────────────── */
+  let streamPaused = false;
+  document.getElementById('btnMobilePauseLive')?.addEventListener('click', function() {
+    streamPaused = !streamPaused;
+    if (streamPaused) {
+      if (window.app?.liveTimer) clearTimeout(window.app.liveTimer);
+      this.textContent = '▶ Resume';
+      this.style.color = 'var(--accent-amber)';
+      document.getElementById('mFeedDot')?.style.setProperty('animation', 'none');
+    } else {
+      if (window.app) window.app.startLiveStream?.();
+      this.textContent = '⏸ Pause';
+      this.style.color = '';
+      document.getElementById('mFeedDot')?.style.removeProperty('animation');
+    }
+  });
+
+  /* ── 11. BOOT — wait for screener bundle app init ───── */
+  function onAppReady() {
+    // Expose helper so renderMobileStockCards can sync chart header
+    window._mobileSyncChartHeader = syncChartHeader;
+    window._mobileUpdateOhlcv     = updateOhlcvBar;
+    // Patch mainChart update to also update OHLCV bar and chart header
+    const origUpdateMainChart = window.app.updateMainChart?.bind(window.app);
+    if (origUpdateMainChart) {
+      window.app.updateMainChart = function(stock) {
+        origUpdateMainChart(stock);
+        syncChartHeader(stock);
+        setTimeout(updateOhlcvBar, 120);
+      };
+    }
+    // Initial chart height calc
+    updateChartHeight();
+    syncFeedLabel();
+    // If chart tab is visible on load, assign canvas immediately
+    if (document.getElementById('viewChart')?.classList.contains('active')) {
+      setTimeout(() => { assignMobileChart(); updateOhlcvBar(); }, 200);
+    }
+    // Live tick → update OHLCV bar continuously
+    const origRefresh = window.app.mainChart?.refreshCandles?.bind(window.app.mainChart);
+    if (origRefresh && window.app.mainChart) {
+      window.app.mainChart.refreshCandles = function() {
+        origRefresh();
+        updateOhlcvBar();
+      };
+    }
+  }
+
+  // Poll for app init (bundle uses deferred init)
+  const readyPoll = setInterval(() => {
+    if (window.app?.mainChart) {
+      clearInterval(readyPoll);
+      onAppReady();
+    }
+  }, 150);
+
+})();
+</script>
+
 </body>
 </html>

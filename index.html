@@ -199,6 +199,11 @@
         <button class="preset-chip active" data-preset="user_master">🌟 User Master (All 10)</button>
         <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle</button>
         <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Bases</button>
+        <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume >3x 10D Average with High Delivery %">⚡ Vol Shockers</button>
+        <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">🎯 NR4/NR7 Squeeze</button>
+        <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > ₹10 Lakhs">🏛️ SEBI Insider Buys</button>
+        <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">💎 SMC Accumulation</button>
+        <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">📈 DMR Leaders</button>
         <button class="preset-chip" data-preset="all">📋 View All Stocks</button>
       </div>
       <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
@@ -585,6 +590,29 @@
         </div>
       </div>
 
+      <!-- Natural Language AI / NLP Filter Search Bar -->
+      <div class="nlp-search-container" id="nlpSearchContainer">
+        <div class="nlp-input-row">
+          <div class="nlp-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter Bar: e.g. 'show me low debt companies with promoter buying' or 'vol shocker with nr7'...">
+          <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">✕ Clear</button>
+        </div>
+        <div class="nlp-chips-row">
+          <span style="color:var(--text-muted); font-size:10px; font-weight:600;">⚡ QUICK PROMPTS:</span>
+          <button class="nlp-suggestion-chip" data-prompt="low debt companies">"low debt"</button>
+          <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker + vwap"</button>
+          <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
+          <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
+          <button class="nlp-suggestion-chip" data-prompt="sector dmr momentum leaders">"dmr leaders"</button>
+          <button class="nlp-suggestion-chip" data-prompt="high roe with cup and handle">"high roe + cup & handle"</button>
+          <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
+        </div>
+      </div>
+
       <!-- Table Filter Bar -->
       <div class="table-header-bar">
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
@@ -618,8 +646,10 @@
           <span style="font-size:11px; color:var(--text-muted);">Sort By:</span>
           <select id="selSortBy">
             <option value="matchCount">Protocol Match Count (9/9)</option>
+            <option value="dmrScore">Dynamic Momentum Rank (DMR)</option>
             <option value="rsScore">RS Score (Highest First)</option>
-            <option value="volumeBurst">Volume Burst %</option>
+            <option value="volumeBurst">Volume Burst / Shocker %</option>
+            <option value="deliveryPct">Delivery % (Institutional)</option>
             <option value="epsGrowthYoY">EPS YoY Growth</option>
             <option value="salesGrowthYoY">Sales YoY Growth</option>
             <option value="roe">ROE %</option>
@@ -709,10 +739,13 @@
         </div>
       </div>
 
-      <!-- Modal Tabs -->
+      <!-- Modal Tabs (5 Comprehensive Analysis Horizons) -->
       <div class="modal-tabs">
         <div class="modal-tab active" data-tab="chart">Candlestick Chart & Pattern Overlay</div>
         <div class="modal-tab" data-tab="calculator">Risk Management & Position Sizing</div>
+        <div class="modal-tab" data-tab="sebi_intel">🏛️ SEBI Insider & Forensics</div>
+        <div class="modal-tab" data-tab="peer_matrix">👥 Sector Peer Matrix</div>
+        <div class="modal-tab" data-tab="smc_dmr">⚡ Smart Money & DMR</div>
       </div>
 
       <!-- Modal Body -->
@@ -779,6 +812,137 @@
               <div id="calcAlertBox" class="calc-alert ok">
                 <span>🛡️</span>
                 <span id="calcAlertMsg">Risk parameter within safe 1% capital allocation threshold.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: SEBI PIT Insider Trading & Forensic Intelligence -->
+        <div class="tab-content" id="tab_sebi_intel" style="display:none;">
+          <div class="sebi-intel-grid">
+            <!-- SEBI Form C Insider Disclosures -->
+            <div class="intel-panel-card" style="grid-column: 1 / -1;">
+              <div class="intel-panel-title">
+                <span>🏛️ SEBI (PIT) Reg 7(2) Insider Trading Disclosures</span>
+                <span class="val-pill" id="modalInsiderBuyTag" style="font-size:10px; background:rgba(16,185,129,0.15); color:var(--accent-green);">Promoter Buy > ₹10L Flagged</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="insider-table" id="modalInsiderTable">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Insider / Entity</th>
+                      <th>Designation</th>
+                      <th>Action</th>
+                      <th>Shares</th>
+                      <th>Value (₹ Lakhs)</th>
+                      <th>Filing Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modalInsiderTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Forensic Audit & Pledge Tracker -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>🔍 Forensic & Governance Audit</span>
+                <span class="val-pill" id="modalForensicRiskPill" style="font-size:10px; color:var(--accent-green);">Pristine (94/100)</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Promoter Pledge %:</span>
+                  <span id="modalPromoterPledge" style="font-family:var(--font-mono); font-weight:700; color:var(--accent-green);">0.0% (Zero Pledge)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Pledge Change (QoQ):</span>
+                  <span id="modalPledgeChange" style="font-family:var(--font-mono); color:var(--accent-green);">-4.2% (De-pledged)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Statutory Auditor:</span>
+                  <span id="modalAuditorStatus" style="font-weight:600; color:var(--text-primary);">Clean (BSR & Co. LLP / Big-4)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0;">
+                  <span style="color:var(--text-muted);">Auditor Resignation Flag:</span>
+                  <span id="modalAuditorResign" style="color:var(--accent-green); font-weight:600;">None (Pristine 5Y Tenure)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Corporate Actions & Dividends -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>📅 Corporate Actions & Buyback Arb</span>
+                <span class="val-pill" style="font-size:10px; color:var(--accent-blue);">SEBI Compliant</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalCorpActionsWrap">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Sector Peer Comparison Matrix -->
+        <div class="tab-content" id="tab_peer_matrix" style="display:none;">
+          <div class="peer-score-box">
+            <div>
+              <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Sector Outperformance & Valuation Matrix</div>
+              <div style="font-size:11px; color:var(--text-muted);" id="modalPeerSectorLabel">Comparing against Retail & Consumer Sector Peers</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:18px; font-weight:700; color:var(--accent-green); font-family:var(--font-mono);" id="modalPeerScore">7 / 8</div>
+              <div style="font-size:10px; font-weight:600; color:var(--text-muted);">Better Than Sector Median</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="peer-table">
+              <thead>
+                <tr>
+                  <th>Financial Metric</th>
+                  <th id="modalPeerStockCol" class="peer-highlight">Selected Stock</th>
+                  <th>Sector Median</th>
+                  <th>Top Quartile (75th)</th>
+                  <th>Relative Standing</th>
+                </tr>
+              </thead>
+              <tbody id="modalPeerTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 5: Smart Money Concepts & DMR -->
+        <div class="tab-content" id="tab_smc_dmr" style="display:none;">
+          <div class="smc-grid">
+            <!-- Dynamic Momentum Rank (DMR) -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>📈 Dynamic Momentum Rank (DMR)</span>
+                <span class="tag-dmr-top" id="modalDmrBadge">Decile 10 (Sector Leader)</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Measures multi-timeframe relative return alpha (3M, 6M, 12M) vs sub-sector peer medians, eliminating broad market noise.
+              </p>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalDmrBreakdown">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Smart Money Concepts & Volume Profile -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>⚡ Smart Money Concepts (SMC)</span>
+                <span class="tag-smc" id="modalSmcZoneBadge">Demand Order Block</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Identifies institutional accumulation footprints, Wyckoff springs, Point of Control (POC), and Value Area High/Low.
+              </p>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalSmcBreakdown">
+                <!-- Populated dynamically -->
               </div>
             </div>
           </div>
@@ -882,6 +1046,17 @@
       </div>
     </div>
   </div>
+
+  <!-- SEBI Regulatory Compliance Advisory Footer -->
+  <footer class="compliance-footer-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="color:var(--accent-amber); font-weight:700;">⚠️ SEBI COMPLIANCE ADVISORY:</span>
+      <span>Live and historical equity quotes are ingested for personal quantitative research. Data complies with SEBI (PIT) Reg 2015 public disclosures and SEBI Circular CIR/MRD/DP/09/2012 for institutional execution.</span>
+    </div>
+    <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">
+      ISIN Unified • NSE/BSE Equity • Multi-Timeframe Engine
+    </div>
+  </footer>
 
   <!-- Global Toast Notification -->
   <div id="uiToast" role="status" aria-live="polite" aria-atomic="true">

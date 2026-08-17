@@ -1,0 +1,2064 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Universal Indian Stock Screener | Multi-Market TradingView Terminal &amp; Institutional Engine</title>
+  <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
+  <link rel="stylesheet" href="css/styles.css">
+  <script defer="" src="js/screener.bundle.js"></script>
+</head>
+<body>
+
+  <!-- App Header -->
+  <header class="app-header">
+    <!-- Live Market Ticker Tape -->
+    <div class="market-ticker-tape" id="marketTickerTape">
+      <div class="ticker-item">
+        <span class="ticker-name">NIFTY 50</span>
+        <span class="ticker-val" id="valNifty">24,835.10</span>
+        <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name">BSE SENSEX</span>
+        <span class="ticker-val" id="valSensex">81,380.40</span>
+        <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name">NIFTY BANK</span>
+        <span class="ticker-val">51,290.80</span>
+        <span class="ticker-chg pos">+215.10 (+0.42%)</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name">NIFTY MIDCAP 100</span>
+        <span class="ticker-val">58,740.00</span>
+        <span class="ticker-chg pos">+680.50 (+1.17%)</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name">INDIA VIX</span>
+        <span class="ticker-val">12.85</span>
+        <span class="ticker-chg neg">-0.45 (-3.38%)</span>
+      </div>
+      <div class="ticker-item" style="border-left: 1px solid var(--border-subtle); padding-left:12px;">
+        <span class="ticker-name" style="color:var(--accent-green);">FII:</span>
+        <span class="ticker-val" style="color:var(--accent-green);">+‘È¶2,480 Cr</span>
+      </div>
+      <div class="ticker-item">
+        <span class="ticker-name" style="color:var(--accent-blue);">DII:</span>
+        <span class="ticker-val" style="color:var(--accent-blue);">+‘È¶3,150 Cr</span>
+      </div>
+    </div>
+
+    <!-- Main Header -->
+    <div class="header-main">
+      <div class="brand-section">
+        <div class="brand-logo">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+            <polyline points="16 7 22 7 22 13"></polyline>
+          </svg>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <h1 class="brand-title">Universal Indian Stock Screener</h1>
+            <span class="market-pill market-open" id="marketStatusBadge" title="Click to view real-time status across NSE/BSE, MCX, GIFT Nifty, and US Markets">
+              <span class="market-dot"></span> <span id="marketStatusText">≠ÉÉÛ MCX &amp; US LIVE (Equity: EOD)</span>
+            </span>
+            <span class="live-pill" id="livePillIndicator" title="Continuous real-time multi-market tick feed active (NSE/BSE, MCX, US Markets, Replay Sync)" style="color: var(--accent-green); border-color: rgba(16, 185, 129, 0.4);"><span class="live-dot"></span> LIVE (Multi-Market Sync)</span>
+            <span class="gpu-badge" id="gpuStatusBadge"><span class="gpu-dot"></span> GPU ANGLE (0ms)</span>
+          </div>
+          <div class="brand-sub">Universal Indian Market Terminal ‘«Û 10 Institutional CANSLIM Protocols ‘«Û Multi-Asset Live Engine</div>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Live Feed Mode, Provider Source & Auto-Refresh Speed Controls -->
+        <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); flex-shrink:0;">
+          <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
+          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (YFinance Wrapper, NSE-BSE NPM API, SmartAPI, or Auto Multi-Proxy)">
+            <option value="auto" selected="">Auto Multi-Feed</option>
+            <option value="yfinance">YFinance (.NS/.BO)</option>
+            <option value="nsebse">NSE-BSE API (NPM)</option>
+            <option value="smartapi">SmartAPI</option>
+          </select>
+          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
+          <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Control live multi-market feed synchronization">
+            <option value="auto" selected="">Auto (Global &amp; Multi-Market Live)</option>
+            <option value="simulation">24x7 Continuous Simulation</option>
+            <option value="nse_strict">NSE/BSE Cash Hours Strict (09:15-15:30)</option>
+            <option value="paused">Freeze Feed (EOD Snapshot)</option>
+          </select>
+          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
+          <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">
+            <option value="1500">1.5s</option>
+            <option value="3500" selected="">3.5s</option>
+            <option value="5000">5.0s</option>
+          </select>
+          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10.5px;">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="6" y="4" width="4" height="16"></rect>
+              <rect x="14" y="4" width="4" height="16"></rect>
+            </svg>
+            <span>Pause</span>
+          </button>
+        </div>
+
+        <button class="btn btn-sm" id="btnToggleMainChart" title="Toggle Live Chart Panel">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 3v18h18"></path>
+            <path d="M18 9l-5 5-4-4-6 6"></path>
+          </svg>
+          Live Chart
+        </button>
+
+        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire with Direct Links">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+            <circle cx="9" cy="9" r="1"></circle>
+            <path d="M7 13h6"></path>
+            <path d="M7 17h4"></path>
+          </svg>
+          News (<span id="newsCountBadge">8</span>)
+        </button>
+
+        <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Export CSV
+        </button>
+
+        <button class="btn btn-sm" id="btnCopyTickers" title="Copy Ticker List">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+          Copy Tickers
+        </button>
+
+        <button class="btn btn-sm" id="btnOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Connect Free Angel One SmartAPI for Live Market Feeds &amp; Orders">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+          SmartAPI <span class="smartapi-dot" id="smartApiDot"></span>
+        </button>
+
+        <button class="btn btn-primary btn-sm" id="btnRunScan" title="Re-Run 10 CANSLIM Protocols Scan">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="23 4 23 10 17 10"></polyline>
+            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+          </svg>
+          Re-Run Scan
+        </button>
+      </div>
+    </div>
+
+    <!-- Breaking News Ticker Ribbon with Clickable Direct Sources -->
+    <div class="breaking-news-ribbon" id="breakingNewsRibbon">
+      <span class="breaking-tag">LIVE WIRE</span>
+      <div class="breaking-content" id="breakingHeadline" title="Click to open full news wire"><strong>NSE India Corporate Wire:</strong> Trent Ltd: Zudio store expansion crosses 550 stores milestone with 68% YoY earnings surge <a href="https://www.livemint.com/market/stock-market-news/trent-share-price-zooms-after-q1-results-beat-estimates-zudio-expansion-in-focus-11723184920194.html" target="_blank" rel="noopener noreferrer" style="color:var(--accent-blue); margin-left:6px; text-decoration:underline;">Read Article ‘Â˘</a></div>
+      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Wire</button>
+    </div>
+
+    <!-- Live Market Breadth Strip -->
+    <div class="market-breadth-strip">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
+        <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono);">
+          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">‘˚¶ 12 Advances</span>
+          <span style="color:var(--text-muted);">:</span>
+          <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">‘˚+ 0 Declines</span>
+          <span class="val-pill" style="font-size:10px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (100%)</span>
+        </div>
+      </div>
+
+      <div class="sector-strip-group">
+        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
+        <span class="sector-badge pos">EMS +3.92%</span>
+        <span class="sector-badge pos">Renewable +3.10%</span>
+        <span class="sector-badge pos">Defence +2.85%</span>
+        <span class="sector-badge pos">Fintech +2.60%</span>
+        <span class="sector-badge pos">Retail +2.45%</span>
+        <span class="sector-badge pos">Wires +1.80%</span>
+      </div>
+    </div>
+
+    <!-- Universal Investor Profiles Ribbon (Section 21) -->
+    <div class="investor-ribbon">
+      <span class="investor-ribbon-label">≠Éƒª Investor Mode:</span>
+      <button class="investor-chip active" data-profile="all">≠ÉÓ… All Profiles</button>
+      <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">≠É≈¯¥©≈ Quality Compounder</button>
+      <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales &amp; EPS CAGR &gt;30%, Low Debt">≠É∆ƒ Multibagger Hunter</button>
+      <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG ‘ÎÒ 1.5, ROCE &gt; 20%)">≠É‹« GARP / Growth</button>
+      <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield &gt; 3.5%">≠ÉÙË Deep Value</button>
+      <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">≠É∆¶ Dividend &amp; Cash</button>
+      <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score &gt; 85, Multi-Quarter Alpha">‘‹Ì Momentum (DMR)</button>
+      <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">≠Éˆ‰ Special Situations</button>
+    </div>
+
+    <!-- Protocol Presets Ribbon -->
+    <div class="protocol-ribbon">
+      <div class="preset-group">
+        <span class="preset-label">CANSLIM Presets:</span>
+        <button class="preset-chip active" data-preset="all">≠ÉÙÔ View All (12)</button>
+        <button class="preset-chip" data-preset="user_master">≠ÉÓÉ User Master (10 Protocols)</button>
+        <button class="preset-chip" data-preset="cup_handle">‘ˇÚ Cup with Handle</button>
+        <button class="preset-chip" data-preset="consolidation_7w">≠É∫¶ 7-Week Bases</button>
+        <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume &gt;3x 10D Average with High Delivery %">‘‹Ì Vol Shockers</button>
+        <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">≠Éƒª NR4/NR7 Squeeze</button>
+        <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures &gt; ‘È¶10 Lakhs">≠É≈¯¥©≈ SEBI Insider Buys</button>
+        <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks &amp; Wyckoff Springs">≠É∆ƒ SMC Accumulation</button>
+        <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">≠ÉÙÍ DMR Leaders</button>
+      </div>
+      <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <div class="app-container">
+
+    <!-- Filter Sidebar (10 Custom Protocols) -->
+    <aside class="filter-sidebar">
+      <div class="filter-section-title">
+        <span>Protocol Engine (10 Rules)</span>
+        <button class="btn btn-sm" id="btnResetFilters" style="padding:1px 5px; font-size:9.5px;">Reset</button>
+      </div>
+
+      <!-- Protocol 1: EPS & Sales Growth -->
+      <div class="protocol-card" id="card_p1">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P1</span>
+            <span class="protocol-name">EPS &amp; Sales YoY Growth</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p1" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min Sales Growth YoY</span>
+            <span class="val-pill" id="val_salesGrowth">15%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_salesGrowth" min="5" max="50" value="15" step="1">
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min EPS Growth YoY</span>
+            <span class="val-pill" id="val_epsGrowth">15%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_epsGrowth" min="5" max="50" value="15" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 2: RSI Indicator -->
+      <div class="protocol-card" id="card_p2">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P2</span>
+            <span class="protocol-name">RSI Momentum Zone</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p2" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min RSI(14) Level</span>
+            <span class="val-pill" id="val_rsi">70</span>
+          </div>
+          <input type="range" class="range-input" id="rng_rsi" min="50" max="85" value="70" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 3: Burst of Volume -->
+      <div class="protocol-card" id="card_p3">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P3</span>
+            <span class="protocol-name">Burst of Volume &gt; 50%</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p3" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Volume vs 20-Day SMA</span>
+            <span class="val-pill" id="val_volumeBurst">+40%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_volumeBurst" min="20" max="200" value="40" step="10">
+        </div>
+      </div>
+
+      <!-- Protocol 4: 7-Week Consolidation Base -->
+      <div class="protocol-card" id="card_p4">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P4</span>
+            <span class="protocol-name">7-Week Consolidation Base</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p4">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Max Base Tightness Range</span>
+            <span class="val-pill" id="val_consolidationRange">‘ÎÒ 15%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_consolidationRange" min="5" max="25" value="15" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 5: Cup with Handle Candle Pattern -->
+      <div class="protocol-card" id="card_p5">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P5</span>
+            <span class="protocol-name">Cup with Handle Pattern</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p5">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div style="font-size:10px; color:var(--text-muted); margin-top:3px;">
+          Detects Left Rim, Rounded U-Bottom, Right Rim recovery &amp; breakout.
+        </div>
+      </div>
+
+      <!-- Protocol 6: % Stop Loss -->
+      <div class="protocol-card" id="card_p6">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P6</span>
+            <span class="protocol-name">% Stop Loss Risk Limit</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p6" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Max Permissible Stop Loss</span>
+            <span class="val-pill" id="val_maxStopLoss">‘ÎÒ 8.0%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_maxStopLoss" min="3" max="15" value="8" step="0.5">
+        </div>
+      </div>
+
+      <!-- Protocol 7: ROE & ROCE > 17% -->
+      <div class="protocol-card" id="card_p7">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P7</span>
+            <span class="protocol-name">ROE / ROCE &gt; 17%</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p7" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min ROE / ROCE</span>
+            <span class="val-pill" id="val_roe">17%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_roe" min="10" max="35" value="17" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 8: EPS >> Last 3-5 Years -->
+      <div class="protocol-card" id="card_p8">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P8</span>
+            <span class="protocol-name">EPS &gt;&gt; Last 3-5 Years</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p8" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min 3-Year EPS CAGR</span>
+            <span class="val-pill" id="val_epsCAGR">20%</span>
+          </div>
+          <input type="range" class="range-input" id="rng_epsCAGR" min="10" max="40" value="20" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 9: RS Score > 80 -->
+      <div class="protocol-card" id="card_p9">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P9</span>
+            <span class="protocol-name">RS Score &gt; 80 (vs NIFTY)</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p9" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Min Mansfield RS Percentile</span>
+            <span class="val-pill" id="val_rsScore">80</span>
+          </div>
+          <input type="range" class="range-input" id="rng_rsScore" min="50" max="95" value="80" step="1">
+        </div>
+      </div>
+
+      <!-- Protocol 10: Multi-Timeframe All-Green Bullish Alignment (5m, 15m, 1H, 4H, 1D, 1W) -->
+      <div class="protocol-card" id="card_p10">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge" style="background:#10b981; color:#fff;">P10</span>
+            <span class="protocol-name">MTF All-Green Alignment</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="chk_p10" checked="">
+            <span class="slider"></span>
+          </label>
+        </div>
+        <div class="range-wrap">
+          <div class="control-row">
+            <span>Timeframes (5m, 15m, 1H, 4H, 1D, 1W)</span>
+            <span class="val-pill" id="val_mtfGreen" style="color:var(--accent-green);">6/6 Green</span>
+          </div>
+          <input type="range" class="range-input" id="rng_mtfGreen" min="4" max="6" value="6" step="1">
+        </div>
+        <div style="display:flex; align-items:center; justify-content:space-between; margin-top:6px; font-size:9.5px; font-family:var(--font-mono); color:var(--text-muted);" id="sidebarMtfPills">
+          <span class="mtf-chip red" id="chip_5m">5m ≠Éˆ¶</span>
+          <span class="mtf-chip green" id="chip_15m">15m ≠ÉÉÛ</span>
+          <span class="mtf-chip green" id="chip_1H">1H ≠ÉÉÛ</span>
+          <span class="mtf-chip green" id="chip_4H">4H ≠ÉÉÛ</span>
+          <span class="mtf-chip green" id="chip_1D">1D ≠ÉÉÛ</span>
+          <span class="mtf-chip green" id="chip_1W">1W ≠ÉÉÛ</span>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="content-area">
+      
+      <!-- Live Interactive Candlestick Chart Panel (TradingView Grade with Maximize & Pop-out) -->
+      <div class="main-chart-card" id="mainChartCard">
+        
+        <!-- 10 Interactive Protocol Visual Layer Switches -->
+        <div class="protocol-layer-ribbon">
+          <span class="protocol-layer-label">Visual Protocols:</span>
+          <button class="layer-toggle active" data-layer="p1_growth" title="P1: Growth Milestone Pins &amp; Earnings Beats">P1: EPS Growth</button>
+          <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI(14) Momentum Oscillator Sub-Panel">P2: RSI Momentum</button>
+          <button class="layer-toggle active" data-layer="p3_vol" title="P3: Glowing Volume Burst Beacons (&gt;50% above SMA20)">P3: Vol Burst</button>
+          <button class="layer-toggle active" data-layer="p4_base7w" title="P4: 7-Week Consolidation Bounding Box">P4: 7W Base</button>
+          <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup &amp; Handle Golden Arc, Neckline Pivot &amp; Target Projection">P5: Cup &amp; Handle</button>
+          <button class="layer-toggle active" data-layer="p6_sl" title="P6: % Stop Loss &amp; Risk/Reward Position Box">P6: Stop Loss &amp; R:R</button>
+          <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield Relative Strength Curve vs NIFTY 50">P9: RS Momentum</button>
+          <button class="layer-toggle active" data-layer="p10_mtf" title="P10: Multi-Timeframe All-Green Bullish Alignment HUD (5m, 15m, 1H, 4H, 1D, 1W)">P10: MTF Green</button>
+        </div>
+
+        <!-- TradingView Top Toolbar: Interval Selector + Chart Type + Maximize + Pop-out Window -->
+        <div class="tv-top-toolbar">
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);" id="mainChartStockTitle">TRENT <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">(NSE: EQ)</span> <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">‘È¶10,444.75 (0%)</span></div>
+
+            <!-- Primary/Secondary Exchange Selector (NSE vs BSE variant) -->
+            <div class="tv-btn-group" id="exchangeVariantGroup">
+              <button class="exch-pill-btn active" id="btnExchNSE" data-exch="NSE" title="Switch to National Stock Exchange (NSE: EQ)">NSE: EQ</button>
+              <button class="exch-pill-btn" id="btnExchBSE" data-exch="BSE" title="Switch to Bombay Stock Exchange (BSE: Scrip Code)">BSE: 500251</button>
+            </div>
+
+            <!-- Sub-Categorization & Index Membership Tag -->
+            <span class="tag-index" id="mainChartIndexBadge" title="ISIN: INE849A01020 | Sub-Sector: Consumer Discretionary ‘«Û Tata Group">NIFTY 50 ‘«Û Large Cap</span>
+            <span class="tag" id="mainChartPatternBadge">Leader (91)</span>
+            
+            <!-- Direct Exchange & Source Pinpoint Links -->
+            <div style="display:flex; align-items:center; gap:4px;" id="mainChartSourceLinks">
+              <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkNseSource" title="View live quote for TRENT (Series: EQ) on official NSE India portal">≠É≈¯¥©≈ NSE India</a>
+              <a href="https://www.screener.in/company/TRENT/consolidated/" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkScreenerSource" title="View 10-year deep financials, quarterly results &amp; shareholding for TRENT on Screener.in">
+                ≠ÉÙË Screener.in
+              </a>
+              <a href="https://in.tradingview.com/chart/?symbol=NSE%3ATRENT&amp;interval=D" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkTradingViewSource" title="Open interactive NSE:TRENT chart on TradingView (1D timeframe)">
+                ≠ÉÙÍ TradingView
+              </a>
+              <a href="https://www.google.com/finance/quote/TRENT:NSE" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkGFinanceSource" title="View real-time overview &amp; financial charts for TRENT on Google Finance">
+                ≠ÉÓ… Google Finance
+              </a>
+            </div>
+          </div>
+
+          <!-- TradingView Multi-Timeframe & Type Toolbar + Maximize / Popout Buttons -->
+          <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+            <!-- Timeframe Interval Group -->
+            <div class="tv-btn-group" id="tvIntervalGroup">
+              <span class="tv-group-label">Interval:</span>
+              <button class="tv-btn" data-interval="1m" title="1-Minute Live Intraday Candlesticks">1m</button>
+              <button class="tv-btn" data-interval="5m" title="5-Minute Intraday Candlesticks">5m</button>
+              <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Candlesticks">15m</button>
+              <button class="tv-btn" data-interval="1H" title="1-Hour Hourly Candlesticks">1H</button>
+              <button class="tv-btn" data-interval="4H" title="4-Hour Swing Candlesticks">4H</button>
+              <button class="tv-btn active" data-interval="1D" title="1-Day Daily Candlesticks (Standard CANSLIM Timeframe)">1D</button>
+              <button class="tv-btn" data-interval="1W" title="1-Week Weekly Base Candlesticks">1W</button>
+              <button class="tv-btn" data-interval="1M" title="1-Month Multi-Year Candlesticks">1M</button>
+            </div>
+
+            <!-- Chart Type Group -->
+            <div class="tv-btn-group">
+              <button class="tv-btn active" id="btnChartTypeCandle" title="Candlestick Chart">≠ÉÚª¥©≈ Candles</button>
+              <button class="tv-btn" id="btnChartTypeArea" title="Area Line Chart">≠ÉÙÍ Area</button>
+            </div>
+
+            <!-- Pan/Zoom Fit Controls -->
+            <div class="tv-btn-group">
+              <button class="tv-btn" id="btnResetChartZoom" title="Reset Zoom &amp; Pan to Fit Screen">≠ÉˆÏ Fit</button>
+            </div>
+
+            <!-- MAXIMIZE & POP-OUT WINDOW BUTTONS -->
+            <div class="tv-btn-group">
+              <button class="tv-btn" id="btnMaximizeChart" title="Maximize Chart to Fullscreen Viewport" style="color:var(--accent-blue);">
+                ‘¯¬ Fullscreen
+              </button>
+              <button class="tv-btn" id="btnPopoutChart" title="Open Standalone Live Chart in New Browser Tab/Window" style="color:var(--accent-green);">
+                ‘Â˘ Pop-Out
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Selector Quick Ribbon -->
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:8px;">
+          <span style="font-size:10px; color:var(--text-muted); text-transform:uppercase; font-weight:600;">Active Stocks:</span>
+          <div class="stock-pill-selector" id="stockPillSelector"><button class="stock-pill active" data-symbol="TRENT">TRENT</button><button class="stock-pill" data-symbol="DIXON">DIXON</button><button class="stock-pill" data-symbol="KAYNES">KAYNES</button><button class="stock-pill" data-symbol="BEL">BEL</button><button class="stock-pill" data-symbol="HAL">HAL</button><button class="stock-pill" data-symbol="SOLARINDS">SOLARINDS</button><button class="stock-pill" data-symbol="CDSL">CDSL</button><button class="stock-pill" data-symbol="BDL">BDL</button><button class="stock-pill" data-symbol="POLYCAB">POLYCAB</button><button class="stock-pill" data-symbol="PERSISTENT">PERSISTENT</button></div>
+        </div>
+
+        <!-- TradingView Interactive Pan/Zoom Canvas Container (Generous 560px Height) -->
+        <div class="chart-container-box" id="mainCanvasContainer"><canvas width="676" height="660" style="width: 676px; height: 660px;"></canvas></div>
+
+        <!-- TradingView Quick-Jump Timeline Bar at Bottom -->
+        <div class="tv-bottom-range-bar">
+          <div class="tv-range-pills">
+            <span style="color:var(--text-muted); font-size:10px; font-weight:600; text-transform:uppercase;">Range:</span>
+            <button class="tv-range-btn" data-range="1D">1D</button>
+            <button class="tv-range-btn" data-range="5D">5D</button>
+            <button class="tv-range-btn" data-range="1M">1M</button>
+            <button class="tv-range-btn" data-range="3M">3M</button>
+            <button class="tv-range-btn active" data-range="6M">6M</button>
+            <button class="tv-range-btn" data-range="1Y">1Y</button>
+            <button class="tv-range-btn" data-range="ALL">ALL</button>
+          </div>
+          <div style="color:var(--text-muted); font-size:10px; font-family:var(--font-mono);" id="tvChartNavHint">
+            ≠É∆Ì Scroll wheel to zoom ‘«Û Drag to pan ‘«Û Click ‘¯¬ Fullscreen to expand
+          </div>
+        </div>
+
+      </div>
+
+      <!-- High-Level Metric Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-header">Matching Stocks</div>
+          <div class="stat-value" id="statMatchingCount">12</div>
+          <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">Cup &amp; Handle Breakouts</div>
+          <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">1</div>
+          <div class="stat-sub">High-quality CANSLIM bases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">7-Week Consolidations</div>
+          <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">4</div>
+          <div class="stat-sub">Volatility Contraction Bases</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-header">Average RS Rating</div>
+          <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">81</div>
+          <div class="stat-sub">Outperforming NIFTY 50</div>
+        </div>
+      </div>
+
+      <!-- Natural Language AI / NLP Filter Search Bar -->
+      <div class="nlp-search-container" id="nlpSearchContainer">
+        <div class="nlp-input-row">
+          <div class="nlp-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+          </div>
+          <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter Bar: e.g. 'show me low debt companies with promoter buying' or 'vol shocker with nr7'...">
+          <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">‘£Ú Clear</button>
+        </div>
+        <div class="nlp-chips-row">
+          <span style="color:var(--text-muted); font-size:10px; font-weight:600;">‘‹Ì UNIVERSAL PROMPTS:</span>
+          <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
+          <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr &gt; 30%">"multibaggers"</button>
+          <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
+          <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker + vwap"</button>
+          <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
+          <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
+          <button class="nlp-suggestion-chip" data-prompt="sector dmr momentum leaders">"dmr leaders"</button>
+          <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
+        </div>
+      </div>
+
+      <!-- Table Filter Bar -->
+      <div class="table-header-bar">
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <div class="search-box-wrap">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+            <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
+          </div>
+
+          <select id="selExchange">
+            <option value="ALL">All Exchanges (NSE &amp; BSE)</option>
+            <option value="NSE">NSE Only</option>
+            <option value="BSE">BSE Only</option>
+          </select>
+
+          <select id="selSector">
+            <option value="ALL">All Sectors</option>
+            <option value="Defence">Defence &amp; Aerospace</option>
+            <option value="Retail">Retail &amp; Consumer</option>
+            <option value="EMS">EMS &amp; Electronics</option>
+            <option value="IT">IT &amp; Software</option>
+            <option value="Wires">Wires &amp; Cables</option>
+            <option value="Renewable">Renewable Energy</option>
+            <option value="Financial">Financial Infrastructure</option>
+          </select>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:6px;">
+          <span style="font-size:11px; color:var(--text-muted);">Sort By:</span>
+          <select id="selSortBy">
+            <option value="qualityScore">Quality Score (0-100)</option>
+            <option value="moatScore">Moat Score (0-10)</option>
+            <option value="matchCount">Protocol Match Count (10/10)</option>
+            <option value="dmrScore">Dynamic Momentum Rank (DMR)</option>
+            <option value="fcfYield">Free Cash Flow Yield %</option>
+            <option value="rsScore">RS Score (Highest First)</option>
+            <option value="volumeBurst">Volume Burst / Shocker %</option>
+            <option value="deliveryPct">Delivery % (Institutional)</option>
+            <option value="epsGrowthYoY">EPS YoY Growth</option>
+            <option value="salesGrowthYoY">Sales YoY Growth</option>
+            <option value="roe">ROE / ROCE %</option>
+            <option value="eps3Y_CAGR">3Y EPS CAGR</option>
+            <option value="ltp">Current Price (LTP)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Results Table -->
+      <div class="table-container">
+        <table class="screener-table">
+          <thead>
+            <tr>
+              <th>Stock / ISIN</th>
+              <th>Live LTP (‘È¶) &amp; Day Chg</th>
+              <th>MTF Trend (6)</th>
+              <th>Quality Score</th>
+              <th>Moat (0-10)</th>
+              <th>Vol Burst</th>
+              <th>Pattern / Base</th>
+              <th>Sales YoY</th>
+              <th>EPS YoY</th>
+              <th>3-5Y CAGR</th>
+              <th>ROE / ROCE</th>
+              <th>Stop Loss (SL)</th>
+              <th>Match (10)</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="screenerTableBody">
+          <tr data-symbol="TRENT" class="selected-stock-row">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">TRENT</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Retail">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
+                </div>
+                <span class="stock-name">Trent Ltd (Westside &amp; Zudio) ‘«Û BSE: 500251</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶14.7Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶10,444.75</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 96/100">96/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.5/10">≠É≈¶ 9.5</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.27x 10D Average">‘‹Ì 3.27x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+77.1%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+53.2%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+67.8%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +54.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 28.6%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 31.4%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶9,713.62</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="TRENT">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="TRENT">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="DIXON" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">DIXON</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in EMS">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
+                </div>
+                <span class="stock-name">Dixon Technologies Ltd ‘«Û BSE: 540699</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶7.5Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶19,251.52</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 92/100">92/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.2/10">≠É≈¶ 8.2</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.35x 10D Average">‘‹Ì 3.35x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+81.3%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+101.4%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+82.5%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +46.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 34.2%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶17,903.91</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="DIXON">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="DIXON">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="BEL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">BEL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Defence">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY 50</span>
+                </div>
+                <span class="stock-name">Bharat Electronics Ltd ‘«Û BSE: 500049</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶456.77</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 94/100">94/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9/10">≠É≈¶ 9</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.37x 10D Average">‘‹Ì 3.37x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+82.1%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+28.5%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.4%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +29.6%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 26.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 35.8%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶424.8</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="BEL">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="BEL">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="SOLARINDS" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">SOLARINDS</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Defence">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 50</span>
+                </div>
+                <span class="stock-name">Solar Industries India ‘«Û BSE: 532725</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶15.5Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶16,430.71</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-green); background:var(--accent-green-bg);">6/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 89/100">89/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.1/10">≠É≈¶ 9.1</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.94x 10D Average">‘‹Ì 3.94x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+113.5%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 7 Sessions">NR7</span>
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+31.4%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+41.2%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.1%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 74.8%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 27.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 32.8%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶15,280.56</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="SOLARINDS">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="SOLARINDS">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="KAYNES" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">KAYNES</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in EMS">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Kaynes Technology Ltd ‘«Û BSE: 543664</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶6.7Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶7,500.10</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 86/100">86/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8/10">≠É≈¶ 8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+57.5%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+72.1%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+79.4%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +62.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.7%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 19.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 22.4%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶6,975.09</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="KAYNES">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="KAYNES">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="CDSL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">CDSL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Financial">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Central Depository Services ‘«Û BSE: 540515</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶13.1Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶2,195.87</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">3/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 95/100">95/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.8/10">≠É≈¶ 9.8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+48.7%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+52.1%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+61.3%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +38.2%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 83.3%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 31.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 42.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶2,042.16</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="CDSL">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="CDSL">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="PREMIERENE" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">PREMIERENE</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Renewable">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY SMALLCAP 250</span>
+                </div>
+                <span class="stock-name">Premier Energies Ltd ‘«Û BSE: 544238</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶1,542.96</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 85/100">85/100</span>
+                <span class="tag-redflag-moderate" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 7.8/10">≠É≈¶ 7.8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3x 10D Average">‘‹Ì 3x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+62.2%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+124%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+145.2%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +88.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 34.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 39.8%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶1,434.95</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                7/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="PREMIERENE">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="PREMIERENE">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="HAL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">HAL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 6 in Defence">DMR 6</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
+                </div>
+                <span class="stock-name">Hindustan Aeronautics Ltd ‘«Û BSE: 541154</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶12,780.18</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">3/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 93/100">93/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9.7/10">≠É≈¶ 9.7</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+58.3%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span class="tag tag-7w">7W Base (7.8%)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+18.2%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+29.5%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +33.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 29.1%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 38.5%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶12,373.48</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">3.18% (Base Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                6/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="HAL">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="HAL">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="POLYCAB" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">POLYCAB</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in Wires">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY NEXT 50</span>
+                </div>
+                <span class="stock-name">Polycab India Ltd ‘«Û BSE: 542652</span>
+                <div style="font-size:9.5px; color:var(--accent-green); font-weight:700; margin-top:2px;">≠É≈¯¥©≈ Prom +‘È¶17.9Cr</div>
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶9,972.44</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 90/100">90/100</span>
+                <span class="tag-redflag-low" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Low Risk</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.8/10">≠É≈¶ 8.8</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.2x 10D Average">‘‹Ì 3.2x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+72.8%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-nr" title="Narrowest Range in 4 Sessions">NR4</span>
+                <span style="color:var(--text-muted); font-size:10.5px;">Consolidating</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+25.1%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+34.2%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +36.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 66.4%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 24.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 31.2%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶9,274.37</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">7% (7% Stop)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                6/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="POLYCAB">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="POLYCAB">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="BDL" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">BDL</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 9 in Defence">DMR 9</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Bharat Dynamics Ltd ‘«Û BSE: 541143</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶3,570.29</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 88/100">88/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 9/10">≠É≈¶ 9</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+32.9%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span class="tag tag-cwh">Cup &amp; Handle (99)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+62.4%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+74.1%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +32.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 18.9%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 24.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶3,364.77</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">5.76% (Cup Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                6/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="BDL">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="BDL">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="ANGELONE" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">ANGELONE</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 7 in Financial">DMR 7</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 100</span>
+                </div>
+                <span class="stock-name">Angel One Ltd ‘«Û BSE: 543235</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶8,151.12</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">5/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 88/100">88/100</span>
+                <span class="tag-redflag-moderate" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Moderate</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.4/10">≠É≈¶ 8.4</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                <span class="tag-vol-shocker" title="Volume Shocker: 3.02x 10D Average">‘‹Ì 3.02x</span>
+                <span style="color:var(--accent-amber); font-weight:600;">+62.5%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span class="tag tag-7w">7W Base (4.8%)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+45.8%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+38.7%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +44.5%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 70.6%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 38.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 46.2%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶7,756.13</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">4.85% (Base Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                6/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="ANGELONE">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="ANGELONE">Details</button>
+              </div>
+            </td>
+          </tr>
+        
+          <tr data-symbol="PERSISTENT" class="">
+            <td>
+              <div class="stock-cell">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                  <span class="stock-symbol">PERSISTENT</span>
+                  <span class="tag-dmr-top" title="Dynamic Momentum Rank: Decile 8 in IT">DMR 8</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 4px;">NIFTY MIDCAP 50</span>
+                </div>
+                <span class="stock-name">Persistent Systems Ltd ‘«Û BSE: 533179</span>
+                
+              </div>
+            </td>
+            <td>
+              <div class="price-num">‘È¶17,791.88</div>
+              <div style="font-size:11px; color:var(--accent-green);">0%</div>
+            </td>
+            <td><span class="val-pill" style="font-size:10.5px; font-weight:700; color:var(--accent-amber);">4/6 ≠ÉÉÛ</span></td>
+            <td>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <span class="tag-quality" title="Institutional Quality Score: 89/100">89/100</span>
+                <span class="tag-redflag-pristine" style="font-size:9.5px; margin-top:2px;">≠É¯Ì¥©≈ Pristine</span>
+              </div>
+            </td>
+            <td><span class="tag-moat" title="Competitive Moat Score: 8.6/10">≠É≈¶ 8.6</span></td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span style="color:var(--accent-amber); font-weight:600;">+15.7%</span>
+              </div>
+            </td>
+            <td>
+              <div style="display:flex; align-items:center; gap:4px; flex-wrap:wrap;">
+                
+                <span class="tag tag-7w">7W Base (5.4%)</span>
+              </div>
+            </td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green);">+19.8%</span></td>
+            <td><span style="font-family:var(--font-mono); color:var(--accent-green); font-weight:600;">+23.4%</span></td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">3Y: +31.8%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">Deliv: 58%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px; color:var(--accent-green);">ROE: 25.4%</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">ROCE: 32.1%</div>
+            </td>
+            <td>
+              <div style="font-family:var(--font-mono); font-size:11.5px;">‘È¶16,786.13</div>
+              <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--accent-green);">5.65% (Base Low)</div>
+            </td>
+            <td>
+              <span class="match-score-badge match-med">
+                5/10
+              </span>
+            </td>
+            <td>
+              <div style="display:flex; gap:4px;">
+                <button class="btn btn-sm btn-chart-quick" data-symbol="PERSISTENT">View</button>
+                <button class="btn btn-primary btn-sm btn-analyze" data-symbol="PERSISTENT">Details</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <!-- Live Financial News Wire Side Drawer -->
+  <div class="news-drawer-overlay" id="newsDrawerOverlay">
+    <div class="news-drawer">
+      <div class="news-drawer-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-blue);">
+            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+            <circle cx="9" cy="9" r="1"></circle>
+            <path d="M7 13h6"></path>
+            <path d="M7 17h4"></path>
+          </svg>
+          <div>
+            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Live Financial News Wire</div>
+            <div style="font-size:10px; color:var(--text-muted);">Direct Links: Livemint ‘«Û Economic Times ‘«Û Moneycontrol ‘«Û NSE Filings</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseNewsDrawer" aria-label="Close news drawer">+˘</button>
+      </div>
+
+      <div class="news-feed-list" id="newsFeedList">
+        <div class="news-card" data-id="news_1">
+          <div class="news-card-header">
+            <span class="news-tag">NSE FILING</span>
+            <span class="news-time">12 mins ago</span>
+          </div>
+          <div class="news-title">Trent Ltd: Zudio store expansion crosses 550 stores milestone with 68% YoY earnings surge</div>
+          <div class="news-snippet">Tata Group retail giant Trent Ltd files quarterly operational metrics with NSE &amp; BSE confirming accelerated store footprint across Tier 2/3 cities with industry-leading ROE of 28.6%.</div>
+          <div class="news-actions">
+            <a href="https://www.livemint.com/market/stock-market-news/trent-share-price-zooms-after-q1-results-beat-estimates-zudio-expansion-in-focus-11723184920194.html" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on NSE India Corporate Wire">
+              ≠ÉÓ… NSE India Corporate Wire ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=TRENT" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_2">
+          <div class="news-card-header">
+            <span class="news-tag">BREAKING</span>
+            <span class="news-time">24 mins ago</span>
+          </div>
+          <div class="news-title">Dixon Tech wins ‘È¶4,200 Cr PLI mobile contract; volume bursts 82% above 20-day SMA</div>
+          <div class="news-snippet">Electronics manufacturing services major Dixon Technologies captures global smartphone assembly export quotas. Volume surges 101% YoY with breakthrough margin expansion.</div>
+          <div class="news-actions">
+            <a href="https://economictimes.indiatimes.com/markets/stocks/news/dixon-tech-shares-hit-record-high-on-pli-order-wins-robust-q1-earnings/articleshow/112459012.cms" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on The Economic Times">
+              ≠ÉÓ… The Economic Times ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=DIXON" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_3">
+          <div class="news-card-header">
+            <span class="news-tag">DEFENCE WIRE</span>
+            <span class="news-time">45 mins ago</span>
+          </div>
+          <div class="news-title">Defence Ministry clears ‘È¶76,000 Crore order book pipeline for BEL &amp; HAL</div>
+          <div class="news-snippet">Cabinet Committee on Security (CCS) approves mega procurement for Next-Gen Electronic Warfare systems, radars, and indigenous fighter jet avionics.</div>
+          <div class="news-actions">
+            <a href="https://www.moneycontrol.com/news/business/markets/defence-stocks-in-focus-bel-hal-gain-on-fresh-order-approvals-12791401.html" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on Moneycontrol Markets">
+              ≠ÉÓ… Moneycontrol Markets ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=BEL" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_4">
+          <div class="news-card-header">
+            <span class="news-tag">EARNINGS BEAT</span>
+            <span class="news-time">1 hour ago</span>
+          </div>
+          <div class="news-title">Premier Energies surges on 145% YoY EPS jump and 2.8GW solar cell capacity commissioning</div>
+          <div class="news-snippet">Premier Energies registers massive institutional block deals following commissioning of its state-of-the-art TOPCon solar cell and module production line.</div>
+          <div class="news-actions">
+            <a href="https://www.cnbctv18.com/market/premier-energies-share-price-surges-on-robust-earnings-expansion-plans-19468192.htm" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on CNBC-TV18">
+              ≠ÉÓ… CNBC-TV18 ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=PREMIERENE" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_5">
+          <div class="news-card-header">
+            <span class="news-tag">SEMI-CONDUCTOR</span>
+            <span class="news-time">2 hours ago</span>
+          </div>
+          <div class="news-title">Kaynes Technology approves ‘È¶2,800 Cr OSAT chip testing facility in Gujarat</div>
+          <div class="news-snippet">Electronics manufacturer Kaynes Tech gets central semiconductor subsidy clearance. Sales growth tops 72% YoY with heavy DII mutual fund accumulation.</div>
+          <div class="news-actions">
+            <a href="https://www.livemint.com/market/stock-market-news/kaynes-technology-shares-rally-on-semiconductor-osat-plant-approval-1172283920194.html" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on Livemint Markets">
+              ≠ÉÓ… Livemint Markets ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=KAYNES" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_6">
+          <div class="news-card-header">
+            <span class="news-tag">INFRASTRUCTURE</span>
+            <span class="news-time">3 hours ago</span>
+          </div>
+          <div class="news-title">Polycab India posts 34% EPS CAGR on domestic power grid capex &amp; global wire exports</div>
+          <div class="news-snippet">Cables &amp; FMEG giant Polycab India maintains pristine balance sheet with 31.2% ROCE and negligible debt as institutional holdings reach all-time highs.</div>
+          <div class="news-actions">
+            <a href="https://www.business-standard.com/markets/news/polycab-india-shares-climb-on-strong-capex-demand-fip-orders-124081200392_1.html" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on Business Standard">
+              ≠ÉÓ… Business Standard ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=POLYCAB" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_7">
+          <div class="news-card-header">
+            <span class="news-tag">BLOCK DEALS</span>
+            <span class="news-time">4 hours ago</span>
+          </div>
+          <div class="news-title">CDSL crosses 130 Million active demat accounts milestone; net profit surges 61%</div>
+          <div class="news-snippet">Market infrastructure monopoly CDSL reports record market share in retail investor onboarding and transaction revenues. ROE reaches 31.8%.</div>
+          <div class="news-actions">
+            <a href="https://www.moneycontrol.com/news/business/markets/cdsl-hits-fresh-peak-on-record-demat-account-additions-12789124.html" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on BSE Corporate Announcements">
+              ≠ÉÓ… BSE Corporate Announcements ‘Â˘
+            </a>
+            <a href="https://www.bseindia.com/stock-share-price/central-depository-services-(india)-ltd/cdsl/540515/" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      
+        <div class="news-card" data-id="news_8">
+          <div class="news-card-header">
+            <span class="news-tag">ROCKET PROPULSION</span>
+            <span class="news-time">5 hours ago</span>
+          </div>
+          <div class="news-title">Solar Industries secures ‘È¶2,039 Cr export order for specialized military propellants &amp; Pinaka rockets</div>
+          <div class="news-snippet">Industrial explosives leader Solar Industries expands high-margin defense vertical with 44% 3-year EPS CAGR and dominant global market presence.</div>
+          <div class="news-actions">
+            <a href="https://economictimes.indiatimes.com/markets/stocks/news/solar-industries-bags-export-orders-for-defence-products-shares-gain/articleshow/112398412.cms" target="_blank" rel="noopener noreferrer" class="news-link-btn" title="Open original news article on Economic Times Markets">
+              ≠ÉÓ… Economic Times Markets ‘Â˘
+            </a>
+            <a href="https://www.nseindia.com/get-quotes/equity?symbol=SOLARINDS" target="_blank" rel="noopener noreferrer" class="news-link-btn" style="color:var(--accent-green); border-color:rgba(16,185,129,0.3);" title="Open official corporate announcement on NSE/BSE">
+              ≠É≈¯¥©≈ Exchange Filing ‘Â˘
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Detail Modal & Full Analysis Visualizer -->
+  <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="brand-logo" id="modalLogo">‘È¶</div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 id="modalStockSymbol" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
+              <span class="tag tag-cwh" id="modalPatternTag">Cup &amp; Handle</span>
+              <span class="val-pill" id="modalExchangeTag">NSE</span>
+            </div>
+            <div id="modalStockName" style="font-size:11.5px; color:var(--text-muted);">Trent Ltd (Westside &amp; Zudio)</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div style="text-align:right;">
+            <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">‘È¶7,120.50</div>
+            <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseModal" aria-label="Close stock detail modal">+˘</button>
+        </div>
+      </div>
+
+      <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
+      <div class="modal-tabs">
+        <div class="modal-tab active" data-tab="chart">Candlestick Chart</div>
+        <div class="modal-tab" data-tab="calculator">Risk &amp; Sizing</div>
+        <div class="modal-tab" data-tab="thesis">≠ÉÙ£ Equity Thesis &amp; Risks</div>
+        <div class="modal-tab" data-tab="moat_intel">≠É≈¶ Moat &amp; Governance</div>
+        <div class="modal-tab" data-tab="sebi_intel">≠É≈¯¥©≈ SEBI Insider &amp; Forensics</div>
+        <div class="modal-tab" data-tab="peer_matrix">≠ÉÊ— Sector Peer Matrix</div>
+        <div class="modal-tab" data-tab="smc_dmr">‘‹Ì Smart Money &amp; DMR</div>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="modal-body">
+        
+        <!-- Tab 1: Modal Candlestick Chart -->
+        <div class="tab-content" id="tab_chart">
+          <div class="chart-container-box" id="modalCanvasContainer" style="height: 480px;"><canvas width="668" height="480" style="width: 668px; height: 480px;"></canvas></div>
+        </div>
+
+        <!-- Tab 2: Risk Management & Position Sizing Calculator -->
+        <div class="tab-content" id="tab_calculator" style="display:none;">
+          <h3 style="font-size:13.5px; font-weight:600; margin-bottom:12px;">Risk Management &amp; Exact Position Sizing</h3>
+          <div class="calc-grid">
+            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+              <div class="calc-input-group">
+                <label class="calc-label">Total Trading Capital (‘È¶)</label>
+                <input type="number" class="calc-input" id="calcCapital" value="500000" step="50000">
+              </div>
+              <div class="calc-input-group">
+                <label class="calc-label">Max Risk Per Trade (%)</label>
+                <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25">
+              </div>
+              <div class="calc-input-group">
+                <label class="calc-label">Entry Price (‘È¶)</label>
+                <input type="number" class="calc-input" id="calcEntryPrice" value="7120">
+              </div>
+              <div class="calc-input-group">
+                <label class="calc-label">Stop Loss Price (‘È¶)</label>
+                <input type="number" class="calc-input" id="calcStopLossPrice" value="6620">
+              </div>
+            </div>
+
+            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">Sizing Execution Output</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="fund-card">
+                  <div class="fund-label">Shares to Buy</div>
+                  <div class="fund-val" id="calcSharesOut" style="color:var(--accent-blue);">10 Qty</div>
+                </div>
+                <div class="fund-card">
+                  <div class="fund-label">Total Investment</div>
+                  <div class="fund-val" id="calcInvOut">‘È¶71,200</div>
+                </div>
+                <div class="fund-card">
+                  <div class="fund-label">Max Risk Amount</div>
+                  <div class="fund-val" id="calcRiskAmountOut" style="color:var(--accent-red);">‘È¶5,000</div>
+                </div>
+                <div class="fund-card">
+                  <div class="fund-label">Stop Loss %</div>
+                  <div class="fund-val" id="calcSlPctOut" style="color:var(--accent-red);">-7.02%</div>
+                </div>
+              </div>
+
+              <div style="margin-top:12px; padding:8px; background:#0a1120; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11px; font-family:var(--font-mono);">
+                <div style="color:var(--accent-green); margin-bottom:3px;">≠Éƒª Target 1 (1:1 R/R): <span id="calcT1">‘È¶7,620</span></div>
+                <div style="color:var(--accent-green); margin-bottom:3px;">≠Éƒª Target 2 (1:2 R/R): <span id="calcT2">‘È¶8,120</span></div>
+                <div style="color:var(--accent-green);">≠Éƒª Target 3 (1:3 R/R): <span id="calcT3">‘È¶8,620</span></div>
+              </div>
+
+              <!-- Real-time Position Sizing Health Alert -->
+              <div id="calcAlertBox" class="calc-alert ok">
+                <span>≠É¯Ì¥©≈</span>
+                <span id="calcAlertMsg">Risk parameter within safe 1% capital allocation threshold.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 3: Institutional Equity Research Thesis & Bear Case (Section 23 & 32) -->
+        <div class="tab-content" id="tab_thesis" style="display:none;">
+          <div class="thesis-container">
+            <div class="thesis-card">
+              <div class="thesis-header">
+                <span>≠É∆Ì Investment Thesis &amp; Growth Drivers</span>
+                <span class="val-pill" id="modalThesisProfile" style="background:rgba(56,189,248,0.15); color:var(--accent-blue); font-size:10px;">Quality Compounder</span>
+              </div>
+              <div class="thesis-body-text" id="modalThesisText">
+                <!-- Dynamically loaded institutional thesis -->
+              </div>
+              <div class="catalyst-box" id="modalCatalysts">
+                <!-- Catalysts watch -->
+              </div>
+              <div class="bear-case-box" id="modalBearCase">
+                <!-- Bear case risks -->
+              </div>
+            </div>
+
+            <!-- Financial Year & Cash Flow Quality Strip -->
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
+              <div class="fund-card">
+                <div class="fund-label">Reporting Period</div>
+                <div class="fund-val" id="modalReportingPeriod" style="font-size:12px; color:var(--text-primary);">FY26 (Audited)</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">CFO / PAT Conversion</div>
+                <div class="fund-val" id="modalCfoToPat" style="font-size:13px; color:var(--accent-green);">1.18x</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Free Cash Flow Yield</div>
+                <div class="fund-val" id="modalFcfYield" style="font-size:13px; color:var(--accent-blue);">2.4%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">PEG Ratio</div>
+                <div class="fund-val" id="modalPegRatio" style="font-size:13px;">1.2</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Working Capital Days</div>
+                <div class="fund-val" id="modalWcDays" style="font-size:13px;">18 Days</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Moat & Corporate Governance Intelligence (Section 10 & 13) -->
+        <div class="tab-content" id="tab_moat_intel" style="display:none;">
+          <div class="sebi-intel-grid">
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>≠É≈¶ Competitive Advantage / Moat</span>
+                <span class="tag-moat" id="modalMoatBadge">Moat: 9.5 / 10</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Evaluates Pricing Power, Brand Elasticity, Switching Friction, Scale Economics, and Regulatory Moats.
+              </p>
+              <div id="modalMoatBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+                <!-- Dynamic moat breakdown -->
+              </div>
+            </div>
+
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>‘‹˚¥©≈ Management &amp; Governance Score</span>
+                <span class="tag-quality" id="modalMgmtBadge">Gov: 9.8 / 10</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Evaluates Capital Allocation, Promoter Skin-in-the-game, Dilution History, and RPT transparency.
+              </p>
+              <div id="modalMgmtBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+                <!-- Dynamic mgmt breakdown -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 5: SEBI PIT Insider Trading & Forensic Intelligence -->
+        <div class="tab-content" id="tab_sebi_intel" style="display:none;">
+          <div class="sebi-intel-grid">
+            <!-- SEBI Form C Insider Disclosures -->
+            <div class="intel-panel-card" style="grid-column: 1 / -1;">
+              <div class="intel-panel-title">
+                <span>≠É≈¯¥©≈ SEBI (PIT) Reg 7(2) Insider Trading Disclosures</span>
+                <span class="val-pill" id="modalInsiderBuyTag" style="font-size:10px; background:rgba(16,185,129,0.15); color:var(--accent-green);">Promoter Buy &gt; ‘È¶10L Flagged</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="insider-table" id="modalInsiderTable">
+                  <thead>
+                    <tr>
+                      <th>Date</th>
+                      <th>Insider / Entity</th>
+                      <th>Designation</th>
+                      <th>Action</th>
+                      <th>Shares</th>
+                      <th>Value (‘È¶ Lakhs)</th>
+                      <th>Filing Reference</th>
+                    </tr>
+                  </thead>
+                  <tbody id="modalInsiderTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Forensic Audit & Pledge Tracker -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>≠ÉˆÏ Forensic &amp; Governance Audit</span>
+                <span class="val-pill" id="modalForensicRiskPill" style="font-size:10px; color:var(--accent-green);">Pristine (94/100)</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Promoter Pledge %:</span>
+                  <span id="modalPromoterPledge" style="font-family:var(--font-mono); font-weight:700; color:var(--accent-green);">0.0% (Zero Pledge)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Pledge Change (QoQ):</span>
+                  <span id="modalPledgeChange" style="font-family:var(--font-mono); color:var(--accent-green);">-4.2% (De-pledged)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+                  <span style="color:var(--text-muted);">Statutory Auditor:</span>
+                  <span id="modalAuditorStatus" style="font-weight:600; color:var(--text-primary);">Clean (BSR &amp; Co. LLP / Big-4)</span>
+                </div>
+                <div style="display:flex; justify-content:space-between; padding:6px 0;">
+                  <span style="color:var(--text-muted);">Auditor Resignation Flag:</span>
+                  <span id="modalAuditorResign" style="color:var(--accent-green); font-weight:600;">None (Pristine 5Y Tenure)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Corporate Actions & Dividends -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>≠ÉÙ‡ Corporate Actions &amp; Buyback Arb</span>
+                <span class="val-pill" style="font-size:10px; color:var(--accent-blue);">SEBI Compliant</span>
+              </div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalCorpActionsWrap">
+                <!-- Dynamically populated -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab 4: Sector Peer Comparison Matrix -->
+        <div class="tab-content" id="tab_peer_matrix" style="display:none;">
+          <div class="peer-score-box">
+            <div>
+              <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Sector Outperformance &amp; Valuation Matrix</div>
+              <div style="font-size:11px; color:var(--text-muted);" id="modalPeerSectorLabel">Comparing against Retail &amp; Consumer Sector Peers</div>
+            </div>
+            <div style="text-align:right;">
+              <div style="font-size:18px; font-weight:700; color:var(--accent-green); font-family:var(--font-mono);" id="modalPeerScore">7 / 8</div>
+              <div style="font-size:10px; font-weight:600; color:var(--text-muted);">Better Than Sector Median</div>
+            </div>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="peer-table">
+              <thead>
+                <tr>
+                  <th>Financial Metric</th>
+                  <th id="modalPeerStockCol" class="peer-highlight">Selected Stock</th>
+                  <th>Sector Median</th>
+                  <th>Top Quartile (75th)</th>
+                  <th>Relative Standing</th>
+                </tr>
+              </thead>
+              <tbody id="modalPeerTableBody">
+                <!-- Dynamically rendered -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tab 5: Smart Money Concepts & DMR -->
+        <div class="tab-content" id="tab_smc_dmr" style="display:none;">
+          <div class="smc-grid">
+            <!-- Dynamic Momentum Rank (DMR) -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>≠ÉÙÍ Dynamic Momentum Rank (DMR)</span>
+                <span class="tag-dmr-top" id="modalDmrBadge">Decile 10 (Sector Leader)</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Measures multi-timeframe relative return alpha (3M, 6M, 12M) vs sub-sector peer medians, eliminating broad market noise.
+              </p>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalDmrBreakdown">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Smart Money Concepts & Volume Profile -->
+            <div class="intel-panel-card">
+              <div class="intel-panel-title">
+                <span>‘‹Ì Smart Money Concepts (SMC)</span>
+                <span class="tag-smc" id="modalSmcZoneBadge">Demand Order Block</span>
+              </div>
+              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+                Identifies institutional accumulation footprints, Wyckoff springs, Point of Control (POC), and Value Area High/Low.
+              </p>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalSmcBreakdown">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Angel One SmartAPI Configuration & Live Connect Modal -->
+  <div class="modal-overlay" id="smartApiModal" role="dialog" aria-modal="true" aria-label="SmartAPI Configuration">
+    <div class="modal-card" style="max-width: 680px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <div class="brand-logo" style="background:#ea580c; border-color:#f97316; color:#ffffff;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+            </svg>
+          </div>
+          <div>
+            <h3 style="font-size:16px; font-weight:700; color:var(--text-primary);">Angel One SmartAPI Integration</h3>
+            <div style="font-size:11px; color:var(--text-muted);">Free Institutional Real-Time Quotes, Historical OHLCV &amp; WebSocket Stream</div>
+          </div>
+        </div>
+        <button class="modal-close-btn" id="btnCloseSmartApiModal" aria-label="Close SmartAPI configuration modal">+˘</button>
+      </div>
+
+      <div class="modal-body" style="padding:16px 20px;">
+        <div style="background:rgba(234, 88, 12, 0.1); border:1px solid rgba(234, 88, 12, 0.3); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:11.5px; line-height:1.6; color:#fdba74;">
+          <strong>‘‹Ì Free SmartAPI Tier:</strong> Angel One provides 100% free API access for Indian Equities (NSE/BSE). You can generate your free API Key on the <a href="https://smartapi.angelbroking.com/" target="_blank" rel="noopener noreferrer" style="color:#fbbf24; text-decoration:underline; font-weight:600;">Angel One SmartAPI Developer Portal ‘Â˘</a>.
+        </div>
+
+        <div class="calc-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div class="calc-field">
+            <label class="calc-label" for="txtSmartApiKey">SmartAPI Key (App Key):</label>
+            <input type="text" class="calc-input" id="txtSmartApiKey" placeholder="e.g. your_smartapi_key_here">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label" for="txtSmartApiClientCode">Angel One Client Code (ID):</label>
+            <input type="text" class="calc-input" id="txtSmartApiClientCode" placeholder="e.g. S123456">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label" for="txtSmartApiPassword">PIN / Password / MPIN:</label>
+            <input type="password" class="calc-input" id="txtSmartApiPassword" placeholder="‘«Û‘«Û‘«Û‘«Û‘«Û‘«Û">
+          </div>
+          <div class="calc-field">
+            <label class="calc-label" for="txtSmartApiTotp">TOTP / 6-Digit Auth Code:</label>
+            <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
+          </div>
+        </div>
+
+        <div class="calc-field" style="margin-bottom:14px;">
+          <label class="calc-label" for="txtSmartApiJwt">Or Direct JWT Access Token (Optional):</label>
+          <input type="text" class="calc-input" id="txtSmartApiJwt" placeholder="Bearer eyJhbGciOiJIUzUxMi..." style="font-family:var(--font-mono); font-size:10.5px;">
+        </div>
+
+        <!-- SmartAPI Connection Status Box -->
+        <div id="smartApiStatusBox" style="background:#09101d; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+            <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Connection State:</span>
+            <span class="market-pill market-closed" id="smartApiStatusPill">≠Éˆ¶ Not Connected</span>
+          </div>
+          <div id="smartApiStatusLog" style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">
+            Ready. Enter your Angel One SmartAPI credentials to stream live institutional ticks directly from Angel One servers.
+          </div>
+        </div>
+
+        <!-- Preset Universe Mapped Tokens -->
+        <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">
+          Mapped SmartAPI Tokens (NSE Cash Equities):
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--font-mono); font-size:10px; color:var(--text-secondary); background:#060a14; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); max-height:80px; overflow-y:auto;">
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">TRENT: 1964</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">DIXON: 4454</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BEL: 383</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">HAL: 2303</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">POLYCAB: 9590</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">SOLARINDS: 10666</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">KAYNES: 11351</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PERSISTENT: 18365</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">CDSL: 21174</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BDL: 2142</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PREMIERENE: 16782</span>
+          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">ANGELONE: 20370</span>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <a href="https://trade.angelone.in/" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="color:#ea580c; border-color:rgba(234, 88, 12, 0.4);">
+          ≠É‹« Open Angel One Trade Terminal ‘Â˘
+        </a>
+        <div style="display:flex; gap:6px;">
+          <button class="btn btn-sm" id="btnTestSmartApi" title="Run instant live endpoint ping test">
+            ≠É∫¨ Test Ping
+          </button>
+          <button class="btn btn-sm" id="btnDisconnectSmartApi">Disconnect</button>
+          <button class="btn btn-primary btn-sm" id="btnConnectSmartApi" style="background:#ea580c; border-color:#f97316;">
+            Connect &amp; Authenticate
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multi-Exchange Market Hours & Global Sessions Modal -->
+  <div class="modal" id="marketSessionsModal" role="dialog" aria-modal="true" aria-labelledby="modalSessionsTitle">
+    <div class="modal-content" style="max-width: 620px;">
+      <div class="modal-header">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">≠ÉÓ…</span>
+          <h3 id="modalSessionsTitle" style="margin:0; font-size:15px; font-weight:700;">Global Financial Exchange Sessions &amp; Live Status</h3>
+        </div>
+        <button class="modal-close-btn" id="btnCloseSessionsModal" aria-label="Close modal">‘£Ú</button>
+      </div>
+      <div class="modal-body" style="padding: 16px 20px;">
+        <p style="color:var(--text-secondary); font-size:12px; margin-bottom:14px;">
+          Real-time operational status across Indian domestic, commodity, and global international exchanges.
+        </p>
+        <div style="display:flex; flex-direction:column; gap:10px;" id="globalSessionsList">
+          <!-- Dynamically populated by JS Application.openSessionsModal() -->
+        </div>
+        <div style="margin-top:16px; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:var(--radius-sm); font-size:11.5px; color:var(--accent-blue); line-height:1.5;">
+          ≠É∆Ì <strong>Multi-Market Live Feed Active:</strong> Outside NSE/BSE cash hours (09:15‘«Ù15:30 IST), Indian Commodity derivatives on MCX (open until 23:30 IST), US Markets (19:00‘«Ù01:30 IST), and GIFT Nifty remain open. The screener provides continuous live multi-asset streaming.
+        </div>
+      </div>
+      <div class="modal-footer" style="display:flex; justify-content:flex-end;">
+        <button class="btn btn-primary btn-sm" id="btnCloseSessionsModal2">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEBI Regulatory Compliance Advisory Footer -->
+  <footer class="compliance-footer-bar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="color:var(--accent-amber); font-weight:700;">‘‹·¥©≈ SEBI COMPLIANCE ADVISORY:</span>
+      <span>Live and historical equity quotes are ingested for personal quantitative research. Data complies with SEBI (PIT) Reg 2015 public disclosures and SEBI Circular CIR/MRD/DP/09/2012 for institutional execution.</span>
+    </div>
+    <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">
+      ISIN Unified ‘«Û NSE/BSE Equity ‘«Û Multi-Timeframe Engine
+    </div>
+  </footer>
+
+  <!-- Global Toast Notification -->
+  <div id="uiToast" role="status" aria-live="polite" aria-atomic="true">
+    <span id="uiToastIcon"></span>
+    <span id="uiToastMsg"></span>
+  </div>
+
+
+
+</body></html>
+

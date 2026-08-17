@@ -3844,33 +3844,42 @@
     }
 
     init() {
-      if (document.getElementById('mainCanvasContainer')) {
-        this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
-      }
-      if (document.getElementById('modalCanvasContainer')) {
-        this.modalChart = new InteractiveGPUChart('modalCanvasContainer');
+      try {
+        if (document.getElementById('mainCanvasContainer')) {
+          this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
+        }
+      } catch (e) {
+        console.warn('mainCanvasContainer chart init error:', e);
       }
 
-      this.updateGpuBadge();
-      this.updateMarketStatusBadge();
-      this.marketTimer = setInterval(() => this.updateMarketStatusBadge(), 1000);
-      AngelOneSmartApiService.loadStoredCredentials();
-      this.updateSmartApiStatusUI();
+      try {
+        if (document.getElementById('modalCanvasContainer')) {
+          this.modalChart = new InteractiveGPUChart('modalCanvasContainer');
+        }
+      } catch (e) {
+        console.warn('modalCanvasContainer chart init error:', e);
+      }
 
-      this.bindUI();
-      this.bindLayerToggles();
-      this.bindTradingViewToolbar();
-      this.renderStockPills();
-      this.renderNewsFeed();
-      this.startNewsCycle();
-      this.applyPreset('user_master');
-      this.runScan();
+      try { this.updateGpuBadge(); } catch (e) {}
+      try { this.updateMarketStatusBadge(); } catch (e) {}
+      this.marketTimer = setInterval(() => { try { this.updateMarketStatusBadge(); } catch (e) {} }, 1000);
+      try { AngelOneSmartApiService.loadStoredCredentials(); } catch (e) {}
+      try { this.updateSmartApiStatusUI(); } catch (e) {}
+
+      try { this.bindUI(); } catch (e) { console.error('bindUI error:', e); }
+      try { this.bindLayerToggles(); } catch (e) {}
+      try { this.bindTradingViewToolbar(); } catch (e) {}
+      try { this.renderStockPills(); } catch (e) {}
+      try { this.renderNewsFeed(); } catch (e) {}
+      try { this.startNewsCycle(); } catch (e) {}
+      try { this.applyPreset('all'); } catch (e) {}
+      try { this.runScan(); } catch (e) { console.error('runScan error:', e); }
 
       if (this.mainChart && this.activeMainStock) {
-        this.updateMainChart(this.activeMainStock);
+        try { this.updateMainChart(this.activeMainStock); } catch (e) {}
       }
 
-      this.startLiveStream();
+      try { this.startLiveStream(); } catch (e) {}
     }
 
     updateGpuBadge() {

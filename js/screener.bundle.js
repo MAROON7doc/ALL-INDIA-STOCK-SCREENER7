@@ -5116,6 +5116,7 @@
 
       this.currentResults = filtered;
       this.renderTable(filtered);
+      this.renderMobileStockCards(filtered);
       this.updateStats(filtered);
       this.updateMarketBreadth();
 
@@ -5324,6 +5325,120 @@
           }
         });
       }
+    }
+
+    renderMobileStockCards(stocks) {
+      const container = document.getElementById('mobileStockCardsList');
+      if (!container) return;
+
+      if (!stocks || !stocks.length) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:32px 16px; color:var(--text-muted);">
+            <div style="font-size:32px; margin-bottom:8px;">🔍</div>
+            <div style="font-size:13px; font-weight:600;">No stocks matched active filters</div>
+            <div style="font-size:11px; margin-top:4px;">Try resetting rules or switching investor profile.</div>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = stocks.map(stock => {
+        const isPos = stock.dayChangePct >= 0;
+        const col = isPos ? 'var(--accent-green)' : 'var(--accent-red)';
+        const sign = isPos ? '+' : '';
+
+        return `
+          <div class="mobile-stock-card" data-symbol="${stock.symbol}">
+            <div class="mobile-card-top">
+              <div>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <strong style="font-size:14px; font-family:var(--font-mono); color:var(--text-primary);">${stock.symbol}</strong>
+                  <span class="val-pill" style="font-size:9px;">${stock.series || 'EQ'}</span>
+                  <span class="tag-index" style="font-size:9px; padding:1px 5px;">${stock.sector || 'EQUITY'}</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:2px;">${stock.name}</div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:14.5px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</div>
+                <div style="font-size:11px; font-weight:600; color:${col};">${sign}${stock.dayChangePct}%</div>
+              </div>
+            </div>
+
+            <div class="mobile-card-metrics">
+              <div>
+                <div style="font-size:8.5px; color:var(--text-muted);">CANSLIM</div>
+                <div style="font-size:10.5px; font-weight:700; color:${stock.matchCount >= 8 ? 'var(--accent-green)' : 'var(--accent-blue)'};">${stock.matchCount}/10 PASS</div>
+              </div>
+              <div>
+                <div style="font-size:8.5px; color:var(--text-muted);">RS SCORE</div>
+                <div style="font-size:10.5px; font-weight:700; color:var(--accent-green);">${stock.rsScore}/100</div>
+              </div>
+              <div>
+                <div style="font-size:8.5px; color:var(--text-muted);">ROCE / ROE</div>
+                <div style="font-size:10.5px; font-weight:700;">${stock.roce}%</div>
+              </div>
+              <div>
+                <div style="font-size:8.5px; color:var(--text-muted);">3Y EPS CAGR</div>
+                <div style="font-size:10.5px; font-weight:700; color:var(--accent-blue);">+${stock.eps3Y_CAGR}%</div>
+              </div>
+            </div>
+
+            <div class="mobile-card-actions">
+              <button class="btn btn-sm btn-mobile-chart" data-symbol="${stock.symbol}" style="background:rgba(56,189,248,0.12); border-color:var(--accent-blue); color:var(--accent-blue);">
+                📈 Chart
+              </button>
+              <button class="btn btn-sm btn-mobile-popout" data-symbol="${stock.symbol}" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">
+                ↗ Pop-Out
+              </button>
+              <button class="btn btn-primary btn-sm btn-mobile-details" data-symbol="${stock.symbol}">
+                📜 Details
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.btn-mobile-chart').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const sym = btn.dataset.symbol;
+          const s = this.universe.find(item => item.symbol === sym);
+          if (s) {
+            this.updateMainChart(s);
+            const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
+            if (chartNav) chartNav.click();
+          }
+        });
+      });
+
+      container.querySelectorAll('.btn-mobile-popout').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const sym = btn.dataset.symbol;
+          window.open(`chart.html?symbol=${encodeURIComponent(sym)}`, '_blank', 'width=1360,height=840,menubar=no,toolbar=no,location=no');
+        });
+      });
+
+      container.querySelectorAll('.btn-mobile-details').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const sym = btn.dataset.symbol;
+          const s = this.universe.find(item => item.symbol === sym);
+          if (s) this.openModal(s);
+        });
+      });
+
+      container.querySelectorAll('.mobile-stock-card').forEach(card => {
+        card.addEventListener('click', () => {
+          const sym = card.dataset.symbol;
+          const s = this.universe.find(item => item.symbol === sym);
+          if (s) {
+            this.updateMainChart(s);
+            const chartNav = document.querySelector('.mobile-nav-item[data-target="viewChart"]');
+            if (chartNav) chartNav.click();
+          }
+        });
+      });
     }
 
     startLiveStream() {

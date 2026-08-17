@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050811">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Universal Indian Screener | Android Native Mobile Trading Station</title>
+  <meta name="description" content="Dedicated touch-optimized mobile trading station for Universal Indian Stock Screener with 10 CANSLIM protocols and 60 FPS GPU charts.">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    /* Dedicated Android WebView & Mobile App Shell Styles */
+    :root {
+      --mobile-nav-height: 58px;
+    }
+    body {
+      background: #050811;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+      padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 12px));
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+    .mobile-app-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #080f1e;
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    .mobile-tab-view {
+      display: none;
+      padding: 10px 10px;
+    }
+    .mobile-tab-view.active {
+      display: block;
+      animation: fadeIn 0.18s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--mobile-nav-height);
+      background: #091224;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      z-index: 999;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
+      backdrop-filter: blur(12px);
+    }
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      flex: 1;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+    }
+    .mobile-nav-item svg {
+      width: 18px;
+      height: 18px;
+      stroke: currentColor;
+    }
+    .mobile-nav-item.active {
+      color: var(--accent-blue);
+    }
+    .mobile-nav-item.active svg {
+      stroke: var(--accent-blue);
+      transform: translateY(-1px);
+    }
+    .mobile-stock-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .mobile-stock-card:active {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: var(--accent-blue);
+    }
+    .mobile-card-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+    }
+    .mobile-card-metrics {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 4px;
+      background: rgba(0, 0, 0, 0.25);
+      border-radius: 6px;
+      padding: 6px 8px;
+    }
+    .mobile-card-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 2px;
+    }
+    .mobile-card-actions .btn {
+      flex: 1;
+      text-align: center;
+      justify-content: center;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+  </style>
+  <script defer src="js/screener.bundle.js"></script>
+</head>
+<body>
+
+  <!-- Top Mobile App Bar -->
+  <header class="mobile-app-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="brand-logo" style="width:26px; height:26px; font-size:13px;">₹</div>
+      <div>
+        <div style="font-size:13px; font-weight:700; color:var(--text-primary);">Universal Indian Screener</div>
+        <div style="font-size:9.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
+          <span class="live-dot" style="width:5px; height:5px;"></span>
+          <span id="marketStatusText">🟢 UNIVERSAL LIVE</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:6px;">
+      <button class="btn btn-sm" id="btnToggleLive" style="padding:3px 6px; font-size:10px;">
+        Pause
+      </button>
+      <a href="index.html" class="btn btn-sm" style="color:var(--accent-blue); border-color:rgba(56,189,248,0.4); text-decoration:none; padding:3px 8px; font-size:10.5px;" title="Switch to Full Desktop Screener Terminal">
+        🖥️ Desktop
+      </a>
+    </div>
+  </header>
+
+  <!-- Live Market Ticker Tape -->
+  <div class="market-ticker-tape" id="marketTickerTape" style="border-radius:0;">
+    <div class="ticker-item">
+      <span class="ticker-name">NIFTY 50</span>
+      <span class="ticker-val" id="valNifty">24,835.10</span>
+      <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
+    </div>
+    <div class="ticker-item">
+      <span class="ticker-name">BSE SENSEX</span>
+      <span class="ticker-val" id="valSensex">81,380.40</span>
+      <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
+    </div>
+    <div class="ticker-item">
+      <span class="ticker-name">INDIA VIX</span>
+      <span class="ticker-val">12.85</span>
+      <span class="ticker-chg neg">-0.45</span>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       VIEW 1: WATCHLIST & SCANNER CARDS
+       ========================================================================= -->
+  <section class="mobile-tab-view active" id="viewWatchlist">
+    
+    <!-- Investor Mode Chips -->
+    <div class="investor-modes-ribbon" style="margin-bottom:8px;">
+      <button class="investor-chip active" data-profile="all">🌐 All Profiles</button>
+      <button class="investor-chip" data-profile="compounder">🏛️ Compounder</button>
+      <button class="investor-chip" data-profile="multibagger">💎 Multibagger</button>
+      <button class="investor-chip" data-profile="garp">🚀 GARP</button>
+      <button class="investor-chip" data-profile="deep_value">📊 Deep Value</button>
+      <button class="investor-chip" data-profile="dividend">💰 Dividend</button>
+      <button class="investor-chip" data-profile="momentum">⚡ Momentum</button>
+    </div>
+
+    <!-- Presets Ribbon -->
+    <div class="protocol-ribbon" style="margin-bottom:10px;">
+      <div class="preset-group">
+        <button class="preset-chip active" data-preset="all">📋 All (12)</button>
+        <button class="preset-chip" data-preset="user_master">🌟 10 Rules</button>
+        <button class="preset-chip" data-preset="cup_handle">☕ Cup & Handle</button>
+        <button class="preset-chip" data-preset="consolidation_7w">🧱 7W Base</button>
+        <button class="preset-chip" data-preset="vol_shocker">⚡ Vol Shocker</button>
+        <button class="preset-chip" data-preset="nr_breakout">🎯 NR4/NR7</button>
+        <button class="preset-chip" data-preset="sebi_insider">🏛️ SEBI Insider</button>
+        <button class="preset-chip" data-preset="smc_accum">💎 SMC</button>
+        <button class="preset-chip" data-preset="dmr_leaders">📈 DMR</button>
+      </div>
+    </div>
+
+    <!-- AI NLP Search Input -->
+    <div class="nlp-search-box" style="margin-bottom:10px;">
+      <div class="nlp-input-row">
+        <span style="color:var(--accent-blue); font-size:13px;">✨</span>
+        <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Ask AI Screener (e.g. 'High ROCE low debt')...">
+        <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;">✕</button>
+      </div>
+    </div>
+
+    <!-- Screener Results Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 2px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-primary);">
+        Scanned Universe (<span id="statScannedCount" style="color:var(--accent-blue);">12</span>)
+      </div>
+      <div style="font-size:11px; font-weight:600; color:var(--accent-green);" id="statAvgReturn">
+        Avg Return: +3.4%
+      </div>
+    </div>
+
+    <!-- Native Stock Cards List Container -->
+    <div id="mobileStockCardsList">
+      <!-- Dynamically populated from JS universe -->
+    </div>
+
+    <!-- Fallback Hidden Table for Bundle Sync -->
+    <div style="display:none;">
+      <tbody id="screenerTableBody"></tbody>
+      <span id="marketStatusBadge"></span>
+      <span id="livePillIndicator"></span>
+      <span id="gpuStatusBadge"></span>
+      <select id="selDataProvider"><option value="auto" selected></option></select>
+      <select id="selFeedMode"><option value="auto" selected></option></select>
+      <select id="selStreamSpeed"><option value="1800" selected></option></select>
+      <select id="selExchange"><option value="ALL" selected></option></select>
+      <select id="selSector"><option value="ALL" selected></option></select>
+      <select id="selSortBy"><option value="matchCount" selected></option></select>
+      <span id="statMatchRate"></span>
+      <span id="statVolSurge"></span>
+      <span id="statRiskScore"></span>
+      <span id="breadthAdvances"></span>
+      <span id="breadthDeclines"></span>
+      <span id="breadthSentiment"></span>
+    </div>
+
+  </section>
+
+  <!-- =========================================================================
+       VIEW 2: FULL-SCREEN INTERACTIVE GPU CANDLESTICK CHART
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewChart">
+    
+    <!-- Active Stock Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px;">
+      <div>
+        <div style="font-size:15px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);" id="mainChartStockTitle">
+          TRENT <span style="font-size:13px; color:var(--accent-green);" id="mainChartPrice">₹7,120.50 (+3.4%)</span>
+        </div>
+        <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
+          <span class="tag-index" id="mainChartIndexBadge" style="font-size:9px; padding:1px 5px;">NIFTY 50</span>
+          <span class="tag tag-cwh" id="mainChartPatternBadge" style="font-size:9px; padding:1px 5px;">Cup & Handle</span>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:4px;">
+        <button class="btn btn-sm" id="btnResetChartZoom" style="padding:4px 8px; font-size:11px;">🔍 Fit</button>
+        <button class="btn btn-sm" id="btnPopoutChart" style="color:var(--accent-green); padding:4px 8px; font-size:11px;">↗ Pop-Out</button>
+      </div>
+    </div>
+
+    <!-- Stock Selector Pills -->
+    <div class="stock-pill-selector" id="stockPillSelector" style="margin-bottom:8px; max-width:100%;">
+      <!-- Dynamically filled -->
+    </div>
+
+    <!-- Time Horizon Toolbar -->
+    <div class="tv-btn-group" id="tvIntervalGroup" style="margin-bottom:8px; overflow-x:auto; flex-wrap:nowrap;">
+      <span class="tv-group-label" style="font-size:8.5px;">Horizon:</span>
+      <button class="tv-btn" data-interval="1m">1m</button>
+      <button class="tv-btn" data-interval="5m">5m</button>
+      <button class="tv-btn" data-interval="15m">15m</button>
+      <button class="tv-btn" data-interval="1H">1H</button>
+      <button class="tv-btn" data-interval="4H">4H</button>
+      <button class="tv-btn active" data-interval="1D">1D</button>
+      <button class="tv-btn" data-interval="1W">1W</button>
+      <button class="tv-btn" data-interval="1M">1M</button>
+      <button class="tv-btn" data-range="6M">6M</button>
+      <button class="tv-btn" data-range="1Y">1Y</button>
+      <button class="tv-btn" data-range="ALL">ALL</button>
+    </div>
+
+    <!-- Visual Protocols Ribbon -->
+    <div class="protocol-layer-ribbon" style="margin-bottom:8px;">
+      <button class="layer-toggle active" data-layer="p1_growth">P1: EPS</button>
+      <button class="layer-toggle active" data-layer="p2_rsi">P2: RSI</button>
+      <button class="layer-toggle active" data-layer="p3_vol">P3: Vol</button>
+      <button class="layer-toggle active" data-layer="p4_base7w">P4: 7W</button>
+      <button class="layer-toggle active" data-layer="p5_cup">P5: Cup</button>
+      <button class="layer-toggle active" data-layer="p6_sl">P6: SL</button>
+      <button class="layer-toggle active" data-layer="p9_rs">P9: RS</button>
+      <button class="layer-toggle active" data-layer="p10_mtf">P10: MTF</button>
+    </div>
+
+    <!-- GPU WebGL Canvas Area -->
+    <div class="chart-container-box" id="mainCanvasContainer" style="height:440px; min-height:360px; margin-bottom:8px;">
+      <!-- GPU WebGL 60 FPS Engine -->
+    </div>
+
+    <div style="font-size:10px; color:var(--text-muted); text-align:center; font-family:var(--font-mono);">
+      💡 Swipe 1-finger to pan • 2-fingers pinch to zoom • Tap candle for OHLCV
+    </div>
+
+  </section>
+
+  <!-- =========================================================================
+       VIEW 3: 10 CANSLIM PROTOCOLS CONFIGURATION
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewProtocols">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
+      <h3 style="margin:0; font-size:14px; font-weight:700;">10 CANSLIM Protocols Engine</h3>
+      <button class="btn btn-sm" id="btnResetFilters" style="padding:3px 8px; font-size:10.5px;">Reset Rules</button>
+    </div>
+
+    <div class="protocol-list" style="display:flex; flex-direction:column; gap:8px;">
+      
+      <!-- P1 -->
+      <div class="protocol-card active" id="card_p1">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P1</span>
+            <span class="protocol-name">EPS & Sales Growth (>15%)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p1" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P2 -->
+      <div class="protocol-card active" id="card_p2">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P2</span>
+            <span class="protocol-name">RSI(14) Momentum (≥65)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p2" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P3 -->
+      <div class="protocol-card active" id="card_p3">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P3</span>
+            <span class="protocol-name">Volume Surge (>40% above SMA20)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p3" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P4 -->
+      <div class="protocol-card" id="card_p4">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P4</span>
+            <span class="protocol-name">7-Week Base Consolidation (≤18%)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p4"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P5 -->
+      <div class="protocol-card" id="card_p5">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P5</span>
+            <span class="protocol-name">Cup with Handle Pivot Breakout</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p5"><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P6 -->
+      <div class="protocol-card active" id="card_p6">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P6</span>
+            <span class="protocol-name">Risk Management SL (≤8.0%)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p6" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P7 -->
+      <div class="protocol-card active" id="card_p7">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P7</span>
+            <span class="protocol-name">ROCE / ROE Quality (≥17%)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p7" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P8 -->
+      <div class="protocol-card active" id="card_p8">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P8</span>
+            <span class="protocol-name">3-Year EPS CAGR (≥20%)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p8" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P9 -->
+      <div class="protocol-card active" id="card_p9">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P9</span>
+            <span class="protocol-name">Mansfield RS vs Nifty (≥80)</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p9" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+      <!-- P10 -->
+      <div class="protocol-card active" id="card_p10">
+        <div class="protocol-header">
+          <div class="protocol-title-wrap">
+            <span class="protocol-badge">P10</span>
+            <span class="protocol-name">Multi-Timeframe 6/6 Green Alignment</span>
+          </div>
+          <label class="switch"><input type="checkbox" id="chk_p10" checked><span class="slider"></span></label>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW 4: LIVE FINANCIAL NEWS WIRE
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewNews">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
+      <h3 style="margin:0; font-size:14px; font-weight:700;">Live Market News Wire</h3>
+      <span class="val-pill" style="font-size:10px;">SEBI & Exchange Filings</span>
+    </div>
+    <div class="news-feed-list" id="newsFeedList" style="display:flex; flex-direction:column; gap:8px;">
+      <!-- Dynamically filled -->
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW 5: POSITION SIZING & RISK CALCULATOR
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewCalc">
+    <div style="margin-bottom:10px;">
+      <h3 style="margin:0; font-size:14px; font-weight:700;">Institutional Position Sizing</h3>
+      <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-secondary);">2R Profit Target & Stop-Loss Calculator</p>
+    </div>
+
+    <div class="calc-grid" style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;">
+      <div class="calc-card">
+        <div class="calc-label">Total Trading Capital (₹)</div>
+        <input type="number" class="calc-input" id="calcCapital" value="500000" step="10000">
+      </div>
+      <div class="calc-card">
+        <div class="calc-label">Max Risk Per Trade (%)</div>
+        <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25" max="3.0">
+      </div>
+      <div class="calc-card">
+        <div class="calc-label">Entry Price (₹)</div>
+        <input type="number" class="calc-input" id="calcEntryPrice" value="7120.50">
+      </div>
+      <div class="calc-card">
+        <div class="calc-label">Stop-Loss Price (₹)</div>
+        <input type="number" class="calc-input" id="calcStopLossPrice" value="6622.05">
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+      <div class="metric-chip-box">
+        <div class="metric-chip-label">Allowed Risk (₹)</div>
+        <div class="metric-chip-val" style="color:var(--accent-red);" id="resMaxRisk">₹5,000</div>
+      </div>
+      <div class="metric-chip-box">
+        <div class="metric-chip-label">Recommended Shares</div>
+        <div class="metric-chip-val" style="color:var(--accent-blue);" id="resMaxShares">10 Shares</div>
+      </div>
+      <div class="metric-chip-box">
+        <div class="metric-chip-label">Position Value (₹)</div>
+        <div class="metric-chip-val" id="resPositionVal">₹71,205</div>
+      </div>
+      <div class="metric-chip-box">
+        <div class="metric-chip-label">2R Profit Target (₹)</div>
+        <div class="metric-chip-val" style="color:var(--accent-green);" id="res2RTarget">₹8,117.40 (+14%)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       NATIVE BOTTOM NAVIGATION BAR
+       ========================================================================= -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-item active" data-target="viewWatchlist">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
+      <span>Watchlist</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewChart">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+      <span>Chart</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewProtocols">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+      <span>Protocols</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewNews">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path><path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path></svg>
+      <span>News</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewCalc">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
+      <span>Calculator</span>
+    </button>
+  </nav>
+
+  <!-- Stock Detail Modal -->
+  <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
+    <div class="modal-container">
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="brand-logo" id="modalLogo">₹</div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h2 id="modalStockSymbol" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
+              <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
+            </div>
+            <div id="modalStockName" style="font-size:11px; color:var(--text-muted);">Trent Ltd</div>
+          </div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="text-align:right;">
+            <div id="modalLTP" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
+            <div id="modalDayChg" style="font-size:10.5px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-tabs">
+        <div class="modal-tab active" data-tab="chart">Chart</div>
+        <div class="modal-tab" data-tab="calculator">Position Sizing</div>
+        <div class="modal-tab" data-tab="thesis">Thesis</div>
+      </div>
+
+      <div class="modal-body">
+        <div class="tab-pane active" id="tab-chart">
+          <div id="chartTabCanvasBox" style="height:340px; min-height:300px; width:100%;"></div>
+        </div>
+        <div class="tab-pane" id="tab-calculator">
+          <!-- Calculator UI -->
+        </div>
+        <div class="tab-pane" id="tab-thesis">
+          <div id="thesisCardContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Bottom Navigation Switcher
+    document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.mobile-tab-view').forEach(v => v.classList.remove('active'));
+        btn.classList.add('active');
+        const targetId = btn.dataset.target;
+        const targetView = document.getElementById(targetId);
+        if (targetView) {
+          targetView.classList.add('active');
+          if (targetId === 'viewChart' && window.app?.mainChart) {
+            setTimeout(() => window.app.mainChart.resize(), 60);
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

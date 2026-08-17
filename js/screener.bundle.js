@@ -480,7 +480,7 @@
 
     getTimeframeParams(interval) {
       switch (interval) {
-        case '1m': return { interval: '1m', range: '1d' };
+        case '1m': return { interval: '1m', range: '5d' };
         case '5m': return { interval: '5m', range: '5d' };
         case '15m': return { interval: '15m', range: '5d' };
         case '1H': return { interval: '60m', range: '1mo' };
@@ -590,7 +590,7 @@
 
     mapInterval(interval) {
       switch (interval) {
-        case '1m': return { interval: '1m', range: '1d' };
+        case '1m': return { interval: '1m', range: '5d' };
         case '5m': return { interval: '5m', range: '5d' };
         case '15m': return { interval: '15m', range: '5d' };
         case '1H': return { interval: '60m', range: '1mo' };

@@ -132,11 +132,9 @@
           <a href="https://in.tradingview.com/chart/?symbol=NSE%3ATRENT&interval=D" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkTradingViewSource" title="View interactive chart on TradingView">📈 TradingView</a>
           <a href="https://www.google.com/finance/quote/TRENT:NSE" target="_blank" rel="noopener noreferrer" class="source-link-pill" id="linkGFinanceSource" title="View live quote on Google Finance">🌐 Google Finance</a>
         </div>
-      </div>
-
-      <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
         <div class="tv-btn-group" id="tvIntervalGroup">
-          <span class="tv-group-label">Interval:</span>
+          <span class="tv-group-label">Time Horizon:</span>
           <button class="tv-btn" data-interval="1m">1m</button>
           <button class="tv-btn" data-interval="5m">5m</button>
           <button class="tv-btn" data-interval="15m">15m</button>
@@ -145,15 +143,14 @@
           <button class="tv-btn active" data-interval="1D">1D</button>
           <button class="tv-btn" data-interval="1W">1W</button>
           <button class="tv-btn" data-interval="1M">1M</button>
+          <button class="tv-btn" data-range="6M">6M Range</button>
+          <button class="tv-btn" data-range="1Y">1Y Range</button>
+          <button class="tv-btn" data-range="ALL">ALL</button>
         </div>
 
         <div class="tv-btn-group">
           <button class="tv-btn active" id="btnChartTypeCandle">🕯️ Candles</button>
           <button class="tv-btn" id="btnChartTypeArea">📈 Area</button>
-        </div>
-
-        <div class="tv-btn-group">
-          <button class="tv-btn" id="btnResetChartZoom">🔍 Fit</button>
         </div>
       </div>
     </div>
@@ -163,20 +160,13 @@
       <!-- GPU Canvas Rendered by JS -->
     </div>
 
-    <!-- Bottom Range Bar -->
-    <div class="tv-bottom-range-bar">
-      <div class="tv-range-pills">
-        <span style="color:var(--text-muted); font-size:10px; font-weight:600; text-transform:uppercase;">Range:</span>
-        <button class="tv-range-btn" data-range="1D">1D</button>
-        <button class="tv-range-btn" data-range="5D">5D</button>
-        <button class="tv-range-btn" data-range="1M">1M</button>
-        <button class="tv-range-btn" data-range="3M">3M</button>
-        <button class="tv-range-btn active" data-range="6M">6M</button>
-        <button class="tv-range-btn" data-range="1Y">1Y</button>
-        <button class="tv-range-btn" data-range="ALL">ALL</button>
+    <!-- Bottom Status & Navigation Bar -->
+    <div class="tv-bottom-range-bar" style="padding: 5px 12px; justify-content: space-between;">
+      <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);" id="tvChartNavHint">
+        💡 Scroll wheel to zoom • Drag horizontally to pan • Hover candle for OHLCV & 10 protocols • Double-click to auto-scale
       </div>
-      <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);">
-        💡 Scroll wheel to zoom • Drag to pan • 60 FPS GPU Acceleration Active
+      <div style="color:var(--accent-blue); font-size:10px; font-family:var(--font-mono); font-weight:600;">
+        GPU WebGL Engine
       </div>
     </div>
 

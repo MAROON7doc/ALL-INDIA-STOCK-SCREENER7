@@ -3920,17 +3920,21 @@
         this.updateMainChart(this.activeMainStock);
       });
 
-      document.querySelectorAll('.tv-btn[data-interval]').forEach(btn => {
+      // Unified Time Horizon Selector (Intervals & Continuous Ranges)
+      document.querySelectorAll('#tvIntervalGroup .tv-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          document.querySelectorAll('.tv-btn[data-interval]').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('#tvIntervalGroup .tv-btn').forEach(b => b.classList.remove('active'));
           btn.classList.add('active');
-          const interval = btn.dataset.interval;
-          if (this.mainChart) this.mainChart.setInterval(interval);
-          if (this.modalChart) this.modalChart.setInterval(interval);
-          if (this.activeMainStock) this.syncLiveRealtimeData(this.activeMainStock, interval);
-          
-          // Deselect range buttons when manually picking a specific interval
-          document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
+
+          if (btn.dataset.interval) {
+            const interval = btn.dataset.interval;
+            if (this.mainChart) this.mainChart.setInterval(interval);
+            if (this.modalChart) this.modalChart.setInterval(interval);
+            if (this.activeMainStock) this.syncLiveRealtimeData(this.activeMainStock, interval);
+          } else if (btn.dataset.range) {
+            const range = btn.dataset.range;
+            this.mainChart?.setRange(range);
+          }
           this.updateSourceLinks();
         });
       });
@@ -3949,25 +3953,6 @@
 
       document.getElementById('btnResetChartZoom')?.addEventListener('click', () => {
         this.mainChart?.resetZoom();
-      });
-
-      document.querySelectorAll('.tv-range-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          document.querySelectorAll('.tv-range-btn').forEach(b => b.classList.remove('active'));
-          btn.classList.add('active');
-          const range = btn.dataset.range;
-          this.mainChart?.setRange(range);
-          
-          // Sync active interval button in the UI
-          const targetInterval = this.mainChart?.interval;
-          if (targetInterval) {
-            document.querySelectorAll('.tv-btn[data-interval]').forEach(b => {
-              if (b.dataset.interval === targetInterval) b.classList.add('active');
-              else b.classList.remove('active');
-            });
-          }
-          this.updateSourceLinks();
-        });
       });
 
       const maximizeBtn = document.getElementById('btnMaximizeChart');

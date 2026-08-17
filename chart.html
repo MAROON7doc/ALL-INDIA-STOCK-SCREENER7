@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050811">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Universal Indian Stock Terminal | Pop-Out Live Quantitative Workstation</title>
   <meta name="description" content="Fullscreen standalone live TradingView-grade interactive chart and quantitative analysis workstation for Universal Indian Markets.">
   <link rel="stylesheet" href="css/styles.css">
@@ -71,6 +75,35 @@
       width: 0px;
       border-left: none;
       display: none;
+    }
+    @media (max-width: 768px) {
+      .popout-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 6px;
+        padding: 6px 8px;
+      }
+      .popout-main-body {
+        height: calc(100vh - 160px);
+      }
+      .popout-sidebar-pane {
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 85vw;
+        max-width: 320px;
+        z-index: 1000;
+        box-shadow: -4px 0 16px rgba(0,0,0,0.6);
+      }
+      .popout-sidebar-pane.collapsed {
+        display: none !important;
+      }
+    }
+    @media (min-width: 769px) and (max-width: 1024px) {
+      .popout-sidebar-pane {
+        width: 270px;
+      }
     }
     .sidebar-section {
       padding: 10px 14px;

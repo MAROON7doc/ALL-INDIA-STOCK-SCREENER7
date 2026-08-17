@@ -2390,4 +2390,251 @@ input[type=number]::-webkit-outer-spin-button {
   margin-top: 8px;
 }
 
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE ENGINE (ANDROID, TABLET, IPAD & FOLDABLES)
+   ========================================================================== */
+
+/* Touch Action & Tap Highlights */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Mobile Filter Bar & Drawer */
+.mobile-filter-bar {
+  display: none;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Sticky First Column for Screener Table (Symbol & Series) */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Tablet & Medium Screen Breakpoint (769px - 1080px) */
+@media (min-width: 769px) and (max-width: 1080px) {
+  .app-container {
+    grid-template-columns: 230px 1fr;
+  }
+  .filter-sidebar {
+    width: 230px;
+    padding: 10px 8px;
+  }
+  .chart-container-box {
+    height: 520px;
+    min-height: 440px;
+  }
+  .investor-modes-ribbon {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+  .protocol-ribbon {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Android & Mobile Phone Breakpoint (<= 768px) */
+@media (max-width: 768px) {
+  /* Header adjustments */
+  .app-header {
+    padding: 6px 10px;
+  }
+  
+  .header-main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .brand-title {
+    font-size: 14px;
+  }
+
+  .header-actions {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+
+  .investor-modes-ribbon,
+  .protocol-ribbon {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 3px;
+  }
+
+  .investor-modes-ribbon::-webkit-scrollbar,
+  .protocol-ribbon::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Mobile Filter Bar & Accordion Drawer */
+  .mobile-filter-bar {
+    display: block !important;
+  }
+
+  .app-container {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+
+  .filter-sidebar {
+    display: none;
+    border-right: none;
+    border-bottom: 1px solid var(--border-subtle);
+    max-height: 60vh;
+    padding: 12px 10px;
+  }
+
+  .filter-sidebar.mobile-open {
+    display: block !important;
+    animation: slideDown 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .content-area {
+    padding: 8px 6px;
+    max-height: none;
+    overflow: visible;
+  }
+
+  /* Main Chart Responsive Box on Mobile */
+  .main-chart-card {
+    padding: 8px 8px;
+    margin-bottom: 10px;
+  }
+
+  .chart-container-box {
+    height: 420px;
+    min-height: 340px;
+  }
+
+  .tv-top-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .tv-btn-group {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    scrollbar-width: none;
+  }
+
+  .tv-btn-group::-webkit-scrollbar {
+    display: none;
+  }
+
+  .protocol-layer-ribbon {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .protocol-layer-ribbon::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Sticky First Column for Smooth Swiping Across 10 Protocols */
+  .screener-table th:first-child,
+  .screener-table td:first-child {
+    position: sticky;
+    left: 0;
+    background: #080f1d;
+    z-index: 5;
+    box-shadow: 3px 0 6px rgba(0, 0, 0, 0.45);
+  }
+
+  /* Touch Friendly Action Buttons in Table */
+  .screener-table td .btn {
+    padding: 4px 7px;
+    font-size: 10.5px;
+  }
+
+  /* Mobile Bottom Sheet Modal Styling */
+  .modal-overlay {
+    align-items: flex-end;
+  }
+
+  .modal-container,
+  .modal-card {
+    width: 100vw !important;
+    max-width: 100vw !important;
+    max-height: 92vh !important;
+    border-radius: 16px 16px 0 0 !important;
+    margin: 0 !important;
+  }
+
+  .modal-header {
+    padding: 12px 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .modal-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .modal-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .modal-tab {
+    padding: 8px 12px;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .modal-body {
+    padding: 12px 14px;
+  }
+
+  #chartTabCanvasBox {
+    height: 380px !important;
+    min-height: 320px !important;
+  }
+}
+
+/* Android & Tablet Landscape Fullscreen Orientation */
+@media (max-height: 540px) and (orientation: landscape) {
+  .main-chart-card.fullscreen-mode {
+    padding: 4px 8px !important;
+  }
+
+  .main-chart-card.fullscreen-mode .chart-container-box {
+    height: calc(100vh - 65px) !important;
+    min-height: 240px !important;
+  }
+
+  .tv-top-toolbar {
+    margin-bottom: 4px;
+    gap: 4px;
+  }
+
+  .tv-bottom-range-bar {
+    padding: 2px 4px;
+    margin-top: 2px;
+  }
+}
+
+
 

@@ -2,7 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050811">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>Universal Indian Stock Screener | Multi-Market TradingView Terminal & Institutional Engine</title>
   <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
   <link rel="stylesheet" href="css/styles.css">
@@ -223,6 +227,19 @@
       <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
     </div>
   </header>
+
+  <!-- Mobile Filter Bar Drawer Trigger (Visible on Android & Mobile/Tablet Screens) -->
+  <div class="mobile-filter-bar" id="mobileFilterBar">
+    <button class="btn btn-sm" id="btnMobileFilterToggle" style="width:100%; justify-content:space-between; padding:8px 12px; font-weight:600; background:#080f20; border-color:var(--border-subtle);">
+      <span style="display:flex; align-items:center; gap:6px;">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+        </svg>
+        <span>⚙️ Filter Protocols & Rules (<strong id="mobileFilterBadge" style="color:var(--accent-blue);">6 Active</strong>)</span>
+      </span>
+      <span id="mobileFilterChevron" style="font-size:11px; color:var(--text-muted);">▼ Show Filters</span>
+    </button>
+  </div>
 
   <!-- Main Container -->
   <div class="app-container">

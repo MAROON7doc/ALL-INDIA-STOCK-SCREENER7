@@ -2541,7 +2541,8 @@
         if (this.isTouchDragging && e.touches.length === 1) {
           const t = e.touches[0];
           const deltaX = t.clientX - this.touchStartX;
-          const paddingRight = 75, paddingLeft = 10;
+          const isWide = this.width >= 1100;
+          const paddingRight = isWide ? 92 : 82, paddingLeft = isWide ? 22 : 15;
           const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = deltaX / candleWidth;
@@ -4273,6 +4274,18 @@
         if (e.target.id === 'newsDrawerOverlay') closeNews();
       });
 
+      const mobileFilterToggle = document.getElementById('btnMobileFilterToggle');
+      const mobileFilterChevron = document.getElementById('mobileFilterChevron');
+      const sidebarEl = document.querySelector('.filter-sidebar');
+      mobileFilterToggle?.addEventListener('click', () => {
+        if (!sidebarEl) return;
+        sidebarEl.classList.toggle('mobile-open');
+        const isOpen = sidebarEl.classList.contains('mobile-open');
+        if (mobileFilterChevron) {
+          mobileFilterChevron.textContent = isOpen ? '▲ Hide Filters' : '▼ Show Filters';
+        }
+      });
+
       document.getElementById('btnResetFilters')?.addEventListener('click', () => {
         if (sectorSelect) sectorSelect.value = 'ALL';
         const exchSelect = document.getElementById('selExchange');
@@ -5105,6 +5118,23 @@
       this.renderTable(filtered);
       this.updateStats(filtered);
       this.updateMarketBreadth();
+
+      const mobileBadge = document.getElementById('mobileFilterBadge');
+      if (mobileBadge) {
+        const count = [
+          this.filters.requireGrowth,
+          this.filters.requireRsi,
+          this.filters.requireVolumeBurst,
+          this.filters.require7WeekConsolidation,
+          this.filters.requireCupWithHandle,
+          this.filters.requireStopLossLimit,
+          this.filters.requireRoeRoce,
+          this.filters.requireEpsCAGR,
+          this.filters.requireRsScore,
+          this.filters.requireMtfAllGreen
+        ].filter(Boolean).length;
+        mobileBadge.textContent = `${count} Active`;
+      }
     }
 
     updateMarketBreadth() {

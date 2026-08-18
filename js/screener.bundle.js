@@ -3154,6 +3154,65 @@
       ctx.rect(paddingLeft, paddingTop, plotWidth, pricePlotHeight);
       ctx.clip();
 
+      // SPECIAL SCALPER MODE BREAKOUT & ORDER OVERLAYS
+      if (this.isScalperMode) {
+        const vwapVal = livePrice * 0.997;
+        const r1Val = livePrice * 1.018;
+        const s1Val = livePrice * 0.985;
+        const scalpTarget = livePrice * 1.025;
+        const scalpSl = livePrice * 0.988;
+
+        // R1 Breakout Line (Golden)
+        const r1Y = getY(r1Val);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, r1Y);
+        ctx.lineTo(w - paddingRight, r1Y);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.setLineDash([5, 3]);
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'right';
+        ctx.fillText(`⚡ R1 BREAKOUT: ₹${r1Val.toFixed(2)}`, w - paddingRight - 6, r1Y - 4);
+
+        // VWAP Line (Purple)
+        const vwapY = getY(vwapVal);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, vwapY);
+        ctx.lineTo(w - paddingRight, vwapY);
+        ctx.strokeStyle = '#a78bfa';
+        ctx.setLineDash([3, 3]);
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#a78bfa';
+        ctx.fillText(`VWAP: ₹${vwapVal.toFixed(2)}`, w - paddingRight - 6, vwapY - 4);
+
+        // Scalp Target (+2.5%)
+        const targetY = getY(scalpTarget);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, targetY);
+        ctx.lineTo(w - paddingRight, targetY);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillStyle = '#10b981';
+        ctx.fillText(`🎯 SCALP TARGET: ₹${scalpTarget.toFixed(2)} (+2.5%)`, w - paddingRight - 6, targetY - 4);
+
+        // Scalp Stop Loss (-1.2%)
+        const slY = getY(scalpSl);
+        ctx.beginPath();
+        ctx.moveTo(paddingLeft, slY);
+        ctx.lineTo(w - paddingRight, slY);
+        ctx.strokeStyle = '#ef4444';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(`🛑 SCALP SL: ₹${scalpSl.toFixed(2)} (-1.2%)`, w - paddingRight - 6, slY - 4);
+      }
+
       // PROTOCOL 4: 7-WEEK CONSOLIDATION BASE BOX
       if (this.layers.p4_base7w) {
         const c7w = this.stock.consolidation7W || Indicators.detect7WeekConsolidation(this.allCandles, 7, 18);
@@ -4357,6 +4416,42 @@
         if (chkInstant) chkInstant.checked = isActive;
       });
 
+      // Scalper View 4 Actions
+      document.getElementById('btnScalperMktBuy')?.addEventListener('click', () => {
+        const sel = document.getElementById('selScalperInstrument')?.value || 'NIFTY 50 CE';
+        this.showToast(`🚀 Scalp BUY Executed: 500 Qty @ CMP | Order ID #SCALP-${Math.floor(Math.random()*90000+10000)}`, 'success');
+      });
+
+      document.getElementById('btnScalperMktSell')?.addEventListener('click', () => {
+        this.showToast(`🔻 Scalp SELL Executed: 500 Qty @ CMP | Order ID #SCALP-${Math.floor(Math.random()*90000+10000)}`, 'warn');
+      });
+
+      document.getElementById('btnCloseAllScalpPos')?.addEventListener('click', () => {
+        this.showToast('✅ All Scalp Positions Squared Off at Market CMP (+₹1,250 Net P&L Locked)', 'success');
+      });
+
+      document.getElementById('selScalperInstrument')?.addEventListener('change', (e) => {
+        if (this.scalperChart) {
+          const inst = this.getScalperInstrumentData(e.target.value);
+          this.scalperChart.setData(inst.stock, inst.candles);
+          const cmpDisplay = document.getElementById('scalperCmpDisplay');
+          if (cmpDisplay) cmpDisplay.textContent = `CMP: ₹ ${inst.stock.ltp.toFixed(2)} (+1.76%)`;
+          this.scalperChart.resize();
+        }
+      });
+
+      document.querySelectorAll('#scalperTfButtons button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#scalperTfButtons button').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const tf = btn.dataset.stf || '1m';
+          if (this.scalperChart) {
+            this.scalperChart.setInterval(tf);
+            this.showToast(`⚡ Scalper chart timeframe set to ${tf}`, 'info');
+          }
+        });
+      });
+
       // fx Indicators Menu toggle
       document.getElementById('btnToggleIndicatorsMenu')?.addEventListener('click', () => {
         const rib = document.getElementById('protocolLayerRibbon');
@@ -5218,45 +5313,72 @@
       });
     }
 
+    getScalperInstrumentData(instrumentKey) {
+      let ltp = 202.00;
+      let name = 'NIFTY 50 • 24,200 CE';
+      let symbol = 'NIFTY24200CE';
+
+      if (instrumentKey === 'NIFTY_PE') {
+        ltp = 145.80;
+        name = 'NIFTY 50 • 24,200 PE';
+        symbol = 'NIFTY24200PE';
+      } else if (instrumentKey === 'BANKNIFTY_CE') {
+        ltp = 340.20;
+        name = 'BANK NIFTY • 52,200 CE';
+        symbol = 'BANKNIFTY52200CE';
+      } else if (this.universe) {
+        const found = this.universe.find(s => s.symbol === instrumentKey);
+        if (found) {
+          ltp = found.ltp;
+          name = found.name;
+          symbol = found.symbol;
+        }
+      }
+
+      const stock = { symbol, name, ltp, pChange: +1.76, exchange: 'NSE' };
+      const candles = this.generateMockIntradayCandles(ltp, 90, '1m');
+      return { stock, candles };
+    }
+
     renderScalperTerminal() {
       const tbody = document.getElementById('domLadderTableBody');
-      if (!tbody) return;
+      if (tbody) {
+        const levels = [
+          { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
+          { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
+          { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
+          { bidQty: 100, bidPrice: '21,650', askPrice: '21,450', askQty: 500, bidDepth: 40, askDepth: 95 },
+          { bidQty: 100, bidPrice: '21,250', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
+          { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 200, bidDepth: 40, askDepth: 75 },
+          { bidQty: 150, bidPrice: '21,450', askPrice: '21,450', askQty: 50,  bidDepth: 60, askDepth: 25 },
+          { bidQty: 250, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 85, askDepth: 40 },
+          { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 100, askDepth: 40 },
+          { bidQty: 360, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 90, askDepth: 40 }
+        ];
 
-      const levels = [
-        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
-        { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
-        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
-        { bidQty: 100, bidPrice: '21,650', askPrice: '21,450', askQty: 500, bidDepth: 40, askDepth: 95 },
-        { bidQty: 100, bidPrice: '21,250', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
-        { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 200, bidDepth: 40, askDepth: 75 },
-        { bidQty: 150, bidPrice: '21,450', askPrice: '21,450', askQty: 50,  bidDepth: 60, askDepth: 25 },
-        { bidQty: 250, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 85, askDepth: 40 },
-        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 100, askDepth: 40 },
-        { bidQty: 360, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 90, askDepth: 40 }
-      ];
-
-      tbody.innerHTML = levels.map(row => `
-        <tr>
-          <td style="position:relative; color:#34d399; font-weight:700;">
-            <div class="dom-depth-bar-bid" style="width:${row.bidDepth}%;"></div>
-            <span style="position:relative; z-index:2;">${row.bidQty}</span>
-          </td>
-          <td style="color:#ffffff;">₹${row.bidPrice}</td>
-          <td style="color:#ffffff;">₹${row.askPrice}</td>
-          <td style="position:relative; color:#f87171; font-weight:700; text-align:right;">
-            <div class="dom-depth-bar-ask" style="width:${row.askDepth}%;"></div>
-            <span style="position:relative; z-index:2;">${row.askQty}</span>
-          </td>
-        </tr>
-      `).join('');
+        tbody.innerHTML = levels.map(row => `
+          <tr>
+            <td style="position:relative; color:#34d399; font-weight:700;">
+              <div class="dom-depth-bar-bid" style="width:${row.bidDepth}%;"></div>
+              <span style="position:relative; z-index:2;">${row.bidQty}</span>
+            </td>
+            <td style="color:#ffffff;">₹${row.bidPrice}</td>
+            <td style="color:#ffffff;">₹${row.askPrice}</td>
+            <td style="position:relative; color:#f87171; font-weight:700; text-align:right;">
+              <div class="dom-depth-bar-ask" style="width:${row.askDepth}%;"></div>
+              <span style="position:relative; z-index:2;">${row.askQty}</span>
+            </td>
+          </tr>
+        `).join('');
+      }
 
       const recentTrades = document.getElementById('domRecentTradesList');
       if (recentTrades) {
         recentTrades.innerHTML = `
-          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 21,450 CE</span><span>₹ 198.50 (14:32:05)</span></div>
-          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 250 NIFTY 21,450 CE</span><span>₹ 198.55 (14:32:08)</span></div>
-          <div style="display:flex; justify-content:space-between;"><span style="color:#f87171;">SELL 100 NIFTY 21,450 CE</span><span>₹ 198.45 (14:32:12)</span></div>
-          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 21,450 CE</span><span>₹ 198.50 (14:32:15)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 24,200 CE</span><span>₹ 202.00 (14:32:05)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 250 NIFTY 24,200 CE</span><span>₹ 202.05 (14:32:08)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#f87171;">SELL 100 NIFTY 24,200 CE</span><span>₹ 201.95 (14:32:12)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 24,200 CE</span><span>₹ 202.00 (14:32:15)</span></div>
         `;
       }
 
@@ -5266,22 +5388,25 @@
           this.scalperChart = new InteractiveGPUChart('scalperChartContainer');
           this.scalperChart.setChartType('candle');
           this.scalperChart.setInterval('1m');
+          this.scalperChart.isScalperMode = true;
         } catch (e) {
           console.warn('scalperChart instantiation error:', e);
         }
       }
 
       if (this.scalperChart) {
-        const stock = this.activeMainStock || this.stocks[0] || { symbol: 'NIFTY50', name: 'NIFTY 50 21450 CE', ltp: 202.00, pChange: 1.76 };
-        let candles = this.chartSeriesMap.get(`${stock.symbol}_1m`)?.candles;
-        if (!candles || !candles.length) {
-          candles = this.generateMockIntradayCandles(stock.ltp || 202.00, 90, '1m');
-        }
-        this.scalperChart.setData(stock, candles);
+        this.scalperChart.isScalperMode = true;
+        const selInst = document.getElementById('selScalperInstrument')?.value || 'NIFTY_CE';
+        const inst = this.getScalperInstrumentData(selInst);
+        this.scalperChart.setData(inst.stock, inst.candles);
         this.scalperChart.setInterval('1m');
+        
+        requestAnimationFrame(() => {
+          this.scalperChart?.resize();
+        });
         setTimeout(() => {
-          this.scalperChart.resize();
-        }, 60);
+          this.scalperChart?.resize();
+        }, 80);
       }
     }
 

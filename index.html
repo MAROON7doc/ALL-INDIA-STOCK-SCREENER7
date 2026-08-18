@@ -889,27 +889,55 @@
         <div class="scalper-terminal-container">
           
           <div class="scalper-top-action-bar">
-            <div class="scalper-inst-meta">
-              <span class="scalper-inst-title">⚡ NIFTY 50 • 21,450 CE</span>
-              <span style="color:#34d399; font-weight:700;">CMP: ₹ 202.00</span>
+            <div class="scalper-inst-meta" style="gap:10px;">
+              <select id="selScalperInstrument" style="background:#131b2c; border:1px solid rgba(255,255,255,0.15); color:#ffffff; font-size:11.5px; padding:4px 8px; border-radius:4px; font-weight:700; outline:none; cursor:pointer;">
+                <option value="NIFTY_CE" selected>⚡ NIFTY 50 • 24,200 CE (₹ 202.00)</option>
+                <option value="NIFTY_PE">⚡ NIFTY 50 • 24,200 PE (₹ 145.80)</option>
+                <option value="BANKNIFTY_CE">⚡ BANK NIFTY • 52,200 CE (₹ 340.20)</option>
+                <option value="TRENT">⚡ TRENT (₹ 2,942.10)</option>
+                <option value="DIXON">⚡ DIXON (₹ 20,849.35)</option>
+                <option value="BEL">⚡ BEL (₹ 441.95)</option>
+                <option value="HAL">⚡ HAL (₹ 12,890.90)</option>
+              </select>
+              <span style="color:#34d399; font-weight:700;" id="scalperCmpDisplay">CMP: ₹ 202.00 (+1.76%)</span>
               <span style="color:#94a3b8; font-size:11px;">Entry: ₹ 198.50 | Qty: 500</span>
             </div>
 
             <div class="scalper-btn-cluster">
               <button class="btn-scalper-mkt-buy" id="btnScalperMktBuy">BUY MKT</button>
               <button class="btn-scalper-mkt-sell" id="btnScalperMktSell">SELL MKT</button>
-              <button class="btn btn-sm" style="padding:6px 12px;">Limit</button>
-              <button class="btn btn-sm" style="padding:6px 12px;">Stop</button>
-              <button class="btn btn-sm" style="padding:6px 12px; color:#f87171;">Cancel All</button>
+              <button class="btn btn-sm" id="btnScalperLimit" style="padding:6px 12px;">Limit</button>
+              <button class="btn btn-sm" id="btnScalperStop" style="padding:6px 12px;">Stop</button>
+              <button class="btn btn-sm" id="btnScalperCancelAll" style="padding:6px 12px; color:#f87171;">Cancel All</button>
             </div>
           </div>
 
           <div class="scalper-main-split">
             
-            <!-- Scalper Left Chart -->
-            <div class="tv-chart-panel" style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; display:flex; flex-direction:column; min-height:480px;">
-              <div style="font-size:12px; font-weight:700; color:#38bdf8; margin-bottom:6px;">Scalper Price Action & Breakout HUD</div>
-              <div class="chart-container-box" id="scalperChartContainer" style="flex:1; width:100%; min-height:420px; background:#070c17; border-radius:6px;">
+            <!-- Scalper Left Chart Panel -->
+            <div class="tv-chart-panel" style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; display:flex; flex-direction:column; min-height:500px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <span style="font-size:12px; font-weight:800; color:#38bdf8;">Scalper Price Action & Breakout HUD</span>
+                  <span class="val-pill" style="font-size:9.5px; background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.4);" id="scalperSignalBadge">⚡ BULLISH BREAKOUT</span>
+                </div>
+                <div style="display:flex; align-items:center; gap:4px;" id="scalperTfButtons">
+                  <button class="btn btn-sm active" data-stf="1m" style="padding:2px 8px; font-size:10px;">1m Scalp</button>
+                  <button class="btn btn-sm" data-stf="3m" style="padding:2px 8px; font-size:10px;">3m</button>
+                  <button class="btn btn-sm" data-stf="5m" style="padding:2px 8px; font-size:10px;">5m Trend</button>
+                </div>
+              </div>
+
+              <!-- Scalper Live Key Metrics Strip -->
+              <div style="display:grid; grid-template-columns:repeat(5, 1fr); gap:6px; margin-bottom:8px; background:#060a12; padding:6px 8px; border-radius:6px; border:1px solid rgba(255,255,255,0.05); font-size:10px; font-family:var(--font-mono);">
+                <div><span style="color:#64748b; font-size:8.5px; display:block;">VWAP</span> <strong style="color:#a78bfa;" id="scalperVwapVal">₹ 201.40</strong></div>
+                <div><span style="color:#64748b; font-size:8.5px; display:block;">DAY HIGH (R1)</span> <strong style="color:#34d399;" id="scalperDayHighVal">₹ 208.50</strong></div>
+                <div><span style="color:#64748b; font-size:8.5px; display:block;">DAY LOW (S1)</span> <strong style="color:#f87171;" id="scalperDayLowVal">₹ 194.20</strong></div>
+                <div><span style="color:#64748b; font-size:8.5px; display:block;">EMA 9/21</span> <strong style="color:#38bdf8;">+BULLISH</strong></div>
+                <div><span style="color:#64748b; font-size:8.5px; display:block;">ORB (15m)</span> <strong style="color:#f59e0b;">BREAKOUT</strong></div>
+              </div>
+
+              <div class="chart-container-box" id="scalperChartContainer" style="flex:1; width:100%; min-height:420px; background:#070c17; border-radius:6px; position:relative; overflow:hidden;">
                 <!-- GPU Scalper Canvas -->
               </div>
             </div>

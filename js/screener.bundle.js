@@ -961,7 +961,7 @@
      4d. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE
      ========================================================================== */
   const AngelOneSmartApiService = {
-    apiKey: '',
+    apiKey: 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ',
     clientCode: '',
     password: '',
     totp: '',
@@ -986,7 +986,7 @@
 
     loadStoredCredentials() {
       try {
-        this.apiKey = localStorage.getItem('smartapi_apiKey') || '';
+        this.apiKey = localStorage.getItem('smartapi_apiKey') || 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ';
         this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
         this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
         this.feedToken = localStorage.getItem('smartapi_feedToken') || '';

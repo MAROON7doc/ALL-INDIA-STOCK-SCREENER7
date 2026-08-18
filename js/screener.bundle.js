@@ -961,12 +961,12 @@
      4c. FINANCIAL MODELING PREP (FMP) INSTITUTIONAL API ENGINE
      ========================================================================== */
   const FinancialModelingPrepService = {
-    apiKey: '',
+    apiKey: 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ',
     cache: new Map(),
 
     loadStoredApiKey() {
       try {
-        this.apiKey = localStorage.getItem('fmp_apiKey') || '';
+        this.apiKey = localStorage.getItem('fmp_apiKey') || 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ';
       } catch (e) {}
     },
 

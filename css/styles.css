@@ -971,9 +971,9 @@ select option {
 
 /* App Grid */
 .app-container {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  min-height: calc(100vh - 150px);
+  display: block;
+  width: 100%;
+  min-height: calc(100vh - 120px);
 }
 
 /* Filter Sidebar */
@@ -3232,7 +3232,7 @@ body {
    ========================================================================== */
 .tradeone-workstation-grid {
   display: grid;
-  grid-template-columns: 280px 1fr 54px;
+  grid-template-columns: 240px 280px 1fr 54px;
   height: calc(100vh - 48px);
   min-height: calc(100vh - 48px);
   overflow: hidden;

@@ -148,8 +148,9 @@
         <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); flex-shrink:0;">
           <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
           <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (SmartAPI, Yahoo Finance Live, NSE Official, or Auto Multi-Provider Failover)">
-            <option value="auto" selected>🌐 Auto Multi-Provider (SmartAPI ➔ Yahoo ➔ NSE)</option>
+            <option value="auto" selected>🌐 Auto Multi-Provider (SmartAPI ➔ FMP ➔ Yahoo ➔ NSE)</option>
             <option value="smartapi">🔒 Angel One SmartAPI (Official Live)</option>
+            <option value="fmp">📊 Financial Modeling Prep (FMP API)</option>
             <option value="yfinance">📈 Yahoo Finance Live (.NS/.BO)</option>
             <option value="nsebse">🏛️ NSE India Official Feed</option>
           </select>

@@ -958,6 +958,159 @@
   };
 
   /* ==========================================================================
+     4c. FINANCIAL MODELING PREP (FMP) INSTITUTIONAL API ENGINE
+     ========================================================================== */
+  const FinancialModelingPrepService = {
+    apiKey: '',
+    cache: new Map(),
+
+    loadStoredApiKey() {
+      try {
+        this.apiKey = localStorage.getItem('fmp_apiKey') || '';
+      } catch (e) {}
+    },
+
+    saveApiKey(key) {
+      this.apiKey = (key || '').trim();
+      try {
+        if (this.apiKey) localStorage.setItem('fmp_apiKey', this.apiKey);
+        else localStorage.removeItem('fmp_apiKey');
+      } catch (e) {}
+    },
+
+    formatSymbol(symbol, exchange = 'NSE') {
+      if (symbol.includes('.')) return symbol.toUpperCase();
+      return `${symbol.toUpperCase()}.NS`;
+    },
+
+    async fetchLiveQuote(symbol, exchange = 'NSE') {
+      if (!this.apiKey) return null;
+      const fmpSymbol = this.formatSymbol(symbol, exchange);
+      const cacheKey = `fmp_quote_${fmpSymbol}`;
+      if (this.cache.has(cacheKey)) {
+        const cached = this.cache.get(cacheKey);
+        if (Date.now() - cached.time < 10000) return cached.data;
+      }
+
+      const url = `https://financialmodelingprep.com/api/v3/quote/${encodeURIComponent(fmpSymbol)}?apikey=${encodeURIComponent(this.apiKey)}`;
+      const endpoints = [
+        url,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 4000);
+          const resp = await fetch(ep, { signal: controller.signal });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const arr = await resp.json();
+            if (Array.isArray(arr) && arr.length > 0) {
+              const q = arr[0];
+              const ltp = q.price || q.previousClose || 0;
+              const prev = q.previousClose || ltp;
+              const change = q.change || (ltp - prev);
+              const pChange = q.changesPercentage || (prev ? (change / prev) * 100 : 0);
+              const parsed = {
+                symbol,
+                ltp: parseFloat(ltp.toFixed(2)),
+                previousClose: parseFloat(prev.toFixed(2)),
+                change: parseFloat(change.toFixed(2)),
+                pChange: parseFloat(pChange.toFixed(2)),
+                dayHigh: q.dayHigh || ltp,
+                dayLow: q.dayLow || ltp,
+                volume: q.volume || 0
+              };
+              this.cache.set(cacheKey, { time: Date.now(), data: parsed });
+              return parsed;
+            }
+          }
+        } catch (e) {}
+      }
+      return null;
+    },
+
+    async fetchChartSeries(symbol, interval = '1D', exchange = 'NSE') {
+      if (!this.apiKey) return null;
+      const fmpSymbol = this.formatSymbol(symbol, exchange);
+      const cacheKey = `fmp_chart_${fmpSymbol}_${interval}`;
+      if (this.cache.has(cacheKey)) {
+        const cached = this.cache.get(cacheKey);
+        if (Date.now() - cached.time < 30000) return cached.data;
+      }
+
+      let url = '';
+      if (interval === '1m' || interval === '5m' || interval === '15m' || interval === '1H') {
+        const fmpTf = interval === '1m' ? '1min' : (interval === '5m' ? '5min' : (interval === '15m' ? '15min' : '1hour'));
+        url = `https://financialmodelingprep.com/api/v3/historical-chart/${fmpTf}/${encodeURIComponent(fmpSymbol)}?apikey=${encodeURIComponent(this.apiKey)}`;
+      } else {
+        url = `https://financialmodelingprep.com/api/v3/historical-price-full/${encodeURIComponent(fmpSymbol)}?apikey=${encodeURIComponent(this.apiKey)}`;
+      }
+
+      const endpoints = [
+        url,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 5000);
+          const resp = await fetch(ep, { signal: controller.signal });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const data = await resp.json();
+            let rawList = Array.isArray(data) ? data : (data?.historical || []);
+            if (rawList && rawList.length > 0) {
+              const sorted = [...rawList].reverse();
+              const candles = sorted.map(item => {
+                return {
+                  date: item.date.includes(' ') ? item.date.split(' ')[0] : item.date,
+                  time: item.date.includes(' ') ? item.date.split(' ')[1].substring(0, 5) : '15:30',
+                  open: parseFloat(item.open),
+                  high: parseFloat(item.high),
+                  low: parseFloat(item.low),
+                  close: parseFloat(item.close),
+                  volume: parseInt(item.volume || 0)
+                };
+              }).filter(c => !isNaN(c.close) && c.close > 0);
+
+              if (candles.length >= 5) {
+                const parsed = {
+                  symbol,
+                  candles,
+                  ltp: candles[candles.length - 1].close,
+                  previousClose: candles[0].close
+                };
+                this.cache.set(cacheKey, { time: Date.now(), data: parsed });
+                return parsed;
+              }
+            }
+          }
+        } catch (e) {}
+      }
+      return null;
+    },
+
+    async fetchKeyFinancialRatios(symbol, exchange = 'NSE') {
+      if (!this.apiKey) return null;
+      const fmpSymbol = this.formatSymbol(symbol, exchange);
+      const url = `https://financialmodelingprep.com/api/v3/ratios/${encodeURIComponent(fmpSymbol)}?limit=1&apikey=${encodeURIComponent(this.apiKey)}`;
+      try {
+        const resp = await fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (Array.isArray(data) && data.length > 0) return data[0];
+        }
+      } catch (e) {}
+      return null;
+    }
+  };
+
+  /* ==========================================================================
      4d. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE
      ========================================================================== */
   const AngelOneSmartApiService = {
@@ -3978,6 +4131,7 @@
       try { this.updateMarketStatusBadge(); } catch (e) {}
       this.marketTimer = setInterval(() => { try { this.updateMarketStatusBadge(); } catch (e) {} }, 1000);
       try { AngelOneSmartApiService.loadStoredCredentials(); } catch (e) {}
+      try { FinancialModelingPrepService.loadStoredApiKey(); } catch (e) {}
       try { this.updateSmartApiStatusUI(); } catch (e) {}
 
       try { this.bindUI(); } catch (e) { console.error('bindUI error:', e); }
@@ -6309,6 +6463,10 @@
 
               if (this.dataProvider === 'smartapi' || (this.dataProvider === 'auto' && AngelOneSmartApiService.isConnected)) {
                 quote = await AngelOneSmartApiService.fetchLiveQuote(stock.symbol);
+              }
+
+              if (!quote && (this.dataProvider === 'fmp' || this.dataProvider === 'auto')) {
+                quote = await FinancialModelingPrepService.fetchLiveQuote(stock.symbol, stock.exchange);
               }
 
               if (!quote && (this.dataProvider === 'nsebse' || this.dataProvider === 'auto')) {

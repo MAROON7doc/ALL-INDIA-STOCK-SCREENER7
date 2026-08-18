@@ -418,7 +418,7 @@
        ========================================================================= -->
   <section class="mobile-tab-view" id="viewChart">
     
-    <!-- Active Stock Header -->
+    <!-- Active Stock Header & Scalper Bar -->
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
       <div>
         <div style="font-size:15px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);" id="mainChartStockTitle">
@@ -434,6 +434,19 @@
         <button class="btn btn-sm" id="btnResetChartZoom" style="padding:4px 8px; font-size:11px;">🔍 Fit</button>
         <button class="btn btn-sm" id="btnPopoutChart" style="color:var(--accent-green); padding:4px 8px; font-size:11px;">↗ Pop-Out</button>
       </div>
+    </div>
+
+    <!-- Touch Scalper 1-Click Order Bar -->
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#0b111e; border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:5px 8px; margin-bottom:6px;" id="scalperOrderOverlay">
+      <button class="btn-scalper-buy" id="btnScalperBuy" style="flex:1; justify-content:center; padding:6px 8px;">
+        <span>BUY @</span> <span id="scalperBuyPrice">₹7,120.50</span>
+      </button>
+      <div style="display:flex; align-items:center; gap:2px;">
+        <input type="number" class="scalper-qty-input" id="scalperOrderQty" value="1" min="1" max="10000" style="width:38px; height:28px;">
+      </div>
+      <button class="btn-scalper-sell" id="btnScalperSell" style="flex:1; justify-content:center; padding:6px 8px;">
+        <span>SELL @</span> <span id="scalperSellPrice">₹7,118.00</span>
+      </button>
     </div>
 
     <!-- Live OHLCV Bar -->

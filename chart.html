@@ -318,21 +318,76 @@
     <!-- Main Workstation Body: Chart Pane + Quantitative Sidebar -->
     <div class="popout-main-body">
       
-      <!-- GPU WebGL Canvas Area -->
-      <div class="popout-chart-pane">
-        <div class="popout-canvas-box" id="mainCanvasContainer">
-          <!-- Rendered at 60 FPS GPU WebGL -->
-        </div>
+      <!-- GPU WebGL Canvas Area with Left Drawing Bar & Scalper Bar -->
+      <div class="popout-chart-pane" style="display:flex; flex-direction:row; position:relative; overflow:hidden;">
         
-        <!-- Bottom Status Bar -->
-        <div class="tv-bottom-range-bar" style="padding: 4px 12px; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05);">
-          <div style="color:var(--text-muted); font-size:10.5px; font-family:var(--font-mono);" id="tvChartNavHint">
-            💡 Scroll wheel to zoom • Drag horizontally to pan • Hover candle for OHLCV & 10 protocols • Double-click to auto-scale
+        <!-- Left Drawing Toolbar -->
+        <aside class="tv-left-drawing-bar">
+          <button class="drawing-tool-btn active" data-tool="crosshair" title="Crosshair Cursor (✛)">✛</button>
+          <button class="drawing-tool-btn" data-tool="trendline" title="Trend Line / Ray (╱)">╱</button>
+          <button class="drawing-tool-btn" data-tool="fib" title="Fibonacci Retracement (≡)">≡</button>
+          <button class="drawing-tool-btn" data-tool="rectangle" title="Order Block / Consolidation Box (⬡)">⬡</button>
+          <div class="drawing-divider"></div>
+          <button class="drawing-tool-btn" data-tool="text" title="Text Annotation (T)">T</button>
+          <button class="drawing-tool-btn" data-tool="measure" title="Measure Ruler (📐)">📐</button>
+          <button class="drawing-tool-btn" data-tool="magnet" title="Magnet Mode (🧲)">🧲</button>
+          <div class="drawing-divider"></div>
+          <button class="drawing-tool-btn" data-tool="lock" title="Lock Drawings (🔒)">🔒</button>
+          <button class="drawing-tool-btn" data-tool="clear" title="Clear All Drawings (🗑️)" style="color:var(--accent-red);">🗑️</button>
+        </aside>
+
+        <!-- Canvas Center Container -->
+        <div style="flex:1 1 auto; position:relative; display:flex; flex-direction:column; min-width:0; height:100%;">
+          
+          <!-- In-Chart Scalper Buy/Sell Overlay -->
+          <div class="scalper-order-overlay" id="scalperOrderOverlay">
+            <div class="scalper-stock-badge">
+              <span id="scalperSymbolText">TRENT</span>
+              <span class="val-pill" style="font-size:9px;">EQ</span>
+            </div>
+            <button class="btn-scalper-buy" id="btnScalperBuy">
+              <span>BUY @</span> <span id="scalperBuyPrice">₹7,120.50</span>
+            </button>
+            <div style="display:flex; align-items:center; gap:3px;">
+              <input type="number" class="scalper-qty-input" id="scalperOrderQty" value="1" min="1" max="10000">
+            </div>
+            <button class="btn-scalper-sell" id="btnScalperSell">
+              <span>SELL @</span> <span id="scalperSellPrice">₹7,118.00</span>
+            </button>
+            <div style="font-size:9.5px; color:var(--text-muted); font-family:var(--font-mono); margin-left:4px;" id="scalperVolText">
+              Vol: 54.497K
+            </div>
           </div>
-          <div style="color:var(--accent-blue); font-size:10px; font-family:var(--font-mono); font-weight:600;">
-            GPU WebGL 60 FPS Engine
+
+          <div class="popout-canvas-box" id="mainCanvasContainer" style="flex:1 1 auto; width:100%; height:calc(100% - 28px) !important;">
+            <!-- Rendered at 60 FPS GPU WebGL -->
+          </div>
+          
+          <!-- Bottom Status Bar -->
+          <div class="tv-bottom-status-bar" style="height:28px;">
+            <div class="tv-bottom-left-ranges" id="tvRangeGroup">
+              <button class="tv-bottom-range-btn" data-range="1D">1D</button>
+              <button class="tv-bottom-range-btn" data-range="5D">5D</button>
+              <button class="tv-bottom-range-btn" data-range="1M">1M</button>
+              <button class="tv-bottom-range-btn" data-range="3M">3M</button>
+              <button class="tv-bottom-range-btn" data-range="6M">6M</button>
+              <button class="tv-bottom-range-btn" data-range="1Y">1Y</button>
+              <button class="tv-bottom-range-btn" data-range="ALL">ALL</button>
+              <span style="color:rgba(255,255,255,0.15); margin:0 4px;">|</span>
+              <span style="color:var(--accent-blue); font-size:9px; font-weight:700;">⚡ Tick by Tick</span>
+            </div>
+
+            <div class="tv-bottom-right-status">
+              <span id="liveIstClock" class="live-ist-clock-badge">09:19:00 (UTC+5:30)</span>
+              <div class="scale-toggle-group">
+                <button class="scale-toggle-btn" id="btnScalePct">%</button>
+                <button class="scale-toggle-btn" id="btnScaleLog">log</button>
+                <button class="scale-toggle-btn active" id="btnScaleAuto">auto</button>
+              </div>
+            </div>
           </div>
         </div>
+
       </div>
 
       <!-- Live Quantitative Forensics & Watchlist Sidebar -->

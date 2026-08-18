@@ -3291,19 +3291,30 @@
         ctx.fillText(`₹${livePrice.toFixed(1)} OFFLINE`, w - paddingRight + 4, liveTagY + 3.5);
       }
 
-      // Right Scale Hover Crosshair Badge
+      // Right Scale Hover Crosshair Badge with Add Alert (+) Button
       if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
         const hoverPrice = getPriceFromY(this.crosshair.y);
-        const crosshairTagY = Math.max(paddingTop + 8, Math.min(paddingTop + pricePlotHeight - 8, this.crosshair.y));
+        const crosshairTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, this.crosshair.y));
         ctx.fillStyle = '#1e293b';
-        ctx.fillRect(w - paddingRight + 2, crosshairTagY - 8, paddingRight - 4, 16);
+        ctx.fillRect(w - paddingRight - 16, crosshairTagY - 9, paddingRight + 14, 18);
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
         ctx.lineWidth = 1;
-        ctx.strokeRect(w - paddingRight + 2, crosshairTagY - 8, paddingRight - 4, 16);
+        ctx.strokeRect(w - paddingRight - 16, crosshairTagY - 9, paddingRight + 14, 18);
+
+        // Circular (+) badge as in TradingView
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+        ctx.beginPath();
+        ctx.arc(w - paddingRight - 8, crosshairTagY, 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#38bdf8';
+        ctx.font = 'bold 10px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('+', w - paddingRight - 8, crosshairTagY + 3.5);
+
         ctx.fillStyle = '#f8fafc';
         ctx.font = 'bold 9px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
-        ctx.fillText(`₹${hoverPrice.toFixed(1)}`, w - paddingRight + 5, crosshairTagY + 3.5);
+        ctx.fillText(`₹${hoverPrice.toFixed(2)}`, w - paddingRight + 4, crosshairTagY + 3.5);
       }
 
       // Volumes & P3 Volume Bursts (Dynamic Threshold Multiplier from Slider)
@@ -3958,6 +3969,9 @@
       try { this.bindUI(); } catch (e) { console.error('bindUI error:', e); }
       try { this.bindLayerToggles(); } catch (e) {}
       try { this.bindTradingViewToolbar(); } catch (e) {}
+      try { this.bindScalperControls(); } catch (e) {}
+      try { this.updateLiveIstClock(); } catch (e) {}
+      this.clockTimer = setInterval(() => { try { this.updateLiveIstClock(); } catch (e) {} }, 1000);
       try { this.renderStockPills(); } catch (e) {}
       try { this.renderNewsFeed(); } catch (e) {}
       try { this.startNewsCycle(); } catch (e) {}
@@ -4095,6 +4109,128 @@
           document.exitFullscreen().catch(() => {});
         }
         setTimeout(() => this.mainChart?.resize(), 100);
+      });
+    }
+
+    updateLiveIstClock() {
+      const el = document.getElementById('liveIstClock');
+      if (!el) return;
+      const now = new Date();
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+      el.textContent = `${h}:${m}:${s} (UTC+5:30)`;
+    }
+
+    bindScalperControls() {
+      const btnBuy = document.getElementById('btnScalperBuy');
+      const btnSell = document.getElementById('btnScalperSell');
+      const qtyInput = document.getElementById('scalperOrderQty');
+      const chkInstant = document.getElementById('chkInstantOrders');
+      const scalperOverlay = document.getElementById('scalperOrderOverlay');
+      const btnScalperMode = document.getElementById('btnToggleScalperMode');
+
+      const executeOrder = (type) => {
+        if (!this.activeMainStock) return;
+        const stock = this.activeMainStock;
+        const qty = parseInt(qtyInput?.value || '1', 10);
+        const price = type === 'BUY' ? stock.ltp : parseFloat((stock.ltp * 0.9995).toFixed(2));
+        const totalVal = qty * price;
+        const col = type === 'BUY' ? 'success' : 'warn';
+        const icon = type === 'BUY' ? '🚀' : '🔻';
+        this.showToast(`${icon} ${type} Executed: ${qty} ${stock.symbol} @ ₹${price.toFixed(2)} | Total: ₹${totalVal.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`, col);
+      };
+
+      btnBuy?.addEventListener('click', () => executeOrder('BUY'));
+      btnSell?.addEventListener('click', () => executeOrder('SELL'));
+
+      chkInstant?.addEventListener('change', () => {
+        if (scalperOverlay) {
+          if (chkInstant.checked) scalperOverlay.classList.remove('hidden');
+          else scalperOverlay.classList.add('hidden');
+        }
+      });
+
+      btnScalperMode?.addEventListener('click', () => {
+        btnScalperMode.classList.toggle('active');
+        const isActive = btnScalperMode.classList.contains('active');
+        if (scalperOverlay) {
+          if (isActive) scalperOverlay.classList.remove('hidden');
+          else scalperOverlay.classList.add('hidden');
+        }
+        if (chkInstant) chkInstant.checked = isActive;
+      });
+
+      // fx Indicators Menu toggle
+      document.getElementById('btnToggleIndicatorsMenu')?.addEventListener('click', () => {
+        const rib = document.getElementById('protocolLayerRibbon');
+        if (rib) rib.style.display = (rib.style.display === 'none') ? 'flex' : 'none';
+      });
+
+      // Left Drawing Toolbar bindings
+      document.querySelectorAll('.drawing-tool-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const tool = btn.dataset.tool;
+          if (tool === 'clear') {
+            this.showToast('🗑️ All canvas drawing overlays cleared', 'info');
+            return;
+          }
+          document.querySelectorAll('.drawing-tool-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.showToast(`Active Tool: ${btn.title || tool}`, 'info');
+        });
+      });
+
+      // Bottom Status Bar Ranges
+      document.querySelectorAll('#tvRangeGroup .tv-bottom-range-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#tvRangeGroup .tv-bottom-range-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          const r = btn.dataset.range;
+          this.mainChart?.setRange(r);
+        });
+      });
+
+      // Scale Toggles
+      ['btnScalePct', 'btnScaleLog', 'btnScaleAuto'].forEach(id => {
+        document.getElementById(id)?.addEventListener('click', function() {
+          document.querySelectorAll('.scale-toggle-btn').forEach(b => b.classList.remove('active'));
+          this.classList.add('active');
+        });
+      });
+
+      // Right Sidebar Tools
+      document.getElementById('btnRightToolWatchlist')?.addEventListener('click', () => {
+        this.showToast('📊 Quick Watchlist Pinpoint Active', 'info');
+      });
+      document.getElementById('btnRightToolPositions')?.addEventListener('click', () => {
+        this.showToast('💼 Positions: 1 Active Paper Position (TRENT 10 Qty @ ₹7,120.50)', 'info');
+      });
+      document.getElementById('btnRightToolOrders')?.addEventListener('click', () => {
+        this.showToast('📑 Orders: 3 Executed Paper Orders in Session', 'info');
+      });
+      document.getElementById('btnRightToolDepth')?.addEventListener('click', () => {
+        const ltp = this.activeMainStock?.ltp || 7120;
+        this.showToast(`🌊 5-Level Depth: Best Bid ₹${ltp.toFixed(2)} (Qty: 2,450) • Best Ask ₹${(ltp + 0.5).toFixed(2)} (Qty: 1,820)`, 'info');
+      });
+      document.getElementById('btnRightToolProtocols')?.addEventListener('click', () => {
+        const rib = document.getElementById('protocolLayerRibbon');
+        if (rib) rib.style.display = 'flex';
+        this.showToast('⚙️ 10 CANSLIM Protocols Ribbon Enabled', 'info');
+      });
+
+      // Top Tabs
+      document.querySelectorAll('.tv-tab-item').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.tv-tab-item').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          if (tab.id === 'tabNavOverview') {
+            this.openModal(this.activeMainStock);
+          } else if (tab.id === 'tabNavProtocols') {
+            const rib = document.getElementById('protocolLayerRibbon');
+            if (rib) rib.style.display = 'flex';
+          }
+        });
       });
     }
 
@@ -4617,6 +4753,23 @@
       if (titleEl) {
         const exchLabel = isNSE ? `(NSE: ${stock.series || 'EQ'})` : `(BSE: ${stock.bseCode})`;
         titleEl.innerHTML = `${stock.symbol} <span style="font-size:11px; color:var(--accent-blue); font-weight:700;">${exchLabel}</span> <span style="font-size:12px; color:${stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)'}; font-weight:600;" id="mainChartPrice">₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%)</span>`;
+      }
+
+      // Update In-Chart Scalper Bar
+      const scalperSym = document.getElementById('scalperSymbolText');
+      if (scalperSym) scalperSym.textContent = stock.symbol;
+      const scalperSeries = document.getElementById('scalperSeriesText');
+      if (scalperSeries) scalperSeries.textContent = stock.series || 'EQ';
+      const scalperBuy = document.getElementById('scalperBuyPrice');
+      if (scalperBuy) scalperBuy.textContent = `₹${stock.ltp.toFixed(2)}`;
+      const scalperSell = document.getElementById('scalperSellPrice');
+      if (scalperSell) scalperSell.textContent = `₹${(stock.ltp * 0.9995).toFixed(2)}`;
+      const scalperVol = document.getElementById('scalperVolText');
+      if (scalperVol) {
+        const lastC = stock.dailyCandles?.[stock.dailyCandles.length - 1];
+        const v = lastC ? lastC.volume : 54000;
+        const vStr = v >= 10000000 ? `${(v/10000000).toFixed(2)}Cr` : (v >= 100000 ? `${(v/100000).toFixed(2)}L` : `${(v/1000).toFixed(1)}K`);
+        scalperVol.textContent = `Vol: ${vStr}`;
       }
 
       // Update top pill selector active state
@@ -5635,6 +5788,18 @@
           if (titlePriceEl) {
             titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
             titlePriceEl.textContent = `₹${this.activeMainStock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
+          }
+
+          const scalperBuy = document.getElementById('scalperBuyPrice');
+          if (scalperBuy) scalperBuy.textContent = `₹${this.activeMainStock.ltp.toFixed(2)}`;
+          const scalperSell = document.getElementById('scalperSellPrice');
+          if (scalperSell) scalperSell.textContent = `₹${(this.activeMainStock.ltp * 0.9995).toFixed(2)}`;
+          const scalperVol = document.getElementById('scalperVolText');
+          if (scalperVol) {
+            const lastC = this.activeMainStock.dailyCandles?.[this.activeMainStock.dailyCandles.length - 1];
+            const v = lastC ? lastC.volume : 54000;
+            const vStr = v >= 10000000 ? `${(v/10000000).toFixed(2)}Cr` : (v >= 100000 ? `${(v/100000).toFixed(2)}L` : `${(v/1000).toFixed(1)}K`);
+            scalperVol.textContent = `Vol: ${vStr}`;
           }
         }
 

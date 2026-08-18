@@ -87,6 +87,27 @@ canvas {
   -webkit-user-select: none;
 }
 
+/* Absolutely prevent canvas touch from causing page-level horizontal scroll.
+   touch-action: none tells the browser the canvas handles ALL touch events itself. */
+canvas {
+  touch-action: none;
+  overscroll-behavior: none;
+}
+
+/* Lock the entire page against horizontal overscroll/bounce */
+html {
+  overscroll-behavior-x: none;
+}
+
+.stitch-view-content,
+.scalper-terminal-container,
+#viewScalperTerminal,
+.tv-canvas-center-wrap,
+.terminal-center-chart {
+  overscroll-behavior: none;
+  overflow-x: hidden !important;
+}
+
 /* Ensure news and calc outputs are selectable */
 .news-title,
 .news-snippet,

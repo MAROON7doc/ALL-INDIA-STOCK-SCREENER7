@@ -2327,7 +2327,6 @@
 
       this.setupListeners();
       this.resize();
-      this.startAnimationLoop();
     }
 
     setLoading(isLoading, message = 'Loading institutional market series...') {
@@ -6774,7 +6773,9 @@
         }
 
         try { this.renderTradeoneWatchlist(); } catch (e) {}
-        this.runScan();
+        // NOTE: runScan() is intentionally NOT called from the live stream loop.
+        // Calling it every 1.8s causes full DOM table rebuild which triggers browser
+        // scroll reflow and makes the page auto-scroll. Run scan only on user interaction.
 
         try {
           if (this.activeMainStock) this.populatePopoutSidebar(this.activeMainStock);

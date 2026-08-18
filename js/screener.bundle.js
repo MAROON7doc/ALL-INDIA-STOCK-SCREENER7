@@ -2166,10 +2166,85 @@
 
       this.isMarketLive = true;
       this.isSimMode = false;
+      this.isLoading = false;
+      this.loadingMessage = 'Loading historical market data...';
+      this.errorMessage = null;
+      this.isEmpty = false;
+      this.emptyMessage = 'No chart data available for this timeframe';
 
       this.setupListeners();
       this.resize();
       this.startAnimationLoop();
+    }
+
+    setLoading(isLoading, message = 'Loading institutional market series...') {
+      this.isLoading = isLoading;
+      this.loadingMessage = message;
+      if (isLoading) this.errorMessage = null;
+      this.render();
+    }
+
+    setError(errorMessage) {
+      this.errorMessage = errorMessage;
+      this.isLoading = false;
+      this.render();
+    }
+
+    setEmpty(isEmpty, message = 'No data available for selected instrument and timeframe.') {
+      this.isEmpty = isEmpty;
+      this.emptyMessage = message;
+      this.isLoading = false;
+      this.render();
+    }
+
+    updateRealtimeTick(price, volume = 0, timestamp = null, isNewBar = false) {
+      if (!this.allCandles || !this.allCandles.length || !this.stock) return;
+
+      const now = timestamp ? new Date(timestamp) : new Date();
+      const dateStr = now.toISOString().split('T')[0];
+      const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
+      const p = parseFloat(Number(price).toFixed(2));
+      if (isNaN(p) || p <= 0) return;
+
+      if (isNewBar) {
+        // Roll & Append a new candle bucket
+        const prevC = this.allCandles[this.allCandles.length - 1];
+        const newCandle = {
+          date: dateStr,
+          time: timeStr,
+          open: prevC ? prevC.close : p,
+          high: Math.max(prevC ? prevC.close : p, p),
+          low: Math.min(prevC ? prevC.close : p, p),
+          close: p,
+          volume: volume || 100
+        };
+        this.allCandles.push(newCandle);
+        this.updateIndicatorCache();
+      } else {
+        // Incrementally update current forming bar in-place
+        const lastC = this.allCandles[this.allCandles.length - 1];
+        lastC.close = p;
+        lastC.high = Math.max(lastC.high, p);
+        lastC.low = Math.min(lastC.low, p);
+        if (volume > 0) lastC.volume += volume;
+
+        // Fast incremental buffer update for indicators
+        if (this.cache.closes && this.cache.closes.length === this.allCandles.length) {
+          const lastIdx = this.cache.closes.length - 1;
+          this.cache.closes[lastIdx] = p;
+          
+          if (this.cache.sma20 && this.cache.sma20.length === this.allCandles.length) {
+            const windowSize = Math.min(20, this.allCandles.length);
+            let sum = 0;
+            for (let i = 0; i < windowSize; i++) {
+              sum += this.cache.closes[lastIdx - i];
+            }
+            this.cache.sma20[lastIdx] = sum / windowSize;
+          }
+        }
+      }
+
+      this.stock.ltp = p;
     }
 
     setFilterParams(params) {
@@ -2671,8 +2746,48 @@
 
     render() {
       if (!this.ctx || !this.stock) return;
+      const ctx = this.ctx;
+      const w = this.width;
+      const h = this.height;
+
+      // Dark trading surface background
+      ctx.fillStyle = '#070c17';
+      ctx.fillRect(0, 0, w, h);
+
+      // 1. Loading State
+      if (this.isLoading) {
+        const cx = w / 2, cy = h / 2 - 10;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(cx, cy, 18, this.pulsePhase, this.pulsePhase + Math.PI * 1.2);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.loadingMessage || 'Loading institutional market series...', cx, cy + 34);
+        return;
+      }
+
       const visibleCandles = this.getVisibleCandles();
-      if (!visibleCandles.length) return;
+
+      // 2. Empty Data State
+      if (this.isEmpty || !visibleCandles.length) {
+        ctx.fillStyle = '#64748b';
+        ctx.font = '600 12.5px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('📊 ' + (this.emptyMessage || `No candle data available for ${this.stock.symbol} (${this.interval})`), w / 2, h / 2);
+        return;
+      }
 
       const latestCandle = (this.allCandles && this.allCandles.length) ? this.allCandles[this.allCandles.length - 1] : null;
       const livePrice = latestCandle ? latestCandle.close : this.stock.ltp;
@@ -2682,14 +2797,6 @@
         this.updateIndicatorCache();
         this.cache.lastLivePrice = livePrice;
       }
-
-      const ctx = this.ctx;
-      const w = this.width;
-      const h = this.height;
-
-      // Dark trading surface background
-      ctx.fillStyle = '#070c17';
-      ctx.fillRect(0, 0, w, h);
 
       const isWide = w >= 1100;
       const isTall = h >= 650;
@@ -5940,12 +6047,8 @@
                 if (stock.dailyCandles && stock.dailyCandles.length) {
                   const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
                   lastC.close = quote.ltp;
-                  lastC.high = Math.max(lastC.high, quote.dayHigh || quote.ltp);
-                  lastC.low = Math.min(lastC.low, quote.dayLow || quote.ltp);
-                  if (quote.volume) lastC.volume = quote.volume;
                 }
-
-                if (this.mainChart) this.mainChart.refreshCandles();
+                if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, 0, new Date(), false);
                 this.renderTradeoneWatchlist();
               }
             }).catch(() => {});
@@ -5980,10 +6083,10 @@
         this.runScan();
 
         if (this.mainChart && this.activeMainStock) {
-          this.mainChart.refreshCandles();
+          this.mainChart.updateRealtimeTick(this.activeMainStock.ltp, 40, new Date(), false);
         }
         if (this.modalChart && this.currentModalStock) {
-          this.modalChart.refreshCandles();
+          this.modalChart.updateRealtimeTick(this.currentModalStock.ltp, 40, new Date(), false);
         }
 
         try {

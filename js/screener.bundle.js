@@ -4685,6 +4685,25 @@
         });
       });
 
+      // Top Intel Ribbons Collapsible Toggle (Gives 100% full screen height to the live graph)
+      document.getElementById('btnToggleIntelRibbons')?.addEventListener('click', () => {
+        const header = document.getElementById('collapsibleAppHeader');
+        if (header) {
+          const isHidden = header.style.display === 'none' || getComputedStyle(header).display === 'none';
+          header.style.display = isHidden ? 'block' : 'none';
+          const btn = document.getElementById('btnToggleIntelRibbons');
+          if (btn) {
+            btn.textContent = isHidden ? '⚡ Ribbons ▲' : '⚡ Ribbons ▾';
+            btn.style.color = isHidden ? '#38bdf8' : '#94a3b8';
+          }
+          if (this.mainChart) setTimeout(() => this.mainChart.resize(), 50);
+        }
+      });
+
+      document.getElementById('btnTopOpenSmartApi')?.addEventListener('click', () => {
+        document.getElementById('smartApiModal')?.classList.add('active');
+      });
+
       // Stitch Protocol Engine Sliders
       const bindStitchSlider = (id, pillId, fmt, fn) => {
         const el = document.getElementById(id), pill = document.getElementById(pillId);

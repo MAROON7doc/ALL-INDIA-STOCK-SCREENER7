@@ -2735,6 +2735,64 @@
         ctx.fillText(`⚠️ ${this.interval} Feed Unavailable. Displaying Daily Fallback.`, paddingLeft + 20, paddingTop + 21);
       }
 
+      // =========================================================================
+      // 1.1 TRADINGVIEW PRO REAL-TIME LIVE OHLCV HUD BAR
+      // =========================================================================
+      const hudCandle = (this.crosshair.active && this.crosshair.candle) ? this.crosshair.candle : latestCandle;
+      if (hudCandle) {
+        const hudIsBull = hudCandle.close >= hudCandle.open;
+        const hudCol = hudIsBull ? '#10b981' : '#ef4444';
+        const hudChg = hudCandle.open > 0 ? (((hudCandle.close - hudCandle.open) / hudCandle.open) * 100) : 0;
+        const hudChgSign = hudChg >= 0 ? '+' : '';
+        const hudVol = hudCandle.volume;
+        const hudVolStr = hudVol >= 10000000 ? `${(hudVol / 10000000).toFixed(2)}Cr` : (hudVol >= 100000 ? `${(hudVol / 100000).toFixed(2)}L` : (hudVol >= 1000 ? `${(hudVol / 1000).toFixed(1)}K` : hudVol));
+        const hudTimeLabel = hudCandle.time || hudCandle.date || '';
+
+        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.textAlign = 'left';
+        
+        let curX = paddingLeft + 6;
+        const hudY = paddingTop + 12;
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.fillText(`${this.stock.symbol} • ${this.interval} • ${hudTimeLabel}`, curX, hudY);
+        curX += ctx.measureText(`${this.stock.symbol} • ${this.interval} • ${hudTimeLabel}  `).width;
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('O:', curX, hudY);
+        curX += ctx.measureText('O: ').width;
+        ctx.fillStyle = hudCol;
+        ctx.fillText(`₹${hudCandle.open.toFixed(2)}`, curX, hudY);
+        curX += ctx.measureText(`₹${hudCandle.open.toFixed(2)}  `).width;
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('H:', curX, hudY);
+        curX += ctx.measureText('H: ').width;
+        ctx.fillStyle = '#10b981';
+        ctx.fillText(`₹${hudCandle.high.toFixed(2)}`, curX, hudY);
+        curX += ctx.measureText(`₹${hudCandle.high.toFixed(2)}  `).width;
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('L:', curX, hudY);
+        curX += ctx.measureText('L: ').width;
+        ctx.fillStyle = '#ef4444';
+        ctx.fillText(`₹${hudCandle.low.toFixed(2)}`, curX, hudY);
+        curX += ctx.measureText(`₹${hudCandle.low.toFixed(2)}  `).width;
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('C:', curX, hudY);
+        curX += ctx.measureText('C: ').width;
+        ctx.fillStyle = hudCol;
+        ctx.fillText(`₹${hudCandle.close.toFixed(2)} (${hudChgSign}${hudChg.toFixed(2)}%)`, curX, hudY);
+        curX += ctx.measureText(`₹${hudCandle.close.toFixed(2)} (${hudChgSign}${hudChg.toFixed(2)}%)  `).width;
+
+        ctx.fillStyle = '#64748b';
+        ctx.fillText('Vol:', curX, hudY);
+        curX += ctx.measureText('Vol: ').width;
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText(hudVolStr, curX, hudY);
+      }
+
       const visibleCount = visibleCandles.length;
       const startGlobalIdx = this.allCandles.length - this.viewOffset - visibleCount;
 
@@ -3090,6 +3148,25 @@
         ctx.stroke(bearWicks);
         ctx.fillStyle = '#ef4444';
         ctx.fill(bearBodies);
+
+        // 3. SPECIAL FORMING LIVE CANDLE PULSING AURA
+        const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
+        if (isLiveActive && visibleCandles.length) {
+          const liveC = visibleCandles[visibleCandles.length - 1];
+          const liveIsBull = liveC.close >= liveC.open;
+          const liveCx = Math.round(getX(visibleCandles.length - 1)) + 0.5;
+          const liveOy = getY(liveC.open), liveCy = getY(liveC.close);
+          const liveTop = Math.min(liveOy, liveCy);
+          const liveH = Math.max(1.5, Math.abs(liveCy - liveOy));
+
+          ctx.save();
+          ctx.strokeStyle = liveIsBull ? '#34d399' : '#f87171';
+          ctx.lineWidth = 1.8;
+          ctx.shadowColor = liveIsBull ? '#10b981' : '#ef4444';
+          ctx.shadowBlur = 6 + Math.sin(this.pulsePhase) * 3;
+          ctx.strokeRect(liveCx - candleWidth / 2 - 0.5, liveTop - 0.5, candleWidth + 1, liveH + 1);
+          ctx.restore();
+        }
       }
 
       // 4. LIVE TICK BEACON / EOD CLOSING POSITION CALLOUT & LASER BENCHMARK
@@ -3099,18 +3176,18 @@
       const isTickUp = this.stock.lastTickDir === 'up';
       const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#38bdf8';
 
-      // Laser Benchmark Line
+      // Laser Benchmark Line running across to right price scale
       ctx.strokeStyle = isLiveActive ? liveColor : 'rgba(56, 189, 248, 0.75)';
-      ctx.lineWidth = isLiveActive ? 1.3 : 1.1;
+      ctx.lineWidth = isLiveActive ? 1.4 : 1.1;
       ctx.setLineDash(isLiveActive ? [4, 2] : [5, 3]);
       ctx.beginPath();
-      ctx.moveTo(paddingLeft, liveY);
+      ctx.moveTo(lastCandleX > 0 ? lastCandleX : paddingLeft, liveY);
       ctx.lineTo(w - paddingRight, liveY);
       ctx.stroke();
       ctx.setLineDash([]);
 
       if (isLiveActive) {
-        // Active Live Market Ticking Pulse
+        // Active Live Market Ticking Pulse Beacon
         const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
         const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
         
@@ -5471,11 +5548,49 @@
         this.universe.forEach(stock => {
           const prevLtp = stock.ltp;
           const priceDiff = (prevLtp - stock.baseDayPrice) / stock.baseDayPrice;
-          const deltaPct = (-priceDiff * 0.12) + (Math.random() - 0.49) * 0.28;
+          const deltaPct = (-priceDiff * 0.08) + (Math.random() - 0.492) * 0.22;
           const newClose = parseFloat(Math.max(5, prevLtp * (1 + deltaPct / 100)).toFixed(2));
-          const volInc = Math.floor(Math.random() * 350 + 60);
+          const volInc = Math.floor(Math.random() * 280 + 40);
 
-          const syncCandle = (arr, volMultiplier) => {
+          if (!stock._tickCount) stock._tickCount = 0;
+          stock._tickCount++;
+
+          const now = new Date();
+          const curTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+
+          // Seamless live candle rolling across intraday series every ~35 ticks (or on real minute change)
+          const rollAndSync = (arr, volMultiplier, rollThreshold = 35) => {
+            if (!arr || !arr.length) return;
+            const last = arr[arr.length - 1];
+
+            if (stock._tickCount >= rollThreshold) {
+              const newOpen = last.close;
+              arr.push({
+                date: now.toISOString().split('T')[0],
+                time: curTimeStr,
+                open: newOpen,
+                high: Math.max(newOpen, newClose),
+                low: Math.min(newOpen, newClose),
+                close: newClose,
+                volume: volInc * volMultiplier
+              });
+              if (arr.length > 400) arr.shift();
+            } else {
+              last.close = newClose;
+              last.high = Math.max(last.high, newClose);
+              last.low = Math.min(last.low, newClose);
+              last.volume += volInc * volMultiplier;
+            }
+          };
+
+          rollAndSync(stock.intraday1m, 1, 28);
+          rollAndSync(stock.intraday5m, 2, 140);
+          rollAndSync(stock.intraday15m, 4, 420);
+          rollAndSync(stock.intraday1H, 8, 1680);
+          rollAndSync(stock.intraday4H, 12, 6720);
+
+          // Daily, Weekly, Monthly sync
+          const syncEndCandle = (arr, volMultiplier) => {
             if (!arr || !arr.length) return;
             const c = arr[arr.length - 1];
             c.close = newClose;
@@ -5484,14 +5599,11 @@
             c.volume += volInc * volMultiplier;
           };
 
-          syncCandle(stock.intraday1m, 1);
-          syncCandle(stock.intraday5m, 2);
-          syncCandle(stock.intraday15m, 4);
-          syncCandle(stock.intraday1H, 8);
-          syncCandle(stock.intraday4H, 12);
-          syncCandle(stock.dailyCandles, 20);
-          syncCandle(stock.weekly, 50);
-          syncCandle(stock.monthly, 100);
+          syncEndCandle(stock.dailyCandles, 20);
+          syncEndCandle(stock.weekly, 50);
+          syncEndCandle(stock.monthly, 100);
+
+          if (stock._tickCount >= 28) stock._tickCount = 0;
 
           const checkGreen = (arr) => {
             if (!arr || !arr.length) return false;

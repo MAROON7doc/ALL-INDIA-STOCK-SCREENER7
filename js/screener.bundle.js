@@ -4624,12 +4624,6 @@
         this.isLive = !this.isLive;
         if (this.isLive) {
           if (btn) btn.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect></svg><span>Pause</span>`;
-          const mStatus = this.getMarketStatus();
-          if (!mStatus.isOpen && this.feedMode === 'auto') {
-            this.feedMode = 'simulation';
-            const selFeed = document.getElementById('selFeedMode');
-            if (selFeed) selFeed.value = 'simulation';
-          }
           this.updateMarketStatusBadge();
           this.startLiveStream();
         } else {
@@ -6407,153 +6401,59 @@
 
     startLiveStream() {
       if (this.liveTimer) clearTimeout(this.liveTimer);
-      const loop = () => {
+      const loop = async () => {
         const mStatus = this.getMarketStatus();
         this.updateMarketStatusBadge();
 
-        const allowUpdates = this.isLive && (
-          this.feedMode === 'simulation' || 
-          this.feedMode === 'auto' ||
-          (this.feedMode === 'nse_strict' && mStatus.nseOpen)
-        );
-
-        if (!allowUpdates) {
+        if (!this.isLive || this.feedMode === 'paused') {
           this.liveTimer = setTimeout(loop, this.streamInterval);
           return;
         }
 
-        const updated = [];
+        const isSimulationMode = (this.feedMode === 'simulation');
 
-        this.universe.forEach(stock => {
-          const prevLtp = stock.ltp;
-          const priceDiff = (prevLtp - stock.baseDayPrice) / stock.baseDayPrice;
-          const deltaPct = (-priceDiff * 0.08) + (Math.random() - 0.492) * 0.22;
-          const newClose = parseFloat(Math.max(5, prevLtp * (1 + deltaPct / 100)).toFixed(2));
-          const volInc = Math.floor(Math.random() * 280 + 40);
+        // =========================================================================
+        // 1. AUTHENTIC LIVE MARKET FEED (SmartAPI / Yahoo Finance / NSE India)
+        // =========================================================================
+        if (!isSimulationMode) {
+          try {
+            // A. Fetch active selected stock quote from chosen Provider
+            if (this.activeMainStock) {
+              const stock = this.activeMainStock;
+              let quote = null;
 
-          if (!stock._tickCount) stock._tickCount = 0;
-          stock._tickCount++;
+              if (this.dataProvider === 'smartapi' || (this.dataProvider === 'auto' && AngelOneSmartApiService.isConnected)) {
+                quote = await AngelOneSmartApiService.fetchLiveQuote(stock.symbol);
+              }
 
-          const now = new Date();
-          const curTimeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+              if (!quote && (this.dataProvider === 'nsebse' || this.dataProvider === 'auto')) {
+                quote = await NseBseApiWrapperService.fetchQuoteEquity(stock.symbol);
+              }
 
-          // Seamless live candle rolling across intraday series every ~35 ticks (or on real minute change)
-          const rollAndSync = (arr, volMultiplier, rollThreshold = 35) => {
-            if (!arr || !arr.length) return;
-            const last = arr[arr.length - 1];
+              if (!quote) {
+                quote = await YahooFinanceWrapperService.fetchLiveQuote(stock.symbol, stock.exchange, stock.bseCode);
+              }
 
-            if (stock._tickCount >= rollThreshold) {
-              const newOpen = last.close;
-              arr.push({
-                date: now.toISOString().split('T')[0],
-                time: curTimeStr,
-                open: newOpen,
-                high: Math.max(newOpen, newClose),
-                low: Math.min(newOpen, newClose),
-                close: newClose,
-                volume: volInc * volMultiplier
-              });
-              if (arr.length > 400) arr.shift();
-            } else {
-              last.close = newClose;
-              last.high = Math.max(last.high, newClose);
-              last.low = Math.min(last.low, newClose);
-              last.volume += volInc * volMultiplier;
-            }
-          };
-
-          rollAndSync(stock.intraday1m, 1, 28);
-          rollAndSync(stock.intraday5m, 2, 140);
-          rollAndSync(stock.intraday15m, 4, 420);
-          rollAndSync(stock.intraday1H, 8, 1680);
-          rollAndSync(stock.intraday4H, 12, 6720);
-
-          // Daily, Weekly, Monthly sync
-          const syncEndCandle = (arr, volMultiplier) => {
-            if (!arr || !arr.length) return;
-            const c = arr[arr.length - 1];
-            c.close = newClose;
-            c.high = Math.max(c.high, newClose);
-            c.low = Math.min(c.low, newClose);
-            c.volume += volInc * volMultiplier;
-          };
-
-          syncEndCandle(stock.dailyCandles, 20);
-          syncEndCandle(stock.weekly, 50);
-          syncEndCandle(stock.monthly, 100);
-
-          if (stock._tickCount >= 28) stock._tickCount = 0;
-
-          const checkGreen = (arr) => {
-            if (!arr || !arr.length) return false;
-            const c = arr[arr.length - 1];
-            return c.close >= c.open;
-          };
-          stock.mtfStatus = {
-            '5m': checkGreen(stock.intraday5m),
-            '15m': checkGreen(stock.intraday15m),
-            '1H': checkGreen(stock.intraday1H),
-            '4H': checkGreen(stock.intraday4H),
-            '1D': checkGreen(stock.dailyCandles),
-            '1W': checkGreen(stock.weekly)
-          };
-          stock.mtfGreenCount = Object.values(stock.mtfStatus).filter(Boolean).length;
-          stock.isMtfAllGreen = stock.mtfGreenCount === 6;
-
-          const prevDayClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
-          stock.dayChangePct = parseFloat((((newClose - prevDayClose) / prevDayClose) * 100).toFixed(2));
-          stock.ltp = newClose;
-          stock.lastTickDir = deltaPct >= 0 ? 'up' : 'down';
-          stock.closes[stock.closes.length - 1] = newClose;
-
-          updated.push({ symbol: stock.symbol, dir: stock.lastTickDir });
-        });
-
-        if (this.activeMainStock) {
-          const titlePriceEl = document.getElementById('mainChartPrice');
-          if (titlePriceEl) {
-            titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
-            titlePriceEl.textContent = `₹${this.activeMainStock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
-          }
-
-          const scalperBuy = document.getElementById('scalperBuyPrice');
-          if (scalperBuy) scalperBuy.textContent = `₹${this.activeMainStock.ltp.toFixed(2)}`;
-          const scalperSell = document.getElementById('scalperSellPrice');
-          if (scalperSell) scalperSell.textContent = `₹${(this.activeMainStock.ltp * 0.9995).toFixed(2)}`;
-          const scalperVol = document.getElementById('scalperVolText');
-          if (scalperVol) {
-            const lastC = this.activeMainStock.dailyCandles?.[this.activeMainStock.dailyCandles.length - 1];
-            const v = lastC ? lastC.volume : 54000;
-            const vStr = v >= 10000000 ? `${(v/10000000).toFixed(2)}Cr` : (v >= 100000 ? `${(v/100000).toFixed(2)}L` : `${(v/1000).toFixed(1)}K`);
-            scalperVol.textContent = `Volume ${vStr}`;
-          }
-        }
-
-        // Real-Time Live Market Feed Sync from Yahoo Finance / NSE India / SmartAPI
-        if (!this._livePollCount) this._livePollCount = 0;
-        this._livePollCount++;
-
-        if (this._livePollCount % 6 === 0) {
-          if (this.activeMainStock) {
-            YahooFinanceWrapperService.fetchLiveQuote(this.activeMainStock.symbol, this.activeMainStock.exchange, this.activeMainStock.bseCode).then(quote => {
               if (quote && quote.ltp > 0) {
-                const stock = this.activeMainStock;
                 stock.ltp = quote.ltp;
-                stock.dayChangePct = quote.pChange;
-                stock.baseDayPrice = quote.previousClose;
+                stock.dayChangePct = quote.pChange || stock.dayChangePct;
+                if (quote.previousClose) stock.baseDayPrice = quote.previousClose;
                 stock.closes[stock.closes.length - 1] = quote.ltp;
 
                 if (stock.dailyCandles && stock.dailyCandles.length) {
                   const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
                   lastC.close = quote.ltp;
+                  if (quote.dayHigh && quote.dayHigh > lastC.high) lastC.high = quote.dayHigh;
+                  if (quote.dayLow && quote.dayLow < lastC.low) lastC.low = quote.dayLow;
                 }
-                if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, 0, new Date(), false);
-                this.renderTradeoneWatchlist();
-              }
-            }).catch(() => {});
-          }
 
-          YahooFinanceWrapperService.fetchLiveIndexQuotes().then(indices => {
+                if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
+                if (this.modalChart) this.modalChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
+              }
+            }
+
+            // B. Sync Live Benchmark Indices (NIFTY 50 & BSE SENSEX)
+            const indices = await YahooFinanceWrapperService.fetchLiveIndexQuotes();
             if (indices.nifty) {
               const nLtp = document.getElementById('tradeoneNiftyLtp');
               const nChg = document.getElementById('tradeoneNiftyChg');
@@ -6574,33 +6474,59 @@
                 sChg.textContent = `${isPos ? '▲ +' : '▼ '}${indices.sensex.change.toFixed(2)} (${indices.sensex.pChange.toFixed(2)}%)`;
               }
             }
-          }).catch(() => {});
+          } catch (e) {}
+
+        } else {
+          // =========================================================================
+          // 2. OFFLINE SIMULATION REPLAY (Only when explicitly selected by user)
+          // =========================================================================
+          this.universe.forEach(stock => {
+            const prevLtp = stock.ltp;
+            const priceDiff = (prevLtp - stock.baseDayPrice) / stock.baseDayPrice;
+            const deltaPct = (-priceDiff * 0.08) + (Math.random() - 0.492) * 0.22;
+            const newClose = parseFloat(Math.max(5, prevLtp * (1 + deltaPct / 100)).toFixed(2));
+            const volInc = Math.floor(Math.random() * 280 + 40);
+
+            stock.ltp = newClose;
+            const prevDayClose = stock.dailyCandles[stock.dailyCandles.length - 2]?.close || stock.baseDayPrice;
+            stock.dayChangePct = parseFloat((((newClose - prevDayClose) / prevDayClose) * 100).toFixed(2));
+            stock.closes[stock.closes.length - 1] = newClose;
+            if (stock.dailyCandles && stock.dailyCandles.length) {
+              const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
+              lastC.close = newClose;
+              lastC.high = Math.max(lastC.high, newClose);
+              lastC.low = Math.min(lastC.low, newClose);
+              lastC.volume += volInc;
+            }
+          });
+
+          if (this.mainChart && this.activeMainStock) {
+            this.mainChart.updateRealtimeTick(this.activeMainStock.ltp, 40, new Date(), false);
+          }
+        }
+
+        // =========================================================================
+        // 3. UPDATE UI TITLES, WATCHLIST & SIDEBAR
+        // =========================================================================
+        if (this.activeMainStock) {
+          const titlePriceEl = document.getElementById('mainChartPrice');
+          if (titlePriceEl) {
+            titlePriceEl.style.color = this.activeMainStock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            titlePriceEl.textContent = `₹${this.activeMainStock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${this.activeMainStock.dayChangePct > 0 ? '+' : ''}${this.activeMainStock.dayChangePct}%)`;
+          }
+
+          const scalperBuy = document.getElementById('scalperBuyPrice');
+          if (scalperBuy) scalperBuy.textContent = `₹${this.activeMainStock.ltp.toFixed(2)}`;
+          const scalperSell = document.getElementById('scalperSellPrice');
+          if (scalperSell) scalperSell.textContent = `₹${(this.activeMainStock.ltp * 0.9995).toFixed(2)}`;
         }
 
         try { this.renderTradeoneWatchlist(); } catch (e) {}
-
         this.runScan();
-
-        if (this.mainChart && this.activeMainStock) {
-          this.mainChart.updateRealtimeTick(this.activeMainStock.ltp, 40, new Date(), false);
-        }
-        if (this.modalChart && this.currentModalStock) {
-          this.modalChart.updateRealtimeTick(this.currentModalStock.ltp, 40, new Date(), false);
-        }
 
         try {
           if (this.activeMainStock) this.populatePopoutSidebar(this.activeMainStock);
         } catch (e) {}
-
-        updated.slice(0, 4).forEach(t => {
-          if (!t.symbol) return;
-          const row = document.querySelector(`tr[data-symbol="${t.symbol}"]`);
-          if (row) {
-            const cls = t.dir === 'up' ? 'flash-up' : 'flash-down';
-            row.classList.add(cls);
-            setTimeout(() => row.classList.remove(cls), 400);
-          }
-        });
 
         this.liveTimer = setTimeout(loop, this.streamInterval);
       };

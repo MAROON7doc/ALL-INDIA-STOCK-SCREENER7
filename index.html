@@ -134,18 +134,18 @@
         <!-- Live Feed Mode, Provider Source & Auto-Refresh Speed Controls -->
         <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); flex-shrink:0;">
           <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
-          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (YFinance Wrapper, NSE-BSE NPM API, SmartAPI, or Auto Multi-Proxy)">
-            <option value="auto" selected>Auto Multi-Feed</option>
-            <option value="yfinance">YFinance (.NS/.BO)</option>
-            <option value="nsebse">NSE-BSE API (NPM)</option>
-            <option value="smartapi">SmartAPI</option>
+          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (SmartAPI, Yahoo Finance Live, NSE Official, or Auto Multi-Provider Failover)">
+            <option value="auto" selected>🌐 Auto Multi-Provider (SmartAPI ➔ Yahoo ➔ NSE)</option>
+            <option value="smartapi">🔒 Angel One SmartAPI (Official Live)</option>
+            <option value="yfinance">📈 Yahoo Finance Live (.NS/.BO)</option>
+            <option value="nsebse">🏛️ NSE India Official Feed</option>
           </select>
           <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
           <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Control live multi-market feed synchronization">
-            <option value="auto" selected>Auto (Global & Multi-Market Live)</option>
-            <option value="simulation">24x7 Continuous Simulation</option>
-            <option value="nse_strict">NSE/BSE Cash Hours Strict (09:15-15:30)</option>
-            <option value="paused">Freeze Feed (EOD Snapshot)</option>
+            <option value="auto" selected>🟢 Real Live Market Feed (Direct API Sync)</option>
+            <option value="nse_strict">⏱️ Cash Market Hours (09:15-15:30 IST)</option>
+            <option value="paused">⏸️ Freeze Feed (Real EOD Snapshot)</option>
+            <option value="simulation">🔬 Simulation Replay Mode (Testing)</option>
           </select>
           <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
           <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">

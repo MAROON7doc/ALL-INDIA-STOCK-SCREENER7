@@ -812,6 +812,64 @@
         } catch (e) {}
       }
       return null;
+    },
+
+    async fetchLiveQuote(symbol, exchange = 'NSE', bseCode = '') {
+      let ySymbol = symbol;
+      if (!symbol.startsWith('^')) {
+        ySymbol = this.formatSymbol(symbol, exchange, bseCode);
+      }
+      const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySymbol)}?interval=1m&range=1d&includePrePost=false`;
+      const endpoints = [
+        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        targetUrl
+      ];
+
+      for (const ep of endpoints) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 3500);
+          const resp = await fetch(ep, { signal: controller.signal });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const json = await resp.json();
+            const result = json?.chart?.result?.[0];
+            if (result && result.meta) {
+              const meta = result.meta;
+              const ltp = meta.regularMarketPrice || meta.chartPreviousClose;
+              const prevClose = meta.chartPreviousClose || meta.previousClose || ltp;
+              const change = ltp - prevClose;
+              const pChange = prevClose ? (change / prevClose) * 100 : 0;
+              return {
+                symbol,
+                ltp: parseFloat(ltp.toFixed(2)),
+                previousClose: parseFloat(prevClose.toFixed(2)),
+                change: parseFloat(change.toFixed(2)),
+                pChange: parseFloat(pChange.toFixed(2)),
+                dayHigh: meta.regularMarketDayHigh || meta.dayHigh || ltp,
+                dayLow: meta.regularMarketDayLow || meta.dayLow || ltp,
+                volume: meta.regularMarketVolume || 0
+              };
+            }
+          }
+        } catch (e) {}
+      }
+      return null;
+    },
+
+    async fetchLiveIndexQuotes() {
+      const results = {};
+      try {
+        const [nifty, sensex] = await Promise.allSettled([
+          this.fetchLiveQuote('^NSEI'),
+          this.fetchLiveQuote('^BSESN')
+        ]);
+        if (nifty.status === 'fulfilled' && nifty.value) results.nifty = nifty.value;
+        if (sensex.status === 'fulfilled' && sensex.value) results.sensex = sensex.value;
+      } catch (e) {}
+      return results;
     }
   };
 
@@ -5865,35 +5923,56 @@
           }
         }
 
-        // Update Top TradeOne NIFTY & SENSEX Index Badges
-        const niftyEl = document.getElementById('tradeoneNiftyLtp');
-        const niftyChgEl = document.getElementById('tradeoneNiftyChg');
-        if (niftyEl) {
-          const delta = (Math.random() - 0.52) * 2.8;
-          const curN = parseFloat(niftyEl.textContent.replace(/,/g, '')) || 24243.50;
-          const newN = curN + delta;
-          niftyEl.textContent = newN.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          if (niftyChgEl) {
-            const chgVal = newN - 24287.65;
-            const chgPct = (chgVal / 24287.65) * 100;
-            niftyChgEl.className = `tradeone-index-chg ${chgVal >= 0 ? 'up' : 'down'}`;
-            niftyChgEl.textContent = `${chgVal >= 0 ? '▲ +' : '▼ '}${chgVal.toFixed(2)} (${chgPct.toFixed(2)}%)`;
-          }
-        }
+        // Real-Time Live Market Feed Sync from Yahoo Finance / NSE India / SmartAPI
+        if (!this._livePollCount) this._livePollCount = 0;
+        this._livePollCount++;
 
-        const sensexEl = document.getElementById('tradeoneSensexLtp');
-        const sensexChgEl = document.getElementById('tradeoneSensexChg');
-        if (sensexEl) {
-          const deltaS = (Math.random() - 0.52) * 8.5;
-          const curS = parseFloat(sensexEl.textContent.replace(/,/g, '')) || 77498.92;
-          const newS = curS + deltaS;
-          sensexEl.textContent = newS.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-          if (sensexChgEl) {
-            const chgValS = newS - 77728.16;
-            const chgPctS = (chgValS / 77728.16) * 100;
-            sensexChgEl.className = `tradeone-index-chg ${chgValS >= 0 ? 'up' : 'down'}`;
-            sensexChgEl.textContent = `${chgValS >= 0 ? '▲ +' : '▼ '}${chgValS.toFixed(2)} (${chgPctS.toFixed(2)}%)`;
+        if (this._livePollCount % 6 === 0) {
+          if (this.activeMainStock) {
+            YahooFinanceWrapperService.fetchLiveQuote(this.activeMainStock.symbol, this.activeMainStock.exchange, this.activeMainStock.bseCode).then(quote => {
+              if (quote && quote.ltp > 0) {
+                const stock = this.activeMainStock;
+                stock.ltp = quote.ltp;
+                stock.dayChangePct = quote.pChange;
+                stock.baseDayPrice = quote.previousClose;
+                stock.closes[stock.closes.length - 1] = quote.ltp;
+
+                if (stock.dailyCandles && stock.dailyCandles.length) {
+                  const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
+                  lastC.close = quote.ltp;
+                  lastC.high = Math.max(lastC.high, quote.dayHigh || quote.ltp);
+                  lastC.low = Math.min(lastC.low, quote.dayLow || quote.ltp);
+                  if (quote.volume) lastC.volume = quote.volume;
+                }
+
+                if (this.mainChart) this.mainChart.refreshCandles();
+                this.renderTradeoneWatchlist();
+              }
+            }).catch(() => {});
           }
+
+          YahooFinanceWrapperService.fetchLiveIndexQuotes().then(indices => {
+            if (indices.nifty) {
+              const nLtp = document.getElementById('tradeoneNiftyLtp');
+              const nChg = document.getElementById('tradeoneNiftyChg');
+              if (nLtp) nLtp.textContent = indices.nifty.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              if (nChg) {
+                const isPos = indices.nifty.change >= 0;
+                nChg.className = `tradeone-index-chg ${isPos ? 'up' : 'down'}`;
+                nChg.textContent = `${isPos ? '▲ +' : '▼ '}${indices.nifty.change.toFixed(2)} (${indices.nifty.pChange.toFixed(2)}%)`;
+              }
+            }
+            if (indices.sensex) {
+              const sLtp = document.getElementById('tradeoneSensexLtp');
+              const sChg = document.getElementById('tradeoneSensexChg');
+              if (sLtp) sLtp.textContent = indices.sensex.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+              if (sChg) {
+                const isPos = indices.sensex.change >= 0;
+                sChg.className = `tradeone-index-chg ${isPos ? 'up' : 'down'}`;
+                sChg.textContent = `${isPos ? '▲ +' : '▼ '}${indices.sensex.change.toFixed(2)} (${indices.sensex.pChange.toFixed(2)}%)`;
+              }
+            }
+          }).catch(() => {});
         }
 
         try { this.renderTradeoneWatchlist(); } catch (e) {}

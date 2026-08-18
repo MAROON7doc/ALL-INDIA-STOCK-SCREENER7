@@ -1,4 +1,4 @@
-﻿/* ==========================================================================
+/* ==========================================================================
    NSE/BSE Professional Stock Screener - TradingView Terminal Design System
    Generous Proportions, Same-Page Fullscreen Modal, and Pop-Out Window Styles
    ========================================================================== */
@@ -1741,7 +1741,7 @@ input:checked + .slider:before {
    UI POLISH & ACCESSIBILITY ENHANCEMENTS
    ====================================================== */
 
-/* Focus ring for keyboard navigation â€“ visible on every interactive element */
+/* Focus ring for keyboard navigation – visible on every interactive element */
 :focus-visible {
   outline: 2px solid var(--accent-blue);
   outline-offset: 2px;
@@ -4275,7 +4275,6 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   color: #e2e8f0;
 }
-
 
 /* --------------------------------------------------------------------------
    SCREEN 5: SECTOR ANALYSIS DEEP-DIVE (.sector-dive-container)

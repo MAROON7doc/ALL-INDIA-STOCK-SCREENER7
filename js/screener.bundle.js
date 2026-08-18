@@ -4402,6 +4402,24 @@
         document.getElementById('btnTabWatchlist')?.click();
       });
 
+      // Left Sidebar One-Click Collapse / Expand Toggle (Gives 100% full screen width to graph)
+      document.getElementById('btnToggleLeftSidebar')?.addEventListener('click', () => {
+        const grid = document.getElementById('tradeoneWorkstationGrid');
+        if (grid) {
+          grid.classList.toggle('sidebar-collapsed');
+          const isCollapsed = grid.classList.contains('sidebar-collapsed');
+          const btn = document.getElementById('btnToggleLeftSidebar');
+          if (btn) {
+            btn.textContent = isCollapsed ? '◨ Show Sidebar' : '◧ Sidebar';
+            btn.style.color = isCollapsed ? '#10b981' : '#38bdf8';
+          }
+          this.showToast(isCollapsed ? '◨ Sidebar collapsed for full chart view' : '◧ Sidebar expanded', 'info');
+          if (this.mainChart) {
+            setTimeout(() => this.mainChart.resize(), 80);
+          }
+        }
+      });
+
       // Top Tabs
       document.querySelectorAll('.tv-tab-item').forEach(tab => {
         tab.addEventListener('click', () => {

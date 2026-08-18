@@ -3231,15 +3231,24 @@ body {
    3-COLUMN MAIN WORKSTATION GRID
    ========================================================================== */
 /* ==========================================================================
-   3-COLUMN MAIN WORKSTATION GRID (PROPORTIONED: 260px | 1fr HUGE CHART | 48px)
+   3-COLUMN MAIN WORKSTATION GRID (ULTRA-COMPACT: 200px | 1fr HUGE CHART | 38px)
    ========================================================================== */
 .tradeone-workstation-grid {
   display: grid;
-  grid-template-columns: 260px 1fr 48px;
-  height: calc(100vh - 48px);
-  min-height: calc(100vh - 48px);
+  grid-template-columns: 200px 1fr 38px;
+  height: calc(100vh - 44px);
+  min-height: calc(100vh - 44px);
   overflow: hidden;
   background: #080b11;
+  transition: grid-template-columns 0.18s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tradeone-workstation-grid.sidebar-collapsed {
+  grid-template-columns: 0px 1fr 38px;
+}
+
+.tradeone-workstation-grid.sidebar-collapsed .tradeone-left-sidebar {
+  display: none !important;
 }
 
 @media (max-width: 1024px) {
@@ -3253,7 +3262,7 @@ body {
   }
 }
 
-/* Left Workstation Sidebar (260px) */
+/* Left Workstation Sidebar (Ultra-Compact 200px) */
 .tradeone-left-sidebar {
   background: #0b0f17;
   border-right: 1px solid rgba(255, 255, 255, 0.07);
@@ -3261,6 +3270,7 @@ body {
   flex-direction: column;
   height: 100%;
   overflow: hidden;
+  min-width: 0;
 }
 
 .sidebar-mode-switcher {
@@ -3268,22 +3278,25 @@ body {
   align-items: center;
   background: #070a10;
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 4px;
-  gap: 4px;
+  padding: 3px;
+  gap: 3px;
 }
 
 .sidebar-mode-btn {
   flex: 1;
-  padding: 6px 4px;
+  padding: 4px 2px;
   background: transparent;
   border: 1px solid transparent;
-  border-radius: 4px;
+  border-radius: 3px;
   color: #94a3b8;
-  font-size: 10.5px;
+  font-size: 10px;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
   text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .sidebar-mode-btn.active {
@@ -3296,7 +3309,7 @@ body {
   display: flex;
   flex-direction: column;
   flex: 1 1 auto;
-  height: calc(100% - 38px);
+  height: calc(100% - 32px);
   overflow-y: auto;
 }
 
@@ -3304,8 +3317,8 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px 6px 12px;
-  font-size: 13px;
+  padding: 6px 8px 4px 8px;
+  font-size: 11.5px;
   font-weight: 700;
   color: #ffffff;
 }
@@ -3313,20 +3326,20 @@ body {
 .watchlist-tab-carousel {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 0 8px 6px 8px;
+  gap: 2px;
+  padding: 0 4px 4px 4px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   overflow-x: auto;
   white-space: nowrap;
 }
 
 .watchlist-tab-chip {
-  padding: 4px 8px;
+  padding: 3px 6px;
   background: transparent;
   border: none;
   border-bottom: 2px solid transparent;
   color: #94a3b8;
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.15s ease;
@@ -3344,8 +3357,8 @@ body {
 .watchlist-search-row {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
-  gap: 6px;
+  padding: 4px 6px;
+  gap: 4px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
 }
 
@@ -3353,10 +3366,10 @@ body {
   flex: 1;
   background: #131926;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 4px;
-  padding: 4px 8px;
+  border-radius: 3px;
+  padding: 3px 6px;
   color: #ffffff;
-  font-size: 11px;
+  font-size: 10.5px;
   outline: none;
 }
 
@@ -3371,10 +3384,11 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 12px;
+  padding: 4px 6px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.03);
   cursor: pointer;
   transition: background 0.12s ease;
+  font-size: 10.5px;
 }
 
 .tradeone-stock-row:hover {
@@ -3389,23 +3403,23 @@ body {
 .stock-row-left {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 1px;
 }
 
 .stock-row-symbol {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
   font-family: var(--font-mono);
   color: #f1f5f9;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 3px;
 }
 
 .stock-row-badge {
-  font-size: 8.5px;
-  padding: 1px 4px;
-  border-radius: 3px;
+  font-size: 7.5px;
+  padding: 0px 3px;
+  border-radius: 2px;
   background: #1e293b;
   color: #94a3b8;
 }
@@ -3414,18 +3428,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  gap: 1px;
 }
 
 .stock-row-ltp {
-  font-size: 12px;
+  font-size: 10.5px;
   font-weight: 700;
   font-family: var(--font-mono);
   color: #ffffff;
 }
 
 .stock-row-chg {
-  font-size: 10px;
+  font-size: 9px;
   font-family: var(--font-mono);
   font-weight: 600;
 }
@@ -3438,11 +3452,39 @@ body {
   color: #ef4444;
 }
 
+.protocol-slider-card {
+  background: #0d121c;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  padding: 4px 6px;
+  margin-bottom: 4px;
+}
+
+.protocol-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.protocol-slider-title {
+  font-size: 9.5px;
+  font-weight: 700;
+  color: #cbd5e1;
+}
+
+.protocol-slider-val {
+  font-size: 9.5px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #38bdf8;
+}
+
 .options-quick-list-bar {
-  padding: 8px 12px;
+  padding: 5px 8px;
   background: #0e131d;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
-  font-size: 10.5px;
+  font-size: 9.5px;
   font-weight: 700;
   color: #94a3b8;
   cursor: pointer;
@@ -3459,6 +3501,7 @@ body {
   background: #080b11;
   overflow: hidden;
   position: relative;
+  min-width: 0;
 }
 
 .terminal-center-chart .tv-scalper-workstation {
@@ -3470,24 +3513,43 @@ body {
 
 .terminal-center-chart .tv-chart-body-wrapper {
   flex: 1 1 auto;
-  height: calc(100% - 68px) !important;
+  height: calc(100% - 66px) !important;
   min-height: 380px;
 }
 
-/* Right Action Sidebar */
+/* Right Action Sidebar (Slim 38px) */
 .tradeone-right-sidebar {
   background: #0b0f17;
   border-left: 1px solid rgba(255, 255, 255, 0.07);
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 8px 0;
-  gap: 6px;
+  padding: 4px 0;
+  gap: 3px;
+  width: 38px;
 }
 
 .tradeone-sidebar-btn {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 5px 0;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 7.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tradeone-sidebar-btn svg {
+  width: 13px;
+  height: 13px;
+}
   align-items: center;
   gap: 3px;
   width: 100%;

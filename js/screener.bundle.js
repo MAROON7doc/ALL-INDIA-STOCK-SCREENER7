@@ -2412,9 +2412,10 @@
     }
 
     glideToOffset(target) {
+      if (this.animReqId) cancelAnimationFrame(this.animReqId);
       const start = this.viewOffset;
       const startTime = performance.now();
-      const duration = 260; // ms
+      const duration = 200; // ms
 
       const step = (now) => {
         const elapsed = now - startTime;
@@ -2423,37 +2424,41 @@
         this.viewOffset = start + (target - start) * ease;
         this.render();
         if (progress < 1) {
-          requestAnimationFrame(step);
+          this.animReqId = requestAnimationFrame(step);
         } else {
           this.viewOffset = target;
           this.velocityX = 0;
+          this.animReqId = null;
           this.render();
         }
       };
-      requestAnimationFrame(step);
+      this.animReqId = requestAnimationFrame(step);
     }
 
     startAnimationLoop() {
-      if (this.animReqId) cancelAnimationFrame(this.animReqId);
-      const renderFrame = () => {
-        this.pulsePhase = (this.pulsePhase + 0.06) % (Math.PI * 2);
+      // Event-driven rendering: render on demand to prevent CPU lock and infinite auto-scrolling
+      this.render();
+    }
 
-        // Apply kinetic inertial gliding with fluid sub-pixel dampening
-        if (!this.isDragging && !this.isTouchDragging && Math.abs(this.velocityX) > 0.04) {
+    startInertialGliding() {
+      if (this.animReqId) cancelAnimationFrame(this.animReqId);
+      const step = () => {
+        if (Math.abs(this.velocityX) > 0.08 && !this.isDragging && !this.isTouchDragging) {
           const paddingRight = 75, paddingLeft = 10;
           const plotWidth = this.width - paddingLeft - paddingRight;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
           const candleShift = this.velocityX / candleWidth;
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
           this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + candleShift));
-          this.velocityX *= 0.90; // Smooth kinetic friction decay
-          if (Math.abs(this.velocityX) < 0.04) this.velocityX = 0;
+          this.velocityX *= 0.88;
+          this.render();
+          this.animReqId = requestAnimationFrame(step);
+        } else {
+          this.velocityX = 0;
+          this.animReqId = null;
         }
-
-        this.render();
-        this.animReqId = requestAnimationFrame(renderFrame);
       };
-      this.animReqId = requestAnimationFrame(renderFrame);
+      this.animReqId = requestAnimationFrame(step);
     }
 
     setLayer(layerKey, active) {
@@ -2737,6 +2742,12 @@
           this.isDraggingScale = false;
           this.container.classList.remove('panning');
           this.canvas.style.cursor = 'crosshair';
+          if (Math.abs(this.velocityX) > 0.1) {
+            this.startInertialGliding();
+          } else {
+            this.velocityX = 0;
+            this.render();
+          }
         }
       });
 
@@ -2762,6 +2773,7 @@
           const multiplier = Math.exp(-deltaY * 0.008);
           this.priceScaleFactor = Math.max(0.2, Math.min(8.0, this.dragStartScaleFactor * multiplier));
           this.autoScale = false;
+          this.render();
           return;
         }
 
@@ -2784,6 +2796,7 @@
           const priceShift = (dy / this.height) * priceRange * 1.5;
           this.pricePanOffset = this.dragStartPanOffset + priceShift;
           this.autoScale = false;
+          this.render();
           return;
         }
 
@@ -2809,10 +2822,12 @@
           this.crosshair.x = x;
           this.crosshair.y = y;
         }
+        this.render();
       });
 
       this.canvas.addEventListener('mouseleave', () => {
         this.crosshair.active = false;
+        this.render();
       });
 
       // TOUCH GESTURES: PINCH TO ZOOM & FLUID MOMENTUM TOUCH PANNING
@@ -2857,6 +2872,7 @@
           const totalDy = e.touches[0].clientY - this.touchStartY;
           this.pricePanOffset = this.touchStartPanOffset + (totalDy / this.height) * 120;
           this.autoScale = false;
+          this.render();
         } else if (e.touches.length === 2 && this.touchStartPinchDist) {
           const dx = e.touches[0].clientX - e.touches[1].clientX;
           const dy = e.touches[0].clientY - e.touches[1].clientY;
@@ -2865,12 +2881,21 @@
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
           this.viewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
           this.viewOffset = Math.min(maxOffset, this.viewOffset);
+          this.render();
         }
       }, { passive: true });
 
       this.canvas.addEventListener('touchend', () => {
-        this.isTouchDragging = false;
-      });
+        if (this.isTouchDragging) {
+          this.isTouchDragging = false;
+          if (Math.abs(this.velocityX) > 0.1) {
+            this.startInertialGliding();
+          } else {
+            this.velocityX = 0;
+            this.render();
+          }
+        }
+      }, { passive: true });
 
       // KEYBOARD ARROW SCRUBBING & HOME/END JUMP
       window.addEventListener('keydown', (e) => {
@@ -6442,9 +6467,8 @@
           } else {
             this.updateMainChart(stock);
             const chartCard = document.getElementById('mainChartCard');
-            if (chartCard) {
-              if (chartCard.style.display === 'none') chartCard.style.display = 'block';
-              chartCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if (chartCard && chartCard.style.display === 'none') {
+              chartCard.style.display = 'block';
             }
           }
         });

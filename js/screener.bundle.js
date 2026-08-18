@@ -3972,12 +3972,25 @@
       try { this.bindScalperControls(); } catch (e) {}
       try { this.updateLiveIstClock(); } catch (e) {}
       this.clockTimer = setInterval(() => { try { this.updateLiveIstClock(); } catch (e) {} }, 1000);
+      try { this.renderTradeoneWatchlist(); } catch (e) {}
       try { this.renderStockPills(); } catch (e) {}
       try { this.renderNewsFeed(); } catch (e) {}
       try { this.startNewsCycle(); } catch (e) {}
       try { this.renderSessionsList(); } catch (e) {}
       try { this.applyPreset('all'); } catch (e) {}
       try { this.runScan(); } catch (e) { console.error('runScan error:', e); }
+
+      // Watchlist search and tab switching
+      document.getElementById('txtWatchlistSearch')?.addEventListener('input', () => {
+        this.renderTradeoneWatchlist();
+      });
+      document.querySelectorAll('.watchlist-tab-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.watchlist-tab-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          this.renderTradeoneWatchlist();
+        });
+      });
 
       if (this.mainChart && this.activeMainStock) {
         try { this.updateMainChart(this.activeMainStock); } catch (e) {}
@@ -5679,6 +5692,55 @@
       });
     }
 
+    renderTradeoneWatchlist() {
+      const container = document.getElementById('tradeoneWatchlistList');
+      if (!container) return;
+
+      const query = (document.getElementById('txtWatchlistSearch')?.value || '').trim().toLowerCase();
+      const stocks = this.universe.filter(s => {
+        if (!query) return true;
+        return s.symbol.toLowerCase().includes(query) || s.name.toLowerCase().includes(query);
+      });
+
+      container.innerHTML = stocks.map(stock => {
+        const isUp = stock.dayChangePct >= 0;
+        const arrow = isUp ? '▲' : '▼';
+        const chgClass = isUp ? 'up' : 'down';
+        const isSelected = this.activeMainStock && this.activeMainStock.symbol === stock.symbol;
+
+        return `
+          <div class="tradeone-stock-row ${isSelected ? 'active' : ''}" data-symbol="${stock.symbol}">
+            <div class="stock-row-left">
+              <div class="stock-row-symbol">
+                <span>${stock.symbol}</span>
+                <span class="stock-row-badge">${stock.series || 'NSE'}</span>
+                ${stock.marketCap === 'Large Cap' ? '<span class="stock-row-badge" style="color:#38bdf8; background:rgba(56,189,248,0.15);">50</span>' : ''}
+              </div>
+            </div>
+            <div class="stock-row-right">
+              <div class="stock-row-ltp" style="color:${isUp ? '#34d399' : '#f87171'};">
+                ${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} ${arrow}
+              </div>
+              <div class="stock-row-chg ${chgClass}">
+                ${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct.toFixed(2)}%
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.querySelectorAll('.tradeone-stock-row').forEach(row => {
+        row.addEventListener('click', () => {
+          const sym = row.dataset.symbol;
+          const s = this.universe.find(item => item.symbol === sym);
+          if (s) {
+            this.updateMainChart(s);
+            this.renderTradeoneWatchlist();
+          }
+        });
+      });
+    }
+
     startLiveStream() {
       if (this.liveTimer) clearTimeout(this.liveTimer);
       const loop = () => {
@@ -5799,9 +5861,42 @@
             const lastC = this.activeMainStock.dailyCandles?.[this.activeMainStock.dailyCandles.length - 1];
             const v = lastC ? lastC.volume : 54000;
             const vStr = v >= 10000000 ? `${(v/10000000).toFixed(2)}Cr` : (v >= 100000 ? `${(v/100000).toFixed(2)}L` : `${(v/1000).toFixed(1)}K`);
-            scalperVol.textContent = `Vol: ${vStr}`;
+            scalperVol.textContent = `Volume ${vStr}`;
           }
         }
+
+        // Update Top TradeOne NIFTY & SENSEX Index Badges
+        const niftyEl = document.getElementById('tradeoneNiftyLtp');
+        const niftyChgEl = document.getElementById('tradeoneNiftyChg');
+        if (niftyEl) {
+          const delta = (Math.random() - 0.52) * 2.8;
+          const curN = parseFloat(niftyEl.textContent.replace(/,/g, '')) || 24243.50;
+          const newN = curN + delta;
+          niftyEl.textContent = newN.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          if (niftyChgEl) {
+            const chgVal = newN - 24287.65;
+            const chgPct = (chgVal / 24287.65) * 100;
+            niftyChgEl.className = `tradeone-index-chg ${chgVal >= 0 ? 'up' : 'down'}`;
+            niftyChgEl.textContent = `${chgVal >= 0 ? '▲ +' : '▼ '}${chgVal.toFixed(2)} (${chgPct.toFixed(2)}%)`;
+          }
+        }
+
+        const sensexEl = document.getElementById('tradeoneSensexLtp');
+        const sensexChgEl = document.getElementById('tradeoneSensexChg');
+        if (sensexEl) {
+          const deltaS = (Math.random() - 0.52) * 8.5;
+          const curS = parseFloat(sensexEl.textContent.replace(/,/g, '')) || 77498.92;
+          const newS = curS + deltaS;
+          sensexEl.textContent = newS.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+          if (sensexChgEl) {
+            const chgValS = newS - 77728.16;
+            const chgPctS = (chgValS / 77728.16) * 100;
+            sensexChgEl.className = `tradeone-index-chg ${chgValS >= 0 ? 'up' : 'down'}`;
+            sensexChgEl.textContent = `${chgValS >= 0 ? '▲ +' : '▼ '}${chgValS.toFixed(2)} (${chgPctS.toFixed(2)}%)`;
+          }
+        }
+
+        try { this.renderTradeoneWatchlist(); } catch (e) {}
 
         this.runScan();
 

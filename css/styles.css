@@ -3057,3 +3057,422 @@ body {
 .scale-toggle-btn.active {
   color: #38bdf8;
 }
+
+/* ==========================================================================
+   TRADEONE PRO TRADING TERMINAL WORKSTATION (3-COLUMN LAYOUT)
+   ========================================================================== */
+
+/* Top Global Navigation Header */
+.tradeone-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #080b11;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 0 16px;
+  height: 48px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  gap: 16px;
+}
+
+.tradeone-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tradeone-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.tradeone-brand-logo {
+  width: 24px;
+  height: 24px;
+  background: #f43f5e;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  color: #ffffff;
+  font-size: 13px;
+}
+
+.tradeone-index-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 11px;
+  font-family: var(--font-mono);
+}
+
+.tradeone-index-name {
+  font-weight: 700;
+  color: #e2e8f0;
+}
+
+.tradeone-expiry-tag {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 8.5px;
+  font-weight: 700;
+  padding: 1px 4px;
+  border-radius: 3px;
+  letter-spacing: 0.04em;
+}
+
+.tradeone-index-price {
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.tradeone-index-chg.down {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.tradeone-index-chg.up {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* Global Search Bar */
+.tradeone-header-center {
+  flex: 1 1 auto;
+  max-width: 440px;
+  position: relative;
+}
+
+.tradeone-search-input {
+  width: 100%;
+  background: #121824;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
+  padding: 7px 12px 7px 32px;
+  color: #ffffff;
+  font-size: 11.5px;
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.tradeone-search-input:focus {
+  border-color: #38bdf8;
+  background: #161e2e;
+}
+
+.tradeone-search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #64748b;
+  font-size: 12px;
+  pointer-events: none;
+}
+
+/* Top Right Nav Links */
+.tradeone-header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tradeone-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #94a3b8;
+  font-size: 11.5px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 5px 8px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+}
+
+.tradeone-nav-link:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.tradeone-nav-link.active {
+  color: #38bdf8;
+  font-weight: 700;
+}
+
+.tradeone-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: #ffffff;
+  font-size: 10.5px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ==========================================================================
+   3-COLUMN MAIN WORKSTATION GRID
+   ========================================================================== */
+.tradeone-workstation-grid {
+  display: grid;
+  grid-template-columns: 280px 1fr 54px;
+  height: calc(100vh - 48px);
+  min-height: calc(100vh - 48px);
+  overflow: hidden;
+  background: #080b11;
+}
+
+@media (max-width: 1024px) {
+  .tradeone-workstation-grid {
+    grid-template-columns: 1fr;
+    height: auto;
+    overflow: visible;
+  }
+  .tradeone-left-watchlist, .tradeone-right-sidebar {
+    display: none;
+  }
+}
+
+/* Left Watchlist Column */
+.tradeone-left-watchlist {
+  background: #0b0f17;
+  border-right: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.watchlist-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 6px 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.watchlist-tab-carousel {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 8px 6px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.watchlist-tab-chip {
+  padding: 4px 8px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.watchlist-tab-chip:hover {
+  color: #ffffff;
+}
+
+.watchlist-tab-chip.active {
+  color: #38bdf8;
+  border-bottom-color: #38bdf8;
+}
+
+.watchlist-search-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  gap: 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.watchlist-search-input {
+  flex: 1;
+  background: #131926;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 4px;
+  padding: 4px 8px;
+  color: #ffffff;
+  font-size: 11px;
+  outline: none;
+}
+
+.watchlist-stock-list {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.tradeone-stock-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.tradeone-stock-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tradeone-stock-row.active {
+  background: rgba(56, 189, 248, 0.12);
+  border-left: 2px solid #38bdf8;
+}
+
+.stock-row-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stock-row-symbol {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #f1f5f9;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.stock-row-badge {
+  font-size: 8.5px;
+  padding: 1px 4px;
+  border-radius: 3px;
+  background: #1e293b;
+  color: #94a3b8;
+}
+
+.stock-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.stock-row-ltp {
+  font-size: 12px;
+  font-weight: 700;
+  font-family: var(--font-mono);
+  color: #ffffff;
+}
+
+.stock-row-chg {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 600;
+}
+
+.stock-row-chg.up {
+  color: #10b981;
+}
+
+.stock-row-chg.down {
+  color: #ef4444;
+}
+
+.options-quick-list-bar {
+  padding: 8px 12px;
+  background: #0e131d;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #94a3b8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* Center Chart Workstation */
+.terminal-center-chart {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: #080b11;
+  overflow: hidden;
+  position: relative;
+}
+
+.terminal-center-chart .tv-scalper-workstation {
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  margin-bottom: 0;
+}
+
+.terminal-center-chart .tv-chart-body-wrapper {
+  height: calc(100% - 110px) !important;
+}
+
+/* Right Action Sidebar */
+.tradeone-right-sidebar {
+  background: #0b0f17;
+  border-left: 1px solid rgba(255, 255, 255, 0.07);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+  gap: 6px;
+}
+
+.tradeone-sidebar-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  width: 100%;
+  padding: 8px 0;
+  background: transparent;
+  border: none;
+  border-left: 2px solid transparent;
+  color: #94a3b8;
+  font-size: 8.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tradeone-sidebar-btn svg {
+  width: 17px;
+  height: 17px;
+  stroke: currentColor;
+}
+
+.tradeone-sidebar-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.tradeone-sidebar-btn.active {
+  color: #38bdf8;
+  border-left-color: #38bdf8;
+  background: rgba(56, 189, 248, 0.08);
+}

@@ -289,26 +289,29 @@
 </head>
 <body>
 
-  <!-- Top Mobile App Bar -->
-  <header class="mobile-app-header">
+  <!-- Top TradeOne Mobile App Bar -->
+  <header class="tradeone-header" style="height:44px; padding:0 10px;">
     <div style="display:flex; align-items:center; gap:8px;">
-      <div class="brand-logo" style="width:28px; height:28px; font-size:14px; border-radius:8px;">₹</div>
-      <div>
-        <div style="font-size:13px; font-weight:700; color:var(--text-primary);">Universal Indian Screener</div>
-        <div style="font-size:9.5px; color:var(--text-muted); display:flex; align-items:center; gap:4px;">
-          <span class="live-dot" style="width:6px; height:6px;"></span>
-          <span id="marketStatusText">🟢 UNIVERSAL LIVE</span>
-        </div>
+      <div class="tradeone-brand-logo" style="width:22px; height:22px; font-size:12px;">🅰️</div>
+      <span style="font-weight:800; font-size:13px; color:#ffffff;">TradeOne</span>
+      
+      <!-- NIFTY Badge -->
+      <div class="tradeone-index-badge" style="padding:2px 6px; font-size:9.5px;" id="tradeoneNiftyBadge">
+        <span class="tradeone-index-name">NIFTY</span>
+        <span class="tradeone-expiry-tag" style="font-size:7.5px; padding:0 2px;">EXP</span>
+        <span class="tradeone-index-price" id="tradeoneNiftyLtp">24,243.50</span>
+        <span class="tradeone-index-chg down" id="tradeoneNiftyChg" style="font-size:9px;">-0.18%</span>
       </div>
     </div>
 
-    <div style="display:flex; align-items:center; gap:6px;">
-      <button class="btn btn-sm" id="btnToggleLive" style="padding:4px 8px; font-size:10.5px;">
+    <div style="display:flex; align-items:center; gap:4px;">
+      <button class="btn btn-sm" id="btnToggleLive" style="padding:3px 6px; font-size:10px;">
         Pause
       </button>
-      <a href="index.html" class="btn btn-sm" style="color:var(--accent-blue); border-color:rgba(56,189,248,0.4); text-decoration:none; padding:4px 9px; font-size:11px;" title="Switch to Full Desktop Screener Terminal">
+      <a href="index.html" class="btn btn-sm" style="color:var(--accent-blue); border-color:rgba(56,189,248,0.4); text-decoration:none; padding:3px 6px; font-size:10px;" title="Switch to Full Desktop Screener Terminal">
         🖥️ Desktop
       </a>
+      <div class="tradeone-avatar" style="width:24px; height:24px; font-size:9.5px;">GD</div>
     </div>
   </header>
 

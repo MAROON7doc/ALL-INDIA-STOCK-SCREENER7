@@ -778,15 +778,21 @@ select option {
 
 /* 9 Protocol Visual Layer Switches Ribbon */
 .protocol-layer-ribbon {
-  display: flex;
+  display: none;
   align-items: center;
   gap: 4px;
-  padding: 4px 8px;
+  padding: 3px 8px;
   background: #080e1c;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border-subtle);
-  margin-bottom: 10px;
-  flex-wrap: wrap;
+  margin-bottom: 4px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.protocol-layer-ribbon.active {
+  display: flex !important;
 }
 
 .protocol-layer-label {
@@ -3498,23 +3504,58 @@ body {
   display: flex;
   flex-direction: column;
   height: 100%;
+  width: 100%;
   background: #080b11;
   overflow: hidden;
   position: relative;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .terminal-center-chart .tv-scalper-workstation {
-  height: 100%;
+  display: flex;
+  flex-direction: column;
+  width: 100% !important;
+  height: 100% !important;
   border: none;
   border-radius: 0;
   margin-bottom: 0;
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
 }
 
 .terminal-center-chart .tv-chart-body-wrapper {
+  display: flex;
+  flex-direction: row;
+  width: 100% !important;
   flex: 1 1 auto;
   height: calc(100% - 66px) !important;
-  min-height: 380px;
+  min-height: 280px;
+  min-width: 0;
+  position: relative;
+}
+
+.terminal-center-chart .tv-canvas-center-wrap {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  width: calc(100% - 42px) !important;
+  height: 100% !important;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-center-chart .chart-container-box {
+  width: 100% !important;
+  height: 100% !important;
+  min-width: 100% !important;
+  min-height: 100% !important;
+  flex: 1 1 auto;
+  position: relative;
+  overflow: hidden;
 }
 
 /* Right Action Sidebar (Slim 38px) */

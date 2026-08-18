@@ -2489,10 +2489,15 @@
     resize() {
       if (!this.container || !this.canvas) return;
       const rect = this.container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 3);
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-      this.width = Math.max(320, Math.round(rect.width || this.container.clientWidth || 800));
-      this.height = Math.max(240, Math.round(rect.height || this.container.clientHeight || 660));
+      const parentW = this.container.parentElement?.getBoundingClientRect().width;
+      const computedW = Math.round(rect.width || this.container.clientWidth || parentW || (window.innerWidth - 260));
+      const parentH = this.container.parentElement?.getBoundingClientRect().height;
+      const computedH = Math.round(rect.height || this.container.clientHeight || parentH || 600);
+
+      this.width = Math.max(320, computedW);
+      this.height = Math.max(240, computedH);
 
       this.canvas.width = Math.round(this.width * dpr);
       this.canvas.height = Math.round(this.height * dpr);

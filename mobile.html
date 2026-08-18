@@ -734,28 +734,126 @@
   </section>
 
   <!-- =========================================================================
-       NATIVE BOTTOM NAVIGATION BAR
+       VIEW: MOBILE MARKET HEATMAP (Screen 1)
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewMobileHeatmap">
+    <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:8px;">🎛️ Market Heatmap</div>
+    <div class="heatmap-sectors-grid" id="mHeatmapSectorsGrid" style="display:flex; flex-direction:column; gap:8px;">
+      <!-- Dynamically populated mobile heatmap clusters -->
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW: MOBILE FINDESK PORTFOLIO (Screen 2)
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewMobilePortfolio">
+    <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:8px;">💼 Portfolio Analytics</div>
+    
+    <div class="findesk-metrics-row" style="grid-template-columns:1fr 1fr; margin-bottom:10px;">
+      <div class="findesk-metric-card">
+        <span class="findesk-metric-label">Total Value</span>
+        <span class="findesk-metric-val" style="font-size:15px;">₹ 87,45,200</span>
+      </div>
+      <div class="findesk-metric-card">
+        <span class="findesk-metric-label">Today's P&L</span>
+        <span class="findesk-metric-val green" style="font-size:15px;">+ ₹ 32,500</span>
+      </div>
+      <div class="findesk-metric-card">
+        <span class="findesk-metric-label">Overall P&L</span>
+        <span class="findesk-metric-val green" style="font-size:15px;">+ ₹ 22.15L (+33.9%)</span>
+      </div>
+      <div class="findesk-metric-card">
+        <span class="findesk-metric-label">Buying Power</span>
+        <span class="findesk-metric-val blue" style="font-size:15px;">₹ 12,50,000</span>
+      </div>
+    </div>
+
+    <!-- Holdings Table Mobile -->
+    <div class="findesk-holdings-panel">
+      <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px;">Holdings (5 Positions)</div>
+      <table class="findesk-holdings-table" style="font-size:10px;">
+        <thead>
+          <tr><th>Symbol</th><th>Qty</th><th>LTP</th><th>Unrealized P&L</th></tr>
+        </thead>
+        <tbody id="mFindeskHoldingsBody">
+          <!-- Dynamically populated -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW: MOBILE SCALPER TERMINAL (Screen 4)
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewMobileScalper">
+    <div style="font-size:15px; font-weight:800; color:#38bdf8; margin-bottom:8px;">⚡ Scalper Execution Terminal</div>
+    
+    <div style="display:flex; gap:8px; margin-bottom:10px;">
+      <button class="btn-scalper-mkt-buy" style="flex:1;" onclick="window.screener?.showToast('⚡ Scalper BUY Executed', 'success')">BUY MKT</button>
+      <button class="btn-scalper-mkt-sell" style="flex:1;" onclick="window.screener?.showToast('⚡ Scalper SELL Executed', 'warn')">SELL MKT</button>
+    </div>
+
+    <div class="dom-ladder-panel">
+      <div class="dom-ladder-header">
+        <span>Order Book (DOM Level-2)</span>
+        <span style="color:#38bdf8;">NIFTY 50 ▾</span>
+      </div>
+      <table class="dom-table">
+        <thead>
+          <tr><th>Qty</th><th>Bid</th><th>Ask</th><th>Qty</th></tr>
+        </thead>
+        <tbody id="mDomLadderTableBody">
+          <!-- Dynamically populated DOM rows -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       VIEW: MOBILE SECTOR DEEP-DIVE (Screen 5)
+       ========================================================================= -->
+  <section class="mobile-tab-view" id="viewMobileSectors">
+    <div style="font-size:15px; font-weight:800; color:#38bdf8; margin-bottom:8px;">🌐 Sector Deep-Dive</div>
+    
+    <div class="sector-sentiment-panel" style="margin-bottom:10px;">
+      <div style="font-size:12px; font-weight:700; color:#ffffff;">Sector Sentiment (NIFTY Bank)</div>
+      <div class="sentiment-gauge-wrap">
+        <canvas id="mSectorGaugeCanvas" width="180" height="110"></canvas>
+      </div>
+      <div style="font-size:10px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:2px;">
+        <div style="color:#34d399;">● RSI: 62 (Bullish)</div>
+        <div style="color:#34d399;">● MA Crossover: Golden Cross (Bullish)</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       NATIVE BOTTOM NAVIGATION BAR (5 STITCH VIEWS)
        ========================================================================= -->
   <nav class="mobile-bottom-nav">
     <button class="mobile-nav-item active" data-target="viewWatchlist">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      <span>Watchlist</span>
+      <span style="font-size:16px;">🅰️</span>
+      <span>TradeOne</span>
     </button>
     <button class="mobile-nav-item" data-target="viewChart">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline><polyline points="16 7 22 7 22 13"></polyline></svg>
+      <span style="font-size:16px;">📈</span>
       <span>Chart</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewProtocols">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
-      <span>Protocols</span>
+    <button class="mobile-nav-item" data-target="viewMobileHeatmap">
+      <span style="font-size:16px;">🗺️</span>
+      <span>Heatmap</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewNews">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path><path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path></svg>
-      <span>News</span>
+    <button class="mobile-nav-item" data-target="viewMobilePortfolio">
+      <span style="font-size:16px;">💼</span>
+      <span>Portfolio</span>
     </button>
-    <button class="mobile-nav-item" data-target="viewCalc">
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="4" y="2" width="16" height="20" rx="2"></rect><line x1="8" y1="6" x2="16" y2="6"></line><line x1="16" y1="14" x2="16" y2="18"></line><path d="M16 10h.01"></path><path d="M12 10h.01"></path><path d="M8 10h.01"></path><path d="M12 14h.01"></path><path d="M8 14h.01"></path><path d="M12 18h.01"></path><path d="M8 18h.01"></path></svg>
-      <span>Calculator</span>
+    <button class="mobile-nav-item" data-target="viewMobileScalper">
+      <span style="font-size:16px;">⚡</span>
+      <span>Scalper</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewMobileSectors">
+      <span style="font-size:16px;">🌐</span>
+      <span>Sectors</span>
     </button>
   </nav>
 
@@ -820,17 +918,67 @@
         targetView.classList.add('active');
         targetView.style.display = 'block';
 
-        if (targetId === 'viewChart' && window.app?.mainChart) {
+        if (targetId === 'viewChart' && window.screener?.mainChart) {
           // Immediately resize and render the GPU Canvas
           requestAnimationFrame(() => {
-            window.app.mainChart.resize();
-            window.app.mainChart.render();
+            window.screener.mainChart.resize();
+            window.screener.mainChart.render();
           });
           setTimeout(() => {
-            window.app.mainChart.resize();
-            window.app.mainChart.render();
+            window.screener.mainChart.resize();
+            window.screener.mainChart.render();
             updateLiveOhlcvBar();
           }, 80);
+        } else if (targetId === 'viewMobileHeatmap') {
+          const container = document.getElementById('mHeatmapSectorsGrid');
+          if (container && window.screener) {
+            window.screener.renderMarketHeatmap();
+            container.innerHTML = document.getElementById('heatmapSectorsGrid')?.innerHTML || '';
+          }
+        } else if (targetId === 'viewMobilePortfolio') {
+          const tbody = document.getElementById('mFindeskHoldingsBody');
+          if (tbody && window.screener) {
+            window.screener.renderFinDeskPortfolio();
+            tbody.innerHTML = document.getElementById('findeskHoldingsBody')?.innerHTML || '';
+          }
+        } else if (targetId === 'viewMobileScalper') {
+          const tbody = document.getElementById('mDomLadderTableBody');
+          if (tbody && window.screener) {
+            window.screener.renderScalperTerminal();
+            tbody.innerHTML = document.getElementById('domLadderTableBody')?.innerHTML || '';
+          }
+        } else if (targetId === 'viewMobileSectors') {
+          if (window.screener) {
+            const canvas = document.getElementById('mSectorGaugeCanvas');
+            if (canvas) {
+              const ctx = canvas.getContext('2d');
+              const cx = 90, cy = 85, r = 60;
+              ctx.clearRect(0, 0, 180, 110);
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, Math.PI, 0);
+              ctx.lineWidth = 12;
+              ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+              ctx.stroke();
+              const endAngle = Math.PI + 0.75 * Math.PI;
+              const grad = ctx.createLinearGradient(10, cy, 170, cy);
+              grad.addColorStop(0, '#ef4444');
+              grad.addColorStop(0.5, '#f59e0b');
+              grad.addColorStop(1, '#10b981');
+              ctx.beginPath();
+              ctx.arc(cx, cy, r, Math.PI, endAngle);
+              ctx.lineWidth = 12;
+              ctx.strokeStyle = grad;
+              ctx.lineCap = 'round';
+              ctx.stroke();
+              ctx.fillStyle = '#ffffff';
+              ctx.font = 'bold 15px JetBrains Mono, monospace';
+              ctx.textAlign = 'center';
+              ctx.fillText('75/100', cx, cy - 8);
+              ctx.fillStyle = '#34d399';
+              ctx.font = 'bold 9px JetBrains Mono, monospace';
+              ctx.fillText('BULLISH', cx, cy + 8);
+            }
+          }
         }
       }
     }

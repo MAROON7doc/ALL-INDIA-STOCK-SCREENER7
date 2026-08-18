@@ -4821,6 +4821,505 @@
         if (logEl) logEl.textContent = 'Disconnected. SmartAPI credentials cleared from local session.';
         this.updateSmartApiStatusUI();
       });
+
+      // Google Stitch 5-Screen View Navigation
+      this.initStitchNavigation();
+
+      // Stitch Protocol Engine Sliders
+      const bindStitchSlider = (id, pillId, fmt, fn) => {
+        const el = document.getElementById(id), pill = document.getElementById(pillId);
+        if (!el || !pill) return;
+        el.addEventListener('input', (e) => {
+          const v = parseFloat(e.target.value);
+          pill.textContent = fmt(v);
+          fn(v);
+          if (this.mainChart) this.mainChart.setFilterParams(this.filters);
+          this.runScan();
+        });
+      };
+      bindStitchSlider('rng_minSalesGrowth', 'pill_salesGrowth', v => `≥ ${v}%`, v => this.filters.minSalesGrowth = v);
+      bindStitchSlider('rng_minRsi', 'pill_rsiLevel', v => `RSI ≥ ${v}`, v => this.filters.minRsi = v);
+      bindStitchSlider('rng_minBurstPct', 'pill_burstPct', v => `+${v}% vs SMA20`, v => this.filters.minBurstPct = v);
+      bindStitchSlider('rng_maxConsolidationRange', 'pill_baseTightness', v => `≤ ${v}%`, v => this.filters.maxConsolidationRange = v);
+      bindStitchSlider('rng_maxStopLossPct', 'pill_maxStopLoss', v => `≤ ${v.toFixed(1)}%`, v => this.filters.maxStopLossPct = v);
+      document.getElementById('btnResetProtocols')?.addEventListener('click', () => {
+        this.resetFilters();
+        this.showToast('Protocol Engine sliders reset to defaults.', 'info');
+      });
+
+      // Heatmap Index Toggles
+      document.querySelectorAll('#heatmapIndexToggles .heatmap-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#heatmapIndexToggles .heatmap-toggle-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.renderMarketHeatmap(btn.dataset.index);
+        });
+      });
+
+      // FinDesk Timeframe Pills
+      document.querySelectorAll('#findeskTfPills .findesk-tf-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#findeskTfPills .findesk-tf-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.drawFinDeskPerfCurve(btn.dataset.ptf);
+        });
+      });
+
+      // Scalper Terminal Actions
+      document.getElementById('btnScalperMktBuy')?.addEventListener('click', () => {
+        this.showToast('⚡ Instant Scalper Order: BUY 500 NIFTY 21,450 CE Executed @ MKT', 'success');
+      });
+      document.getElementById('btnScalperMktSell')?.addEventListener('click', () => {
+        this.showToast('⚡ Instant Scalper Order: SELL 500 NIFTY 21,450 CE Executed @ MKT', 'warn');
+      });
+      document.getElementById('btnCloseAllScalpPos')?.addEventListener('click', () => {
+        this.showToast('🛡️ All Open Scalper Positions Closed at Market Price.', 'info');
+      });
+
+      // Sector Deep-Dive List Selection
+      document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(item => {
+        item.addEventListener('click', () => {
+          document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(i => i.classList.remove('active'));
+          item.classList.add('active');
+          this.updateSectorDeepDive(item.dataset.sector);
+        });
+      });
+    }
+
+    /* =========================================================================
+       GOOGLE STITCH 5-SCREEN SUPER-VIEWS CONTROLLERS
+       ========================================================================= */
+
+    initStitchNavigation() {
+      document.querySelectorAll('.stitch-nav-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+          document.querySelectorAll('.stitch-nav-tab').forEach(t => t.classList.remove('active'));
+          tab.classList.add('active');
+          const targetView = tab.dataset.view;
+          document.querySelectorAll('.stitch-view-content').forEach(view => {
+            view.classList.toggle('active', view.id === targetView);
+          });
+
+          if (targetView === 'viewMarketHeatmap') this.renderMarketHeatmap();
+          else if (targetView === 'viewFinDeskPortfolio') this.renderFinDeskPortfolio();
+          else if (targetView === 'viewScalperTerminal') this.renderScalperTerminal();
+          else if (targetView === 'viewSectorDeepDive') this.renderSectorDeepDive();
+          else if (targetView === 'viewTradeoneWorkstation' && this.mainChart) {
+            setTimeout(() => this.mainChart.resize(), 50);
+          }
+        });
+      });
+    }
+
+    renderMarketHeatmap(indexFilter = 'NIFTY 50') {
+      const container = document.getElementById('heatmapSectorsGrid');
+      if (!container) return;
+
+      const sectors = [
+        {
+          name: 'BANKING',
+          stocks: [
+            { sym: 'HDFC BANK', chg: +2.3, ltp: 1640.20, vol: '12.4M' },
+            { sym: 'ICICI BANK', chg: +1.1, ltp: 1210.50, vol: '8.1M' },
+            { sym: 'KOTAK BANK', chg: -0.5, ltp: 1780.00, vol: '3.4M' },
+            { sym: 'AXIS BANK', chg: +3.2, ltp: 1145.80, vol: '9.2M' },
+            { sym: 'SBI', chg: +1.8, ltp: 815.30, vol: '14.5M' },
+            { sym: 'INDUSINDBK', chg: -1.2, ltp: 1420.00, vol: '2.8M' }
+          ]
+        },
+        {
+          name: 'IT & SOFTWARE',
+          stocks: [
+            { sym: 'TCS', chg: -1.2, ltp: 4120.00, vol: '2.1M' },
+            { sym: 'INFOSYS', chg: -2.5, ltp: 1456.20, vol: '7.8M' },
+            { sym: 'WIPRO', chg: +0.8, ltp: 520.40, vol: '4.6M' },
+            { sym: 'HCL TECH', chg: -1.8, ltp: 1680.10, vol: '3.1M' },
+            { sym: 'TECHM', chg: -0.9, ltp: 1530.00, vol: '1.9M' },
+            { sym: 'PERSISTENT', chg: +2.1, ltp: 5320.00, vol: '0.8M' }
+          ]
+        },
+        {
+          name: 'ENERGY & INFRA',
+          stocks: [
+            { sym: 'RELIANCE', chg: +0.2, ltp: 2980.50, vol: '6.4M' },
+            { sym: 'ONGC', chg: +4.1, ltp: 315.60, vol: '18.2M' },
+            { sym: 'GRASIM', chg: +3.9, ltp: 2640.00, vol: '1.5M' },
+            { sym: 'NTPC', chg: +1.6, ltp: 395.20, vol: '11.0M' },
+            { sym: 'POWERGRID', chg: +0.9, ltp: 330.10, vol: '8.4M' },
+            { sym: 'BPCL', chg: -1.4, ltp: 345.80, vol: '5.2M' }
+          ]
+        }
+      ];
+
+      const getTileClass = (chg) => {
+        if (chg >= 2.5) return 'gain-strong';
+        if (chg >= 1.0) return 'gain-med';
+        if (chg > 0) return 'gain-light';
+        if (chg === 0) return 'neutral';
+        if (chg >= -1.0) return 'loss-light';
+        if (chg >= -2.5) return 'loss-med';
+        return 'loss-strong';
+      };
+
+      container.innerHTML = sectors.map(sec => `
+        <div class="heatmap-sector-card">
+          <div class="heatmap-sector-title">${sec.name}</div>
+          <div class="heatmap-tiles-cluster">
+            ${sec.stocks.map(s => {
+              const sign = s.chg > 0 ? '+' : '';
+              return `
+                <div class="heatmap-tile ${getTileClass(s.chg)}" title="${s.sym} • LTP: ₹${s.ltp} • Volume: ${s.vol}" onclick="window.screener?.quickSelectSymbol('${s.sym.split(' ')[0]}')">
+                  <div class="heatmap-tile-sym">${s.sym}</div>
+                  <div class="heatmap-tile-chg">${sign}${s.chg}%</div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `).join('');
+
+      // Populate Top Gainers & Losers
+      const gainersList = document.getElementById('heatmapTopGainersList');
+      if (gainersList) {
+        const topGainers = [
+          { sym: 'ADANI ENTERPRISES', chg: '+5.5%' },
+          { sym: 'TATA STEEL', chg: '+4.8%' },
+          { sym: 'ONGC', chg: '+4.1%' },
+          { sym: 'GRASIM', chg: '+3.9%' }
+        ];
+        gainersList.innerHTML = topGainers.map(g => `
+          <div class="heatmap-rank-row">
+            <span>▲ ${g.sym}</span>
+            <span class="heatmap-rank-gain">${g.chg}</span>
+          </div>
+        `).join('');
+      }
+
+      const losersList = document.getElementById('heatmapTopLosersList');
+      if (losersList) {
+        const topLosers = [
+          { sym: 'INFOSYS', chg: '-2.5%' },
+          { sym: 'HCL TECH', chg: '-1.8%' },
+          { sym: 'SUN PHARMA', chg: '-1.5%' },
+          { sym: 'HERO MOTOCORP', chg: '-1.2%' }
+        ];
+        losersList.innerHTML = topLosers.map(l => `
+          <div class="heatmap-rank-row">
+            <span>▼ ${l.sym}</span>
+            <span class="heatmap-rank-loss">${l.chg}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    renderFinDeskPortfolio() {
+      this.drawFinDeskPerfCurve('1Y');
+      this.drawFinDeskDonut();
+
+      const tbody = document.getElementById('findeskHoldingsBody');
+      if (!tbody) return;
+
+      const holdings = [
+        { sym: 'TCS', qty: 150, avg: 3200, ltp: 3650, curVal: '5,47,500', pnl: '+ ₹ 67,500 (+14.06%)', pos: true },
+        { sym: 'HDFCBANK', qty: 300, avg: 1450, ltp: 1620, curVal: '4,86,000', pnl: '+ ₹ 51,000 (+11.72%)', pos: true },
+        { sym: 'RELIANCE', qty: 100, avg: 2350, ltp: 2980, curVal: '2,98,000', pnl: '+ ₹ 63,000 (+26.81%)', pos: true },
+        { sym: 'INFOSYS', qty: 250, avg: 1480, ltp: 1456, curVal: '3,64,000', pnl: '- ₹ 6,000 (-1.62%)', pos: false },
+        { sym: 'TATASTEEL', qty: 1200, avg: 130, ltp: 158, curVal: '1,89,600', pnl: '+ ₹ 33,600 (+21.54%)', pos: true }
+      ];
+
+      tbody.innerHTML = holdings.map(h => `
+        <tr>
+          <td><strong style="color:#ffffff;">${h.sym}</strong></td>
+          <td>${h.qty}</td>
+          <td>₹ ${h.avg.toLocaleString('en-IN')}</td>
+          <td>₹ ${h.ltp.toLocaleString('en-IN')}</td>
+          <td>₹ ${h.curVal}</td>
+          <td style="color:${h.pos ? '#34d399' : '#f87171'}; font-weight:700;">${h.pnl}</td>
+        </tr>
+      `).join('');
+    }
+
+    drawFinDeskPerfCurve(timeframe = '1Y') {
+      const canvas = document.getElementById('findeskPerfCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Background grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let y = 20; y < h; y += 40) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+
+      // 1. NIFTY 50 Benchmark Line (Grey)
+      const benchmarkPoints = [
+        { x: 0, y: h * 0.85 }, { x: w * 0.2, y: h * 0.78 }, { x: w * 0.4, y: h * 0.72 },
+        { x: w * 0.6, y: h * 0.68 }, { x: w * 0.8, y: h * 0.62 }, { x: w, y: h * 0.55 }
+      ];
+
+      ctx.beginPath();
+      ctx.strokeStyle = '#64748b';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([4, 4]);
+      benchmarkPoints.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // 2. My Portfolio Wave (Glowing Cyan)
+      const portfolioPoints = [
+        { x: 0, y: h * 0.88 }, { x: w * 0.15, y: h * 0.75 }, { x: w * 0.35, y: h * 0.55 },
+        { x: w * 0.5, y: h * 0.58 }, { x: w * 0.7, y: h * 0.40 }, { x: w * 0.85, y: h * 0.32 }, { x: w, y: h * 0.15 }
+      ];
+
+      // Area gradient
+      const grad = ctx.createLinearGradient(0, 0, 0, h);
+      grad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+      grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
+
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      portfolioPoints.forEach(pt => ctx.lineTo(pt.x, pt.y));
+      ctx.lineTo(w, h);
+      ctx.closePath();
+      ctx.fillStyle = grad;
+      ctx.fill();
+
+      // Stroke line with glow
+      ctx.beginPath();
+      ctx.strokeStyle = '#38bdf8';
+      ctx.lineWidth = 2.5;
+      ctx.shadowColor = '#38bdf8';
+      ctx.shadowBlur = 10;
+      portfolioPoints.forEach((pt, i) => {
+        if (i === 0) ctx.moveTo(pt.x, pt.y);
+        else ctx.lineTo(pt.x, pt.y);
+      });
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      // Glow beacon dots
+      [portfolioPoints[2], portfolioPoints[6]].forEach(pt => {
+        ctx.beginPath();
+        ctx.arc(pt.x, pt.y, 4.5, 0, Math.PI * 2);
+        ctx.fillStyle = '#ffffff';
+        ctx.fill();
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+    }
+
+    drawFinDeskDonut() {
+      const canvas = document.getElementById('findeskDonutCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const cx = 55, cy = 55, r = 45, innerR = 26;
+
+      const data = [
+        { pct: 0.42, color: '#3b82f6' },
+        { pct: 0.28, color: '#06b6d4' },
+        { pct: 0.15, color: '#8b5cf6' },
+        { pct: 0.10, color: '#f59e0b' },
+        { pct: 0.05, color: '#64748b' }
+      ];
+
+      let startAngle = -Math.PI / 2;
+      data.forEach(slice => {
+        const sliceAngle = slice.pct * Math.PI * 2;
+        ctx.beginPath();
+        ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+        ctx.arc(cx, cy, innerR, startAngle + sliceAngle, startAngle, true);
+        ctx.closePath();
+        ctx.fillStyle = slice.color;
+        ctx.fill();
+        startAngle += sliceAngle;
+      });
+    }
+
+    renderScalperTerminal() {
+      const tbody = document.getElementById('domLadderTableBody');
+      if (!tbody) return;
+
+      const levels = [
+        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
+        { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 100, bidDepth: 40, askDepth: 40 },
+        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
+        { bidQty: 100, bidPrice: '21,650', askPrice: '21,450', askQty: 500, bidDepth: 40, askDepth: 95 },
+        { bidQty: 100, bidPrice: '21,250', askPrice: '21,450', askQty: 150, bidDepth: 40, askDepth: 60 },
+        { bidQty: 100, bidPrice: '21,550', askPrice: '21,450', askQty: 200, bidDepth: 40, askDepth: 75 },
+        { bidQty: 150, bidPrice: '21,450', askPrice: '21,450', askQty: 50,  bidDepth: 60, askDepth: 25 },
+        { bidQty: 250, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 85, askDepth: 40 },
+        { bidQty: 100, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 100, askDepth: 40 },
+        { bidQty: 360, bidPrice: '21,450', askPrice: '21,450', askQty: 100, bidDepth: 90, askDepth: 40 }
+      ];
+
+      tbody.innerHTML = levels.map(row => `
+        <tr>
+          <td style="position:relative; color:#34d399; font-weight:700;">
+            <div class="dom-depth-bar-bid" style="width:${row.bidDepth}%;"></div>
+            <span style="position:relative; z-index:2;">${row.bidQty}</span>
+          </td>
+          <td style="color:#ffffff;">₹${row.bidPrice}</td>
+          <td style="color:#ffffff;">₹${row.askPrice}</td>
+          <td style="position:relative; color:#f87171; font-weight:700; text-align:right;">
+            <div class="dom-depth-bar-ask" style="width:${row.askDepth}%;"></div>
+            <span style="position:relative; z-index:2;">${row.askQty}</span>
+          </td>
+        </tr>
+      `).join('');
+
+      const recentTrades = document.getElementById('domRecentTradesList');
+      if (recentTrades) {
+        recentTrades.innerHTML = `
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 21,450 CE</span><span>₹ 198.50 (14:32:05)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 250 NIFTY 21,450 CE</span><span>₹ 198.55 (14:32:08)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#f87171;">SELL 100 NIFTY 21,450 CE</span><span>₹ 198.45 (14:32:12)</span></div>
+          <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 21,450 CE</span><span>₹ 198.50 (14:32:15)</span></div>
+        `;
+      }
+    }
+
+    renderSectorDeepDive() {
+      this.drawSectorMatrix();
+      this.drawSectorGauge(75);
+    }
+
+    updateSectorDeepDive(sectorName) {
+      const weightageTitle = document.getElementById('sectorWeightageTitle');
+      if (weightageTitle) weightageTitle.textContent = `Sector Weightage Breakdown (${sectorName})`;
+
+      const sentimentTitle = document.getElementById('sectorSentimentTitle');
+      if (sentimentTitle) sentimentTitle.textContent = `Sector Sentiment (${sectorName})`;
+
+      this.drawSectorMatrix();
+      this.drawSectorGauge(sectorName.includes('Bank') ? 75 : (sectorName.includes('IT') ? 45 : 68));
+    }
+
+    drawSectorMatrix() {
+      const canvas = document.getElementById('sectorMatrixCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * dpr;
+      canvas.height = rect.height * dpr;
+      ctx.scale(dpr, dpr);
+
+      const w = rect.width, h = rect.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // Axes lines (Cross at 0, 0)
+      const cx = w / 2, cy = h / 2;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+
+      // X-Axis
+      ctx.beginPath();
+      ctx.moveTo(30, cy);
+      ctx.lineTo(w - 20, cy);
+      ctx.stroke();
+
+      // Y-Axis
+      ctx.beginPath();
+      ctx.moveTo(cx, 20);
+      ctx.lineTo(cx, h - 30);
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#64748b';
+      ctx.font = '9.5px JetBrains Mono, monospace';
+      ctx.fillText('+5% RS', cx + 6, 25);
+      ctx.fillText('-5% RS', cx + 6, h - 35);
+      ctx.fillText('-10 Mom', 30, cy - 6);
+      ctx.fillText('+10 Mom', w - 60, cy - 6);
+
+      // Quadrant Sector Dots
+      const dots = [
+        { label: 'Bank', x: cx + 45, y: cy - 65, outperf: true, r: 8 },
+        { label: 'Auto', x: cx + 20, y: cy - 40, outperf: true, r: 6 },
+        { label: 'IT', x: cx + 70, y: cy - 30, outperf: true, r: 7 },
+        { label: 'Pharm', x: cx - 35, y: cy - 35, outperf: true, r: 6 },
+        { label: 'Metal', x: cx - 55, y: cy + 15, outperf: false, r: 6 },
+        { label: 'FMCG', x: cx - 25, y: cy + 55, outperf: false, r: 6 },
+        { label: 'PS', x: cx - 75, y: cy + 40, outperf: false, r: 5 }
+      ];
+
+      dots.forEach(d => {
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.r, 0, Math.PI * 2);
+        ctx.fillStyle = d.outperf ? '#06b6d4' : '#ec4899';
+        ctx.shadowColor = d.outperf ? '#06b6d4' : '#ec4899';
+        ctx.shadowBlur = 10;
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9.5px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(d.label, d.x, d.y - d.r - 3);
+      });
+    }
+
+    drawSectorGauge(score = 75) {
+      const canvas = document.getElementById('sectorGaugeCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const cx = 100, cy = 95, r = 70;
+
+      ctx.clearRect(0, 0, 200, 120);
+
+      // Arc background track
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, 0);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
+      ctx.stroke();
+
+      // Glowing colored active arc
+      const endAngle = Math.PI + (score / 100) * Math.PI;
+      const grad = ctx.createLinearGradient(20, cy, 180, cy);
+      grad.addColorStop(0, '#ef4444');
+      grad.addColorStop(0.5, '#f59e0b');
+      grad.addColorStop(1, '#10b981');
+
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, Math.PI, endAngle);
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = grad;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+
+      // Score Text in Center
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 16px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${score}/100`, cx, cy - 10);
+
+      ctx.fillStyle = score >= 60 ? '#34d399' : (score <= 40 ? '#f87171' : '#f59e0b');
+      ctx.font = 'bold 10px JetBrains Mono, monospace';
+      ctx.fillText(score >= 60 ? 'BULLISH' : (score <= 40 ? 'BEARISH' : 'NEUTRAL'), cx, cy + 8);
+    }
+
+    quickSelectSymbol(sym) {
+      const stock = this.universe.find(s => s.symbol === sym || s.symbol.startsWith(sym));
+      if (stock) {
+        document.getElementById('tabViewTradeone')?.click();
+        this.updateMainChart(stock);
+      }
     }
 
     updateSmartApiStatusUI() {

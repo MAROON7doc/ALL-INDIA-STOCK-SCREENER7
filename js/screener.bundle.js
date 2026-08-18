@@ -4132,6 +4132,16 @@
         console.warn('modalCanvasContainer chart init error:', e);
       }
 
+      try {
+        if (document.getElementById('scalperChartContainer')) {
+          this.scalperChart = new InteractiveGPUChart('scalperChartContainer');
+          this.scalperChart.setChartType('candle');
+          this.scalperChart.setInterval('1m');
+        }
+      } catch (e) {
+        console.warn('scalperChartContainer chart init error:', e);
+      }
+
       try { this.updateGpuBadge(); } catch (e) {}
       try { this.updateMarketStatusBadge(); } catch (e) {}
       this.marketTimer = setInterval(() => { try { this.updateMarketStatusBadge(); } catch (e) {} }, 1000);
@@ -5248,6 +5258,30 @@
           <div style="display:flex; justify-content:space-between;"><span style="color:#f87171;">SELL 100 NIFTY 21,450 CE</span><span>₹ 198.45 (14:32:12)</span></div>
           <div style="display:flex; justify-content:space-between;"><span style="color:#34d399;">BUY 500 NIFTY 21,450 CE</span><span>₹ 198.50 (14:32:15)</span></div>
         `;
+      }
+
+      // Initialize and render GPU Scalper Chart
+      if (!this.scalperChart && document.getElementById('scalperChartContainer')) {
+        try {
+          this.scalperChart = new InteractiveGPUChart('scalperChartContainer');
+          this.scalperChart.setChartType('candle');
+          this.scalperChart.setInterval('1m');
+        } catch (e) {
+          console.warn('scalperChart instantiation error:', e);
+        }
+      }
+
+      if (this.scalperChart) {
+        const stock = this.activeMainStock || this.stocks[0] || { symbol: 'NIFTY50', name: 'NIFTY 50 21450 CE', ltp: 202.00, pChange: 1.76 };
+        let candles = this.chartSeriesMap.get(`${stock.symbol}_1m`)?.candles;
+        if (!candles || !candles.length) {
+          candles = this.generateMockIntradayCandles(stock.ltp || 202.00, 90, '1m');
+        }
+        this.scalperChart.setData(stock, candles);
+        this.scalperChart.setInterval('1m');
+        setTimeout(() => {
+          this.scalperChart.resize();
+        }, 60);
       }
     }
 
@@ -6517,6 +6551,7 @@
 
                 if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
                 if (this.modalChart) this.modalChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
+                if (this.scalperChart) this.scalperChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
               }
             }
 

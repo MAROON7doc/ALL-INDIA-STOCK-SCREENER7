@@ -8,9 +8,9 @@ An institutional-grade, quantitative stock screening and equity research platfor
 
 | Platform Version | Live Direct Link | Description |
 | :--- | :--- | :--- |
-| 🖥️ **Full Desktop Terminal** | [**Open Desktop Terminal**](https://maroon7doc.github.io/BSE-NSE-STOCK-screener/) | Comprehensive multi-panel institutional workstation with split screening & GPU chart |
-| 📱 **Android Mobile WebView App** | [**Open Android Mobile View**](https://maroon7doc.github.io/BSE-NSE-STOCK-screener/mobile.html) | Native touch-optimized mobile trading station with 5-tab bottom navigation |
-| 📈 **Standalone Pop-Out Chart** | [**Open Live Chart Terminal**](https://maroon7doc.github.io/BSE-NSE-STOCK-screener/chart.html?symbol=TRENT) | Dedicated dual-monitor workstation with live quantitative analysis HUD |
+| 🖥️ **Full Desktop Terminal** | [**Open Desktop Terminal**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/) | TradeOne Pro 3-Column Workstation with live NIFTY/SENSEX, Left Watchlist & TradingView Scalper |
+| 📱 **Android Mobile WebView App** | [**Open Android Mobile View**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/mobile.html) | Native touch-optimized mobile trading station with 5-tab bottom navigation & Scalper orders |
+| 📈 **Standalone Pop-Out Chart** | [**Open Live Chart Terminal**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/chart.html?symbol=BEL) | Dedicated workstation with live quantitative analysis HUD & Scalper Bar |
 
 ---
 

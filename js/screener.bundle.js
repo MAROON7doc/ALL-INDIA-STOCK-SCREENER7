@@ -4668,6 +4668,23 @@
       // Google Stitch 5-Screen View Navigation
       this.initStitchNavigation();
 
+      // Left Sidebar Watchlist vs Protocols Mode Switcher
+      document.querySelectorAll('.sidebar-mode-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.sidebar-mode-btn').forEach(b => b.classList.remove('active'));
+          document.querySelectorAll('.left-sidebar-subpanel').forEach(p => {
+            p.classList.remove('active');
+            p.style.display = 'none';
+          });
+          btn.classList.add('active');
+          const target = document.getElementById(btn.dataset.target);
+          if (target) {
+            target.classList.add('active');
+            target.style.display = btn.dataset.target === 'panelProtocols' ? 'block' : 'flex';
+          }
+        });
+      });
+
       // Stitch Protocol Engine Sliders
       const bindStitchSlider = (id, pillId, fmt, fn) => {
         const el = document.getElementById(id), pill = document.getElementById(pillId);

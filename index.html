@@ -312,106 +312,107 @@
         <!-- TradeOne Pro Multi-Column Workstation Grid -->
         <div class="tradeone-workstation-grid" id="tradeoneWorkstationGrid">
           
-          <!-- Column 0: Left Protocol Engine (10 Rules) Sliders (Screen 3) -->
-          <aside class="tradeone-protocol-panel" id="tradeoneProtocolPanel">
-            <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px;">
-              <span style="font-size:11.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">Protocol Engine (10 Rules)</span>
-              <button class="btn btn-sm" id="btnResetProtocols" style="padding:2px 6px; font-size:10px;">Reset</button>
+          <!-- Column 0: Unified Left Workstation Sidebar (260px) -->
+          <aside class="tradeone-left-sidebar" id="tradeoneLeftSidebar">
+            <!-- Top Mode Switcher Tabs: Watchlist vs Protocols -->
+            <div class="sidebar-mode-switcher">
+              <button class="sidebar-mode-btn active" id="btnTabWatchlist" data-target="panelWatchlist">
+                📋 Watchlist
+              </button>
+              <button class="sidebar-mode-btn" id="btnTabProtocols" data-target="panelProtocols">
+                ⚙️ Protocols (10 Rules)
+              </button>
             </div>
 
-            <!-- P1: EPS & Sales YoY Growth Slider -->
-            <div class="protocol-slider-card">
-              <div class="protocol-slider-header">
-                <span class="protocol-slider-title">P1: EPS & Sales YoY Growth</span>
-                <span class="protocol-slider-val" id="pill_salesGrowth">≥ 15%</span>
+            <!-- Subpanel 1: Watchlist (Default Active) -->
+            <div class="left-sidebar-subpanel active" id="panelWatchlist">
+              <div class="watchlist-tab-carousel">
+                <button class="watchlist-tab-chip" data-wtab="aime">Aime basket</button>
+                <button class="watchlist-tab-chip" data-wtab="health">Health</button>
+                <button class="watchlist-tab-chip" data-wtab="news">News plus</button>
+                <button class="watchlist-tab-chip active" data-wtab="stocks">Stock to watch</button>
               </div>
-              <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="5" max="50" step="5" value="15">
-              <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                <span>5%</span><span>Min Sales</span><span>50%</span>
-              </div>
-            </div>
 
-            <!-- P2: RSI Momentum Zone Slider -->
-            <div class="protocol-slider-card">
-              <div class="protocol-slider-header">
-                <span class="protocol-slider-title">P2: RSI Momentum Zone</span>
-                <span class="protocol-slider-val" id="pill_rsiLevel">RSI ≥ 70</span>
+              <div class="watchlist-search-row">
+                <input type="text" class="watchlist-search-input" id="txtWatchlistSearch" placeholder="🔍 Search stocks...">
               </div>
-              <input type="range" class="stitch-range-slider" id="rng_minRsi" min="50" max="85" step="5" value="70">
-              <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                <span>50</span><span>RSI(14)</span><span>85</span>
-              </div>
-            </div>
 
-            <!-- P3: Burst of Volume Slider -->
-            <div class="protocol-slider-card">
-              <div class="protocol-slider-header">
-                <span class="protocol-slider-title">P3: Burst of Volume > 40%</span>
-                <span class="protocol-slider-val" id="pill_burstPct">+40% vs SMA20</span>
+              <div class="watchlist-stock-list" id="tradeoneWatchlistList">
+                <!-- Dynamically populated from universe (BEL, PREMIERENE, HAL, SOLARINDS, KAYNES, TRENT, etc.) -->
               </div>
-              <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="10" max="100" step="10" value="40">
-              <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                <span>+10%</span><span>Volume Burst</span><span>+100%</span>
+
+              <div class="options-quick-list-bar" id="btnOptionsQuickList">
+                <span>OPTIONS QUICK LIST</span>
+                <span>▾</span>
               </div>
             </div>
 
-            <!-- P4: 7-Week Consolidation Base Slider -->
-            <div class="protocol-slider-card">
-              <div class="protocol-slider-header">
-                <span class="protocol-slider-title">P4: 7-Week Base Tightness</span>
-                <span class="protocol-slider-val" id="pill_baseTightness">≤ 18%</span>
+            <!-- Subpanel 2: Protocols (10 Rules) -->
+            <div class="left-sidebar-subpanel" id="panelProtocols" style="display:none; padding:10px; overflow-y:auto;">
+              <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; margin-bottom:8px;">
+                <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">10 Institutional Protocols</span>
+                <button class="btn btn-sm" id="btnResetProtocols" style="padding:2px 6px; font-size:10px;">Reset</button>
               </div>
-              <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="30" step="1" value="18">
-              <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                <span>5% (Tight)</span><span>Max Range</span><span>30%</span>
+
+              <!-- P1: EPS & Sales YoY Growth Slider -->
+              <div class="protocol-slider-card">
+                <div class="protocol-slider-header">
+                  <span class="protocol-slider-title">P1: EPS & Sales YoY Growth</span>
+                  <span class="protocol-slider-val" id="pill_salesGrowth">≥ 15%</span>
+                </div>
+                <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="5" max="50" step="5" value="15">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>5%</span><span>Min Sales</span><span>50%</span>
+                </div>
               </div>
-            </div>
 
-            <!-- P5: % Stop Loss Risk Limit Slider -->
-            <div class="protocol-slider-card">
-              <div class="protocol-slider-header">
-                <span class="protocol-slider-title">P5: % Stop Loss Risk Limit</span>
-                <span class="protocol-slider-val" id="pill_maxStopLoss">≤ 8.0%</span>
+              <!-- P2: RSI Momentum Zone Slider -->
+              <div class="protocol-slider-card">
+                <div class="protocol-slider-header">
+                  <span class="protocol-slider-title">P2: RSI Momentum Zone</span>
+                  <span class="protocol-slider-val" id="pill_rsiLevel">RSI ≥ 70</span>
+                </div>
+                <input type="range" class="stitch-range-slider" id="rng_minRsi" min="50" max="85" step="5" value="70">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>50</span><span>RSI(14)</span><span>85</span>
+                </div>
               </div>
-              <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
-              <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                <span>3.0%</span><span>Stop Loss</span><span>15.0%</span>
+
+              <!-- P3: Burst of Volume Slider -->
+              <div class="protocol-slider-card">
+                <div class="protocol-slider-header">
+                  <span class="protocol-slider-title">P3: Burst of Volume > 40%</span>
+                  <span class="protocol-slider-val" id="pill_burstPct">+40% vs SMA20</span>
+                </div>
+                <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="10" max="100" step="10" value="40">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>+10%</span><span>Volume Burst</span><span>+100%</span>
+                </div>
               </div>
-            </div>
-          </aside>
-          
-          <!-- Column 1: Left Watchlist Panel (Zerodha/Dhan/TradeOne Style) -->
-          <aside class="tradeone-left-watchlist" id="tradeoneLeftWatchlist">
-            <div class="watchlist-panel-header">
-              <span>Watchlist</span>
-              <div style="display:flex; align-items:center; gap:6px;">
-                <button class="tv-icon-btn" style="padding:2px 4px; font-size:11px;" title="Watchlist Settings">⚙️</button>
-                <button class="tv-icon-btn" style="padding:2px 4px; font-size:11px;" title="Expand Watchlist Panel">🗖</button>
+
+              <!-- P4: 7-Week Consolidation Base Slider -->
+              <div class="protocol-slider-card">
+                <div class="protocol-slider-header">
+                  <span class="protocol-slider-title">P4: 7-Week Base Tightness</span>
+                  <span class="protocol-slider-val" id="pill_baseTightness">≤ 18%</span>
+                </div>
+                <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="30" step="1" value="18">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>5% (Tight)</span><span>Max Range</span><span>30%</span>
+                </div>
               </div>
-            </div>
 
-            <!-- Watchlist Category Tabs Carousel -->
-            <div class="watchlist-tab-carousel">
-              <button class="watchlist-tab-chip" data-wtab="aime">Aime basket</button>
-              <button class="watchlist-tab-chip" data-wtab="health">Health</button>
-              <button class="watchlist-tab-chip" data-wtab="news">News plus</button>
-              <button class="watchlist-tab-chip active" data-wtab="stocks">Stock to watch</button>
-            </div>
-
-            <!-- Search Row -->
-            <div class="watchlist-search-row">
-              <input type="text" class="watchlist-search-input" id="txtWatchlistSearch" placeholder="🔍 Search...">
-            </div>
-
-            <!-- Dynamic Stock Items List -->
-            <div class="watchlist-stock-list" id="tradeoneWatchlistList">
-              <!-- Dynamically populated from universe (BEL, PREMIERENE, HAL, SOLARINDS, KAYNES, TRENT, etc.) -->
-            </div>
-
-            <!-- Options Quick List Bar -->
-            <div class="options-quick-list-bar" id="btnOptionsQuickList">
-              <span>OPTIONS QUICK LIST</span>
-              <span>▾</span>
+              <!-- P5: % Stop Loss Risk Limit Slider -->
+              <div class="protocol-slider-card">
+                <div class="protocol-slider-header">
+                  <span class="protocol-slider-title">P5: % Stop Loss Risk Limit</span>
+                  <span class="protocol-slider-val" id="pill_maxStopLoss">≤ 8.0%</span>
+                </div>
+                <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>3.0%</span><span>Stop Loss</span><span>15.0%</span>
+                </div>
+              </div>
             </div>
           </aside>
 

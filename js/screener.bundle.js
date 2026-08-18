@@ -4395,9 +4395,11 @@
         this.showToast(`🌊 5-Level Depth: Best Bid ₹${ltp.toFixed(2)} (Qty: 2,450) • Best Ask ₹${(ltp + 0.5).toFixed(2)} (Qty: 1,820)`, 'info');
       });
       document.getElementById('btnRightToolProtocols')?.addEventListener('click', () => {
-        const rib = document.getElementById('protocolLayerRibbon');
-        if (rib) rib.style.display = 'flex';
-        this.showToast('⚙️ 10 CANSLIM Protocols Ribbon Enabled', 'info');
+        document.getElementById('btnTabProtocols')?.click();
+        this.showToast('⚙️ Switched to 10 CANSLIM Protocols Engine', 'info');
+      });
+      document.getElementById('btnRightToolWatchlist')?.addEventListener('click', () => {
+        document.getElementById('btnTabWatchlist')?.click();
       });
 
       // Top Tabs

@@ -2378,18 +2378,28 @@
       this.interval = interval;
       if (!this.stock) return;
 
-      if (interval === '1m') this.allCandles = this.stock.intraday1m;
-      else if (interval === '5m') this.allCandles = this.stock.intraday5m;
-      else if (interval === '15m') this.allCandles = this.stock.intraday15m;
-      else if (interval === '1H') this.allCandles = this.stock.intraday1H;
-      else if (interval === '4H') this.allCandles = this.stock.intraday4H || this.stock.intraday1H;
-      else if (interval === '1D') this.allCandles = this.stock.dailyCandles;
-      else if (interval === '1W') this.allCandles = this.stock.weekly;
-      else if (interval === '1M') this.allCandles = this.stock.monthly;
-      else this.allCandles = this.stock.dailyCandles;
+      let targetCandles = null;
+      if (interval === '1m') targetCandles = this.stock.intraday1m;
+      else if (interval === '5m') targetCandles = this.stock.intraday5m;
+      else if (interval === '15m') targetCandles = this.stock.intraday15m;
+      else if (interval === '1H') targetCandles = this.stock.intraday1H;
+      else if (interval === '4H') targetCandles = this.stock.intraday4H || this.stock.intraday1H;
+      else if (interval === '1D') targetCandles = this.stock.dailyCandles;
+      else if (interval === '1W') targetCandles = this.stock.weekly;
+      else if (interval === '1M') targetCandles = this.stock.monthly;
+      else targetCandles = this.stock.dailyCandles;
 
+      let fellback = false;
+      if (!targetCandles || !targetCandles.length) {
+        targetCandles = this.stock.dailyCandles || [];
+        fellback = true;
+      }
+
+      this.allCandles = targetCandles;
+      this.isFallback = fellback;
       this.updateIndicatorCache();
       this.resetZoom();
+      this.render();
     }
 
     refreshCandles() {
@@ -2406,11 +2416,9 @@
       else if (interval === '1M') targetCandles = this.stock.monthly;
       else targetCandles = this.stock.dailyCandles;
 
-      // Graceful fallback: If the requested intraday data is missing (e.g. offline market closed), 
-      // fallback to the most recent daily EOD candles so the chart doesn't break to a black screen.
       let fellback = false;
       if (!targetCandles || !targetCandles.length) {
-        targetCandles = this.stock.dailyCandles;
+        targetCandles = this.stock.dailyCandles || [];
         fellback = true;
       }
       
@@ -2464,6 +2472,13 @@
       window.addEventListener('resize', () => {
         requestAnimationFrame(() => this.resize());
       });
+
+      if (window.ResizeObserver && this.container) {
+        this.resizeObserver = new ResizeObserver(() => {
+          requestAnimationFrame(() => this.resize());
+        });
+        this.resizeObserver.observe(this.container);
+      }
 
       // TRADINGVIEW MULTI-INPUT ZOOM & TWO-FINGER HORIZONTAL SWIPE
       this.canvas.addEventListener('wheel', (e) => {
@@ -2601,66 +2616,58 @@
           this.lastMouseX = e.clientX;
           this.lastMouseTime = now;
 
-          const deltaX = e.clientX - this.dragStartX;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleShift = deltaX / candleWidth; // Continuous floating point
+          const candleDelta = -dx / candleWidth;
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + candleShift));
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + candleDelta));
 
-          const deltaY = e.clientY - this.dragStartY;
-          const hasRsi = this.layers.p2_rsi;
-          const pricePlotH = hasRsi ? (this.height - paddingTop - 24) * 0.62 : (this.height - paddingTop - 24) * 0.80;
-          const visible = this.getVisibleCandles();
-          if (visible.length) {
-            let minP = Infinity, maxP = -Infinity;
-            for (const c of visible) {
-              if (c.low < minP) minP = c.low;
-              if (c.high > maxP) maxP = c.high;
-            }
-            const baseSpan = (maxP - minP) || (minP * 0.02) || 1;
-            const effectiveSpan = baseSpan / this.priceScaleFactor;
-            const pricePerPx = effectiveSpan / pricePlotH;
-            this.pricePanOffset = this.dragStartPanOffset + (deltaY * pricePerPx);
-            this.autoScale = false;
-          }
+          const dy = e.clientY - this.dragStartY;
+          const priceRange = 100;
+          const priceShift = (dy / this.height) * priceRange * 1.5;
+          this.pricePanOffset = this.dragStartPanOffset + priceShift;
+          this.autoScale = false;
+          return;
         }
 
-        this.crosshair.x = x;
-        this.crosshair.y = y;
-        this.crosshair.active = true;
-
         const visibleCandles = this.getVisibleCandles();
-        if (visibleCandles.length) {
-          const candleWidth = plotWidth / visibleCandles.length;
-          const idx = Math.floor((x - paddingLeft) / candleWidth);
-          if (idx >= 0 && idx < visibleCandles.length) {
-            const c = visibleCandles[idx];
-            this.crosshair.candle = c;
-            this.crosshair.timeStr = (c.time && c.time !== 'Monthly' && c.time !== '15:30') ? `${c.date} ${c.time}` : c.date;
-          } else {
-            this.crosshair.candle = null;
-            this.crosshair.timeStr = '';
-          }
+        if (!visibleCandles.length) return;
+
+        const rightMarginSpace = Math.min(75, Math.max(28, plotWidth * 0.05));
+        const candlePlotWidth = plotWidth - rightMarginSpace;
+        const candleSlotWidth = candlePlotWidth / visibleCandles.length;
+
+        if (x >= paddingLeft && x <= paddingLeft + candlePlotWidth) {
+          const idx = Math.floor((x - paddingLeft) / candleSlotWidth);
+          const clampedIdx = Math.max(0, Math.min(visibleCandles.length - 1, idx));
+          const candle = visibleCandles[clampedIdx];
+
+          this.crosshair.active = true;
+          this.crosshair.x = paddingLeft + (clampedIdx + 0.5) * candleSlotWidth;
+          this.crosshair.y = y;
+          this.crosshair.candle = candle;
+          this.crosshair.timeStr = candle.time ? `${candle.date} ${candle.time}` : candle.date;
+        } else {
+          this.crosshair.active = (x >= paddingLeft && x <= this.width - paddingRight);
+          this.crosshair.x = x;
+          this.crosshair.y = y;
         }
       });
 
       this.canvas.addEventListener('mouseleave', () => {
         this.crosshair.active = false;
-        this.crosshair.candle = null;
       });
 
-      // TOUCHSCREEN PANNING & TWO-FINGER PINCH ZOOM
+      // TOUCH GESTURES: PINCH TO ZOOM & FLUID MOMENTUM TOUCH PANNING
       this.canvas.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
-          const t = e.touches[0];
           this.isTouchDragging = true;
-          this.touchStartX = t.clientX;
-          this.touchStartY = t.clientY;
+          this.touchStartX = e.touches[0].clientX;
+          this.touchStartY = e.touches[0].clientY;
           this.touchStartOffset = this.viewOffset;
           this.touchStartPanOffset = this.pricePanOffset;
-          this.lastTouchX = t.clientX;
-          this.lastTouchTime = performance.now();
           this.velocityX = 0;
+          this.lastMouseX = e.touches[0].clientX;
+          this.lastMouseTime = performance.now();
         } else if (e.touches.length === 2) {
           this.isTouchDragging = false;
           const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -2671,38 +2678,40 @@
       }, { passive: true });
 
       this.canvas.addEventListener('touchmove', (e) => {
-        if (this.isTouchDragging && e.touches.length === 1) {
-          const t = e.touches[0];
-          const deltaX = t.clientX - this.touchStartX;
-          const isWide = this.width >= 1100;
-          const paddingRight = isWide ? 92 : 82, paddingLeft = isWide ? 22 : 15;
-          const plotWidth = this.width - paddingLeft - paddingRight;
-          const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleShift = deltaX / candleWidth;
-          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.touchStartOffset + candleShift));
+        const paddingRight = 75, paddingLeft = 10;
+        const plotWidth = this.width - paddingLeft - paddingRight;
 
+        if (e.touches.length === 1 && this.isTouchDragging) {
           const now = performance.now();
-          const dt = Math.max(8, now - this.lastTouchTime);
-          const dx = t.clientX - this.lastTouchX;
-          this.velocityX = (dx / dt) * 14;
-          this.lastTouchX = t.clientX;
-          this.lastTouchTime = now;
-          this.render();
+          const dt = Math.max(8, now - this.lastMouseTime);
+          const dx = e.touches[0].clientX - this.lastMouseX;
+          const vel = (dx / dt) * 14;
+          this.velocityX = this.velocityX * 0.35 + vel * 0.65;
+          this.lastMouseX = e.touches[0].clientX;
+          this.lastMouseTime = now;
+
+          const totalDx = e.touches[0].clientX - this.touchStartX;
+          const candleWidth = Math.max(2, plotWidth / this.viewCount);
+          const candleDelta = -totalDx / candleWidth;
+          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.touchStartOffset + candleDelta));
+
+          const totalDy = e.touches[0].clientY - this.touchStartY;
+          this.pricePanOffset = this.touchStartPanOffset + (totalDy / this.height) * 120;
+          this.autoScale = false;
         } else if (e.touches.length === 2 && this.touchStartPinchDist) {
-          const pinchDx = e.touches[0].clientX - e.touches[1].clientX;
-          const pinchDy = e.touches[0].clientY - e.touches[1].clientY;
-          const dist = Math.hypot(pinchDx, pinchDy);
+          const dx = e.touches[0].clientX - e.touches[1].clientX;
+          const dy = e.touches[0].clientY - e.touches[1].clientY;
+          const dist = Math.hypot(dx, dy);
           const scale = this.touchStartPinchDist / Math.max(10, dist);
-          const newViewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
-          this.viewCount = newViewCount;
-          this.render();
+          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
+          this.viewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
+          this.viewOffset = Math.min(maxOffset, this.viewOffset);
         }
       }, { passive: true });
 
       this.canvas.addEventListener('touchend', () => {
         this.isTouchDragging = false;
-        this.touchStartPinchDist = null;
       });
 
       // KEYBOARD ARROW SCRUBBING & HOME/END JUMP
@@ -2802,7 +2811,7 @@
       const isTall = h >= 650;
       const paddingRight = isWide ? 92 : 82;
       const paddingLeft = isWide ? 22 : 15;
-      const paddingTop = isTall ? 36 : 28;
+      const paddingTop = isTall ? 44 : 36;
       const paddingBottom = 26;
       const plotWidth = w - paddingLeft - paddingRight;
       
@@ -2829,7 +2838,7 @@
       }
 
       const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
-      const margin = baseSpan * 0.20; // 20% vertical breathing room headroom & floor (TradingView standard)
+      const margin = baseSpan * 0.18; // 18% vertical breathing room headroom & floor
       const fullBaseMin = Math.max(0, baseMinPrice - margin);
       const fullBaseMax = baseMaxPrice + margin;
       const centerPrice = (fullBaseMax + fullBaseMin) / 2;
@@ -2901,7 +2910,7 @@
       }
 
       // =========================================================================
-      // 1.1 TRADINGVIEW PRO REAL-TIME LIVE OHLCV HUD BAR
+      // 1.1 TRADINGVIEW PRO REAL-TIME LIVE OHLCV HUD BAR (TOP-LEFT UNBLOCKED)
       // =========================================================================
       const hudCandle = (this.crosshair.active && this.crosshair.candle) ? this.crosshair.candle : latestCandle;
       if (hudCandle) {
@@ -2913,11 +2922,11 @@
         const hudVolStr = hudVol >= 10000000 ? `${(hudVol / 10000000).toFixed(2)}Cr` : (hudVol >= 100000 ? `${(hudVol / 100000).toFixed(2)}L` : (hudVol >= 1000 ? `${(hudVol / 1000).toFixed(1)}K` : hudVol));
         const hudTimeLabel = hudCandle.time || hudCandle.date || '';
 
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
+        ctx.font = 'bold 10px JetBrains Mono, monospace';
         ctx.textAlign = 'left';
         
         let curX = paddingLeft + 6;
-        const hudY = paddingTop + 12;
+        const hudY = 16;
 
         ctx.fillStyle = '#94a3b8';
         ctx.fillText(`${this.stock.symbol} • ${this.interval} • ${hudTimeLabel}`, curX, hudY);
@@ -3000,10 +3009,10 @@
         const boxLowY = getY(bLow);
         const boxH = Math.max(10, boxLowY - boxHighY);
 
-        ctx.fillStyle = 'rgba(6, 182, 212, 0.14)';
+        ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
         ctx.fillRect(boxX, boxHighY, boxW, boxH);
         ctx.strokeStyle = '#06b6d4';
-        ctx.lineWidth = 1.6;
+        ctx.lineWidth = 1.4;
         ctx.setLineDash([4, 4]);
         ctx.strokeRect(boxX, boxHighY, boxW, boxH);
         ctx.setLineDash([]);
@@ -3031,12 +3040,12 @@
           ctx.moveTo(p1x, p1y);
           ctx.quadraticCurveTo(p2x, p2y + 20, p3x, p3y);
           ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 2.8;
+          ctx.lineWidth = 2.4;
           ctx.stroke();
 
           ctx.lineTo(p3x, p1y);
           ctx.lineTo(p1x, p1y);
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.06)';
+          ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
           ctx.fill();
 
           ctx.fillStyle = '#fbbf24';
@@ -3059,26 +3068,11 @@
         ctx.font = 'bold 10px JetBrains Mono, monospace';
         ctx.textAlign = 'right';
         ctx.fillText(`Pivot ₹${cwh.pivotPrice}`, w - paddingRight - 6, pivotY - 4);
-
-        const targetY = getY(cwh.targetPrice);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, targetY);
-        ctx.lineTo(w - paddingRight, targetY);
-        ctx.strokeStyle = '#34d399';
-        ctx.setLineDash([3, 3]);
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#34d399';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`Target ₹${cwh.targetPrice}`, w - paddingRight - 6, targetY - 4);
       }
 
-      // PROTOCOL 6: % STOP LOSS & TRADINGVIEW R:R POSITION BOX (DYNAMICALLY ADJUSTED BY SLIDER)
+      // PROTOCOL 6: % STOP LOSS & 2R TARGET LINES
       if (this.layers.p6_sl) {
-        const entryPrice = livePrice; // Exact current candle market price!
+        const entryPrice = livePrice;
         const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m' || this.interval === '1H' || this.interval === '4H');
         const activeSlPct = isIntraday ? 1.5 : (this.filterParams?.maxStopLossPct ?? this.stock.slPct ?? 7.0);
         const slPrice = parseFloat((entryPrice * (1 - activeSlPct / 100)).toFixed(2));
@@ -3086,31 +3080,8 @@
         const target2Price = parseFloat((entryPrice + riskPerShare * 2).toFixed(2));
         const targetPct = ((target2Price - entryPrice) / entryPrice) * 100;
 
-        const entryY = getY(entryPrice);
         const slY = getY(slPrice);
         const targetY = getY(target2Price);
-
-        const boxX = w - paddingRight - 170;
-        const boxW = 160;
-        const profitTop = Math.max(paddingTop, Math.min(entryY, targetY));
-        const profitBottom = Math.max(entryY, targetY);
-        const profitH = Math.max(8, profitBottom - profitTop);
-
-        ctx.fillStyle = 'rgba(16, 185, 129, 0.16)';
-        ctx.fillRect(boxX, profitTop, boxW, profitH);
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 1.4;
-        ctx.strokeRect(boxX, profitTop, boxW, profitH);
-
-        const riskTop = Math.min(entryY, slY);
-        const riskBottom = Math.min(paddingTop + pricePlotHeight, Math.max(entryY, slY));
-        const riskH = Math.max(8, riskBottom - riskTop);
-
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.18)';
-        ctx.fillRect(boxX, riskTop, boxW, riskH);
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 1.4;
-        ctx.strokeRect(boxX, riskTop, boxW, riskH);
 
         // P6 Target 2R Horizontal Line
         ctx.beginPath();
@@ -3118,7 +3089,7 @@
         ctx.lineTo(w - paddingRight, targetY);
         ctx.strokeStyle = '#10b981';
         ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.4;
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -3129,7 +3100,7 @@
         const targetTagX = w - paddingRight - targetStrW - 6;
         const targetTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, targetY - 10));
 
-        ctx.fillStyle = 'rgba(6, 78, 59, 0.90)';
+        ctx.fillStyle = 'rgba(6, 78, 59, 0.85)';
         ctx.fillRect(targetTagX, targetTagY, targetStrW, 18);
         ctx.strokeStyle = '#10b981';
         ctx.lineWidth = 1;
@@ -3145,7 +3116,7 @@
         ctx.lineTo(w - paddingRight, slY);
         ctx.strokeStyle = '#ef4444';
         ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1.5;
+        ctx.lineWidth = 1.4;
         ctx.stroke();
         ctx.setLineDash([]);
 
@@ -3155,7 +3126,7 @@
         const slTagX = w - paddingRight - slStrW - 6;
         const slTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, slY - 10));
 
-        ctx.fillStyle = 'rgba(127, 29, 29, 0.90)';
+        ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
         ctx.fillRect(slTagX, slTagY, slStrW, 18);
         ctx.strokeStyle = '#ef4444';
         ctx.lineWidth = 1;
@@ -3167,70 +3138,8 @@
         ctx.fillText(slStr, slTagX + 6, slTagY + 12);
       }
 
-      // PROTOCOL 10: MULTI-TIMEFRAME ALL-GREEN CANDLE ALIGNMENT HUD (5m, 15m, 1H, 4H, 1D, 1W)
-      if (this.layers.p10_mtf !== false && this.stock) {
-        const checkC = (arr) => {
-          if (!arr || !arr.length) return false;
-          const c = arr[arr.length - 1];
-          return c.close >= c.open;
-        };
-        const tfs = [
-          { name: '5m', isGreen: checkC(this.stock.intraday5m) },
-          { name: '15m', isGreen: checkC(this.stock.intraday15m) },
-          { name: '1H', isGreen: checkC(this.stock.intraday1H) },
-          { name: '4H', isGreen: checkC(this.stock.intraday4H) },
-          { name: '1D', isGreen: checkC(this.stock.dailyCandles) },
-          { name: '1W', isGreen: checkC(this.stock.weekly) }
-        ];
-        const greenCount = tfs.filter(t => t.isGreen).length;
-        const minReq = this.filterParams?.minMtfGreen || 6;
-        const isSuperTrend = greenCount >= minReq;
-
-        const hudX = paddingLeft + 8;
-        const hudY = paddingTop + 6;
-        const hudW = 348;
-        const hudH = 22;
-
-        ctx.fillStyle = isSuperTrend ? 'rgba(16, 185, 129, 0.18)' : 'rgba(15, 23, 42, 0.88)';
-        ctx.fillRect(hudX, hudY, hudW, hudH);
-        ctx.strokeStyle = isSuperTrend ? '#10b981' : 'rgba(255, 255, 255, 0.15)';
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(hudX, hudY, hudW, hudH);
-
-        ctx.fillStyle = isSuperTrend ? '#10b981' : '#94a3b8';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`P10 MTF Trend (${greenCount}/6 Green):`, hudX + 6, hudY + 15);
-
-        let chipX = hudX + 162;
-        tfs.forEach(t => {
-          ctx.fillStyle = t.isGreen ? '#10b981' : '#ef4444';
-          ctx.font = 'bold 9px JetBrains Mono, monospace';
-          ctx.fillText(`${t.name}:${t.isGreen ? '🟢' : '🔴'}`, chipX, hudY + 15);
-          chipX += 29;
-        });
-      }
-
-      // PROTOCOL 9: MANSFIELD RELATIVE STRENGTH CURVE (FROM CACHE)
-      const rsCurve = this.cache.rsCurve;
-      if (this.layers.p9_rs && rsCurve) {
-        ctx.strokeStyle = 'rgba(16, 185, 129, 0.8)';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        let startedRS = false;
-        for (let i = 0; i < visibleCount; i++) {
-          const gIdx = startGlobalIdx + i;
-          const rsVal = rsCurve[gIdx] || 0;
-          const rsScaledY = (paddingTop + pricePlotHeight / 2) - (rsVal * 3);
-          const x = getX(i);
-          if (!startedRS) { ctx.moveTo(x, rsScaledY); startedRS = true; }
-          else ctx.lineTo(x, rsScaledY);
-        }
-        ctx.stroke();
-      }
-
       // =========================================================================
-      // 3. TRADINGVIEW BATCHED CANDLESTICK PATH RENDERING (OPTIMIZED)
+      // 3. TRADINGVIEW BATCHED CANDLESTICK PATH RENDERING
       // =========================================================================
       const rawCandleWidth = (plotWidth / visibleCount) * 0.72;
       const candleWidth = Math.min(18, Math.max(2.5, rawCandleWidth));
@@ -3288,16 +3197,6 @@
             lastCandleX = cx;
             lastCandleY = cy;
           }
-
-          if (this.layers.p1_growth && (idx === Math.floor(visibleCount * 0.4) || idx === Math.floor(visibleCount * 0.8)) && this.stock.earningsEvent) {
-            const pinY = getY(c.high) - 12;
-            ctx.fillStyle = '#38bdf8';
-            ctx.fillRect(cx - 3, pinY - 12, 6, 12);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 9px Inter, sans-serif';
-            ctx.textAlign = 'center';
-            ctx.fillText(`📌 P1: ${this.stock.earningsEvent}`, cx, pinY - 16);
-          }
         });
 
         // 2 Fast Batched Draws for Bullish
@@ -3334,7 +3233,7 @@
         }
       }
 
-      // 4. LIVE TICK BEACON / EOD CLOSING POSITION CALLOUT & LASER BENCHMARK
+      // 4. LIVE TICK BEACON
       const currentPrice = this.stock.ltp;
       const liveY = Math.round(getY(currentPrice)) + 0.5;
       const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
@@ -3352,7 +3251,6 @@
       ctx.setLineDash([]);
 
       if (isLiveActive) {
-        // Active Live Market Ticking Pulse Beacon
         const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
         const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
         
@@ -3365,54 +3263,6 @@
         ctx.beginPath();
         ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
         ctx.fill();
-      } else {
-        // EOD Closed Session: Explicit Last Candle Close Position Anchor & Callout Tag
-        if (this.viewOffset <= 4 && lastCandleX > 0) {
-          // Vertical guide line down to time axis
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.22)';
-          ctx.lineWidth = 1;
-          ctx.setLineDash([2, 2]);
-          ctx.beginPath();
-          ctx.moveTo(lastCandleX, paddingTop);
-          ctx.lineTo(lastCandleX, timeGutterTop);
-          ctx.stroke();
-          ctx.setLineDash([]);
-
-          // Dual-ring anchor beacon precisely on the closing candlestick point
-          ctx.strokeStyle = '#38bdf8';
-          ctx.lineWidth = 1.6;
-          ctx.beginPath();
-          ctx.arc(lastCandleX, lastCandleY, 6, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.fillStyle = '#38bdf8';
-          ctx.beginPath();
-          ctx.arc(lastCandleX, lastCandleY, 3, 0, Math.PI * 2);
-          ctx.fill();
-
-          // Sleek session close floating pill callout
-          const closeTagText = `🔒 Offline Graph View - Last Market Close: ₹${livePrice.toFixed(2)}`;
-          ctx.font = 'bold 9px JetBrains Mono, monospace';
-          const closeTagW = ctx.measureText(closeTagText).width + 12;
-          const closeTagX = Math.max(paddingLeft + 4, Math.min(w - paddingRight - closeTagW - 4, lastCandleX - closeTagW / 2));
-          const closeTagY = Math.max(paddingTop + 4, Math.min(timeGutterTop - 24, lastCandleY - 24));
-
-          ctx.fillStyle = 'rgba(15, 23, 42, 0.94)';
-          ctx.fillRect(closeTagX, closeTagY, closeTagW, 18);
-          ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
-          ctx.lineWidth = 1;
-          ctx.strokeRect(closeTagX, closeTagY, closeTagW, 18);
-
-          ctx.fillStyle = '#38bdf8';
-          ctx.textAlign = 'center';
-          ctx.fillText(closeTagText, closeTagX + closeTagW / 2, closeTagY + 12);
-        } else {
-          // Off-screen anchor
-          ctx.fillStyle = '#38bdf8';
-          ctx.beginPath();
-          ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
-          ctx.fill();
-        }
       }
 
       // Horizontal Crosshair Line
@@ -3434,7 +3284,7 @@
 
       ctx.restore(); // END CLIPPING
 
-      // Right Scale Live Price / EOD Badge (Pinned strictly to the live price line with overflow protection)
+      // Right Scale Live Price Badge
       const liveTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, liveY));
       if (isLiveActive) {
         ctx.fillStyle = liveColor;
@@ -3448,7 +3298,6 @@
         ctx.fillStyle = '#0f172a';
         ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
         ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
-        ctx.lineWidth = 1;
         ctx.strokeRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
         ctx.fillStyle = '#38bdf8';
         ctx.font = 'bold 9.5px JetBrains Mono, monospace';

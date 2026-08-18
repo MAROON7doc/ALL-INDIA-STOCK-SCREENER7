@@ -3429,7 +3429,9 @@ body {
 }
 
 .terminal-center-chart .tv-chart-body-wrapper {
-  height: calc(100% - 110px) !important;
+  flex: 1 1 auto;
+  height: calc(100% - 68px) !important;
+  min-height: 380px;
 }
 
 /* Right Action Sidebar */

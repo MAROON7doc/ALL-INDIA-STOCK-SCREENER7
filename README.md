@@ -3,7 +3,7 @@
 [![Deploy Universal Indian Stock Screener to GitHub Pages](https://github.com/MAROON7doc/ALL-INDIA-STOCK-SCREENER7/actions/workflows/deploy.yml/badge.svg)](https://github.com/MAROON7doc/ALL-INDIA-STOCK-SCREENER7/actions/workflows/deploy.yml)
 ![Exchange](https://img.shields.io/badge/Exchange-NSE%20%7C%20BSE-0284c7?style=for-the-badge)
 ![Android Mobile](https://img.shields.io/badge/Android-Native%20WebView-10b981?style=for-the-badge&logo=android)
-![Screener Hub](https://img.shields.io/badge/TradeOne-Pure%20Screener%20Engine-8b5cf6?style=for-the-badge)
+![Screener Hub](https://img.shields.io/badge/B--TRADE-Pure%20Screener%20Engine-8b5cf6?style=for-the-badge)
 
 An institutional-grade, quantitative stock screening and equity research platform tailored for Indian equities (**NSE & BSE**) implementing multi-factor composite scoring, CANSLIM growth criteria, 6-dimension real-time filtering, Market Heatmap treemaps, FinDesk portfolio analytics, Sector Deep-Dive matrix, and a dedicated Android Mobile WebView experience.
 
@@ -13,7 +13,7 @@ An institutional-grade, quantitative stock screening and equity research platfor
 
 | Platform Version | Live Direct Link | Description |
 | :--- | :--- | :--- |
-| 🖥️ **Full Desktop Terminal** | [**Open Desktop Terminal**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/) | High-Throughput TradeOne Super-Hub with 12 Universal Equities, Heatmap, Portfolio & Sectors |
+| 🖥️ **Full Desktop Terminal** | [**Open Desktop Terminal**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/) | High-Throughput B-TRADE Super-Hub with 12 Universal Equities, Heatmap, Portfolio & Sectors |
 | 📱 **Android Mobile View** | [**Open Mobile View**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/mobile.html) | Native touch-optimized mobile trading station with swipe navigation & stock cards |
 
 ---
@@ -36,7 +36,7 @@ An institutional-grade, quantitative stock screening and equity research platfor
 - 2D Relative Strength vs Momentum Quadrant Scatter Matrix with speedometer sentiment gauge.
 
 ### 5. 📱 Android & Mobile WebView Client (`mobile.html`)
-- Native touch-optimized bottom navigation switching across TradeOne Screener Cards, Market Heatmap, Portfolio Holdings, Sector Intelligence, CANSLIM Protocols, and Scalper Terminal.
+- Native touch-optimized bottom navigation switching across B-TRADE Screener Cards, Market Heatmap, Portfolio Holdings, Sector Intelligence, CANSLIM Protocols, and Scalper Terminal.
 
 ---
 

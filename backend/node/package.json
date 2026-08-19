@@ -1,0 +1,19 @@
+{
+  "name": "universal-stock-screener-backend",
+  "version": "3.2.0",
+  "description": "High-Throughput Institutional Stock Screener REST API Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "stock-screener",
+    "nse",
+    "bse",
+    "canslim",
+    "rest-api"
+  ],
+  "author": "Antigravity Engineering",
+  "license": "MIT"
+}

@@ -685,9 +685,10 @@
       const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${ticker}?interval=${yfInterval}&range=${yfRange}&includePrePost=false`;
 
       const endpoints = [
-        targetUrl,
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+        `https://proxy.cors.sh/${targetUrl}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://cors-anywhere.herokuapp.com/${targetUrl}`,
+        targetUrl
       ];
 
       for (const ep of endpoints) {
@@ -749,9 +750,10 @@
 
       const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySymbol)}?interval=${yInterval}&range=${yRange}&includePrePost=false&events=div%7Csplit`;
       const endpoints = [
-        targetUrl,
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`
+        `https://proxy.cors.sh/${targetUrl}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        `https://cors-anywhere.herokuapp.com/${targetUrl}`,
+        targetUrl
       ];
 
       for (const ep of endpoints) {
@@ -802,7 +804,10 @@
                   meta,
                   candles: interval === '4H' ? resampleSeries(candles, 4) : candles,
                   ltp: candles[candles.length - 1].close,
-                  previousClose: meta.chartPreviousClose || meta.previousClose || candles[0].close
+                  previousClose: meta.chartPreviousClose || meta.previousClose || candles[0].close,
+                  dayHigh: meta.regularMarketDayHigh || meta.dayHigh || candles[candles.length - 1].high,
+                  dayLow: meta.regularMarketDayLow || meta.dayLow || candles[candles.length - 1].low,
+                  volume: meta.regularMarketVolume || 0
                 };
                 this.cache.set(cacheKey, { time: Date.now(), data: parsed });
                 return parsed;
@@ -821,9 +826,9 @@
       }
       const targetUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ySymbol)}?interval=1m&range=1d&includePrePost=false`;
       const endpoints = [
-        `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`,
+        `https://proxy.cors.sh/${targetUrl}`,
         `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(targetUrl)}`,
+        `https://cors-anywhere.herokuapp.com/${targetUrl}`,
         targetUrl
       ];
 
@@ -881,35 +886,41 @@
 
     async fetchQuoteEquity(symbol) {
       const targetUrl = `https://www.nseindia.com/api/quote-equity?symbol=${encodeURIComponent(symbol)}`;
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-      try {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 4000);
-        const resp = await fetch(proxyUrl, {
-          signal: controller.signal,
-          headers: {
-            'Accept': 'application/json',
-            'X-Requested-With': 'XMLHttpRequest'
+      const endpoints = [
+        `https://proxy.cors.sh/${targetUrl}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        targetUrl
+      ];
+      for (const proxyUrl of endpoints) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 3500);
+          const resp = await fetch(proxyUrl, {
+            signal: controller.signal,
+            headers: {
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest'
+            }
+          });
+          clearTimeout(tid);
+          if (resp.ok) {
+            const data = await resp.json();
+            if (data && data.priceInfo) {
+              return {
+                symbol,
+                ltp: data.priceInfo.lastPrice,
+                change: data.priceInfo.change,
+                pChange: data.priceInfo.pChange,
+                previousClose: data.priceInfo.previousClose,
+                open: data.priceInfo.open,
+                dayHigh: data.priceInfo.intraDayHighLow?.max,
+                dayLow: data.priceInfo.intraDayHighLow?.min,
+                totalTradedVolume: data.preOpenMarket?.totalTradedVolume || 0
+              };
+            }
           }
-        });
-        clearTimeout(tid);
-        if (resp.ok) {
-          const data = await resp.json();
-          if (data && data.priceInfo) {
-            return {
-              symbol,
-              ltp: data.priceInfo.lastPrice,
-              change: data.priceInfo.change,
-              pChange: data.priceInfo.pChange,
-              previousClose: data.priceInfo.previousClose,
-              open: data.priceInfo.open,
-              dayHigh: data.priceInfo.intraDayHighLow?.max,
-              dayLow: data.priceInfo.intraDayHighLow?.min,
-              totalTradedVolume: data.preOpenMarket?.totalTradedVolume || 0
-            };
-          }
-        }
-      } catch (e) {}
+        } catch (e) {}
+      }
       return null;
     },
 
@@ -922,15 +933,20 @@
 
       // NSE Chart Data by Index / Symbol
       const targetUrl = `https://www.nseindia.com/api/chart-databyindex?index=${encodeURIComponent(symbol)}`;
-      const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`;
-      try {
-        const controller = new AbortController();
-        const tid = setTimeout(() => controller.abort(), 4000);
-        const resp = await fetch(proxyUrl, {
-          signal: controller.signal,
-          headers: { 'Accept': 'application/json' }
-        });
-        clearTimeout(tid);
+      const endpoints = [
+        `https://proxy.cors.sh/${targetUrl}`,
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(targetUrl)}`,
+        targetUrl
+      ];
+      for (const proxyUrl of endpoints) {
+        try {
+          const controller = new AbortController();
+          const tid = setTimeout(() => controller.abort(), 3500);
+          const resp = await fetch(proxyUrl, {
+            signal: controller.signal,
+            headers: { 'Accept': 'application/json' }
+          });
+          clearTimeout(tid);
         if (resp.ok) {
           const data = await resp.json();
           if (data && Array.isArray(data.grapthData) && data.grapthData.length >= 5) {
@@ -953,6 +969,7 @@
           }
         }
       } catch (e) {}
+      }
       return null;
     }
   };
@@ -2962,6 +2979,7 @@
       }
 
       try { this.startLiveStream(); } catch (e) {}
+      try { this.syncUniverseLiveQuotes(); } catch (e) {}
     }
 
     updateGpuBadge() {
@@ -5215,9 +5233,53 @@
       });
     }
 
+    async syncUniverseLiveQuotes() {
+      if (!this.universe || !this.universe.length) return;
+      const batchSize = 3;
+      for (let i = 0; i < this.universe.length; i += batchSize) {
+        const batch = this.universe.slice(i, i + batchSize);
+        await Promise.allSettled(batch.map(async (stock) => {
+          try {
+            const q = await YahooFinanceWrapperService.fetchLiveQuote(stock.symbol, stock.exchange, stock.bseCode);
+            if (q && q.ltp && q.ltp > 0) {
+              stock.ltp = q.ltp;
+              stock.dayChangePct = q.pChange || stock.dayChangePct;
+              stock.baseDayPrice = q.previousClose || stock.baseDayPrice;
+              if (stock.closes && stock.closes.length) {
+                stock.closes[stock.closes.length - 1] = q.ltp;
+              }
+              if (stock.dailyCandles && stock.dailyCandles.length) {
+                const lastCandle = stock.dailyCandles[stock.dailyCandles.length - 1];
+                lastCandle.close = q.ltp;
+                if (q.dayHigh && q.dayHigh > lastCandle.high) lastCandle.high = q.dayHigh;
+                if (q.dayLow && q.dayLow < lastCandle.low) lastCandle.low = q.dayLow;
+              }
+            }
+          } catch (e) {}
+        }));
+      }
+
+      this.renderTradeoneWatchlist();
+      if (this.activeMainStock) {
+        const updated = this.universe.find(s => s.symbol === this.activeMainStock.symbol);
+        if (updated) {
+          this.activeMainStock.ltp = updated.ltp;
+          this.activeMainStock.dayChangePct = updated.dayChangePct;
+          const priceEl = document.getElementById('mainChartPrice');
+          if (priceEl) {
+            priceEl.style.color = updated.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+            priceEl.textContent = `₹${updated.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${updated.dayChangePct > 0 ? '+' : ''}${updated.dayChangePct.toFixed(2)}%)`;
+          }
+        }
+      }
+    }
+
     startLiveStream() {
       if (this.liveTimer) clearTimeout(this.liveTimer);
+      let streamTickCount = 0;
+
       const loop = async () => {
+        streamTickCount++;
         const mStatus = this.getMarketStatus();
         this.updateMarketStatusBadge();
 
@@ -5233,50 +5295,7 @@
         // =========================================================================
         if (!isSimulationMode) {
           try {
-            // A. Fetch active selected stock quote from chosen Provider
-            if (this.activeMainStock) {
-              const stock = this.activeMainStock;
-              let quote = null;
-
-              if (this.dataProvider === 'smartapi' || (this.dataProvider === 'auto' && AngelOneSmartApiService.isConnected)) {
-                quote = await AngelOneSmartApiService.fetchLiveQuote(stock.symbol);
-              }
-
-              if (!quote && (this.dataProvider === 'fmp' || this.dataProvider === 'auto')) {
-                quote = await FinancialModelingPrepService.fetchLiveQuote(stock.symbol, stock.exchange);
-              }
-
-              if (!quote && (this.dataProvider === 'nsebse' || this.dataProvider === 'auto')) {
-                quote = await NseBseApiWrapperService.fetchQuoteEquity(stock.symbol);
-              }
-
-              if (!quote) {
-                quote = await YahooFinanceWrapperService.fetchLiveQuote(stock.symbol, stock.exchange, stock.bseCode);
-              }
-
-              const lastClose = stock.dailyCandles?.[stock.dailyCandles.length - 1]?.close || stock.ltp;
-              const livePrice = Number(quote?.ltp);
-              const priceRatio = lastClose > 0 ? livePrice / lastClose : 1;
-              const isPlausiblePrice = Number.isFinite(livePrice) && livePrice > 0 && priceRatio >= 0.5 && priceRatio <= 1.5;
-              if (quote && isPlausiblePrice) {
-                stock.ltp = quote.ltp;
-                stock.dayChangePct = quote.pChange || stock.dayChangePct;
-                if (quote.previousClose) stock.baseDayPrice = quote.previousClose;
-                stock.closes[stock.closes.length - 1] = quote.ltp;
-
-                if (stock.dailyCandles && stock.dailyCandles.length) {
-                  const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
-                  lastC.close = quote.ltp;
-                  if (quote.dayHigh && quote.dayHigh > lastC.high) lastC.high = quote.dayHigh;
-                  if (quote.dayLow && quote.dayLow < lastC.low) lastC.low = quote.dayLow;
-                }
-
-                if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
-                if (this.modalChart) this.modalChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
-              }
-            }
-
-            // B. Sync Live Benchmark Indices (NIFTY 50 & BSE SENSEX)
+            // A. Sync Live Benchmark Indices (NIFTY 50 & BSE SENSEX)
             const indices = await YahooFinanceWrapperService.fetchLiveIndexQuotes();
             if (indices.nifty) {
               const nLtp = document.getElementById('tradeoneNiftyLtp');
@@ -5297,6 +5316,69 @@
                 sChg.className = `tradeone-index-chg ${isPos ? 'up' : 'down'}`;
                 sChg.textContent = `${isPos ? '▲ +' : '▼ '}${indices.sensex.change.toFixed(2)} (${indices.sensex.pChange.toFixed(2)}%)`;
               }
+            }
+
+            // B. Fetch active selected stock quote from chosen Provider
+            if (this.activeMainStock) {
+              const stock = this.activeMainStock;
+              let quote = null;
+
+              if (this.dataProvider === 'smartapi' || (this.dataProvider === 'auto' && AngelOneSmartApiService.isConnected)) {
+                quote = await AngelOneSmartApiService.fetchLiveQuote(stock.symbol);
+              }
+
+              if (!quote && (this.dataProvider === 'fmp' || this.dataProvider === 'auto')) {
+                quote = await FinancialModelingPrepService.fetchLiveQuote(stock.symbol, stock.exchange);
+              }
+
+              if (!quote && (this.dataProvider === 'nsebse' || this.dataProvider === 'auto')) {
+                quote = await NseBseApiWrapperService.fetchQuoteEquity(stock.symbol);
+              }
+
+              if (!quote) {
+                quote = await YahooFinanceWrapperService.fetchLiveQuote(stock.symbol, stock.exchange, stock.bseCode);
+              }
+
+              const livePrice = Number(quote?.ltp);
+              if (quote && Number.isFinite(livePrice) && livePrice > 0) {
+                stock.ltp = quote.ltp;
+                stock.dayChangePct = quote.pChange || stock.dayChangePct;
+                if (quote.previousClose) stock.baseDayPrice = quote.previousClose;
+                if (stock.closes && stock.closes.length) stock.closes[stock.closes.length - 1] = quote.ltp;
+
+                if (stock.dailyCandles && stock.dailyCandles.length) {
+                  const lastC = stock.dailyCandles[stock.dailyCandles.length - 1];
+                  lastC.close = quote.ltp;
+                  if (quote.dayHigh && quote.dayHigh > lastC.high) lastC.high = quote.dayHigh;
+                  if (quote.dayLow && quote.dayLow < lastC.low) lastC.low = quote.dayLow;
+                }
+
+                if (this.mainChart) this.mainChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
+                if (this.modalChart) this.modalChart.updateRealtimeTick(quote.ltp, quote.volume || 0, new Date(), false);
+
+                const priceEl = document.getElementById('mainChartPrice');
+                if (priceEl) {
+                  priceEl.style.color = stock.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
+                  priceEl.textContent = `₹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })} (${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct.toFixed(2)}%)`;
+                }
+              }
+            }
+
+            // C. Periodic background rotation for all other universe stocks (every 4 ticks / ~8s)
+            if (streamTickCount % 4 === 0) {
+              const roundRobinIdx = ((streamTickCount / 4) * 2) % this.universe.length;
+              const nextStocks = this.universe.slice(roundRobinIdx, roundRobinIdx + 2);
+              nextStocks.forEach(async (s) => {
+                if (s.symbol !== this.activeMainStock?.symbol) {
+                  const q = await YahooFinanceWrapperService.fetchLiveQuote(s.symbol, s.exchange, s.bseCode);
+                  if (q && q.ltp && q.ltp > 0) {
+                    s.ltp = q.ltp;
+                    s.dayChangePct = q.pChange || s.dayChangePct;
+                    if (q.previousClose) s.baseDayPrice = q.previousClose;
+                  }
+                }
+              });
+              this.renderTradeoneWatchlist();
             }
           } catch (e) {}
 

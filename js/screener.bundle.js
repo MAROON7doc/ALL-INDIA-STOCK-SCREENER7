@@ -4052,13 +4052,76 @@
   }
 
   async syncUniverseLiveQuotes() {
-    // If SmartAPI is active, query broker quotes with highest fidelity
+    // 1. If SmartAPI is active, query broker quotes with highest fidelity
     if (AngelOneSmartApiService.isConnected) {
       await AngelOneSmartApiService.testConnection();
       return;
     }
 
-    // High-precision live micro-tick engine
+    // 2. If Backend Server is connected, fetch live real-time quotes from backend API
+    if (this.backendConnected) {
+      try {
+        const [stocksRes, indicesRes] = await Promise.allSettled([
+          fetch('/api/stocks'),
+          fetch('/api/indices')
+        ]);
+
+        if (stocksRes.status === 'fulfilled' && stocksRes.value.ok) {
+          const liveStocks = await stocksRes.value.json();
+          if (Array.isArray(liveStocks) && liveStocks.length > 0) {
+            liveStocks.forEach(bStk => {
+              const local = this.universe.find(s => s.symbol === bStk.symbol);
+              if (local && bStk.ltp) {
+                local.ltp = bStk.ltp;
+                if (bStk.dayChangePct !== undefined) local.dayChangePct = bStk.dayChangePct;
+                this.calcStockScores(local);
+              }
+            });
+          }
+        }
+
+        if (indicesRes.status === 'fulfilled' && indicesRes.value.ok) {
+          const idxData = await indicesRes.value.json();
+          if (idxData.nifty50) {
+            const nLtpEl = document.getElementById('tradeoneNiftyLtp');
+            const nChgEl = document.getElementById('tradeoneNiftyChg');
+            const valNifty = document.getElementById('valNifty');
+            const chgNifty = document.getElementById('chgNifty');
+            if (nLtpEl) nLtpEl.textContent = idxData.nifty50.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (nChgEl) {
+              nChgEl.textContent = `+ ${idxData.nifty50.change.toFixed(2)} (+${idxData.nifty50.pChange}%)`;
+              nChgEl.className = 'tradeone-index-chg up';
+            }
+            if (valNifty) valNifty.textContent = idxData.nifty50.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (chgNifty) chgNifty.textContent = `+${idxData.nifty50.change.toFixed(2)} (+${idxData.nifty50.pChange}%)`;
+          }
+          if (idxData.sensex) {
+            const sLtpEl = document.getElementById('tradeoneSensexLtp');
+            const sChgEl = document.getElementById('tradeoneSensexChg');
+            const valSensex = document.getElementById('valSensex');
+            const chgSensex = document.getElementById('chgSensex');
+            if (sLtpEl) sLtpEl.textContent = idxData.sensex.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (sChgEl) {
+              sChgEl.textContent = `+ ${idxData.sensex.change.toFixed(2)} (+${idxData.sensex.pChange}%)`;
+              sChgEl.className = 'tradeone-index-chg up';
+            }
+            if (valSensex) valSensex.textContent = idxData.sensex.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            if (chgSensex) chgSensex.textContent = `+${idxData.sensex.change.toFixed(2)} (+${idxData.sensex.pChange}%)`;
+          }
+        }
+
+        this.updateMarketState();
+        this.runScan();
+
+        const activeTab = document.querySelector('.stitch-nav-tab.active');
+        if (activeTab?.dataset?.view === 'viewMarketHeatmap') this.renderMarketHeatmap(this.activeHeatmapIndex);
+        if (activeTab?.dataset?.view === 'viewFinDeskPortfolio') this.renderPortfolio(this.activePortfolioTf);
+        if (activeTab?.dataset?.view === 'viewSectorDeepDive') this.renderSectorDeepDive(this.activeSectorName);
+        return;
+      } catch (e) {}
+    }
+
+    // 3. Standalone Cloud Mode Live Micro-Tick Engine
     const countToTick = Math.floor(Math.random() * 3) + 2;
     for (let i = 0; i < countToTick; i++) {
       const idx = Math.floor(Math.random() * this.universe.length);

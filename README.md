@@ -1,5 +1,10 @@
 # 🚀 Universal Indian Stock Screener (NSE / BSE)
 
+[![Deploy Universal Indian Stock Screener to GitHub Pages](https://github.com/MAROON7doc/ALL-INDIA-STOCK-SCREENER7/actions/workflows/deploy.yml/badge.svg)](https://github.com/MAROON7doc/ALL-INDIA-STOCK-SCREENER7/actions/workflows/deploy.yml)
+![Exchange](https://img.shields.io/badge/Exchange-NSE%20%7C%20BSE-0284c7?style=for-the-badge)
+![Android Mobile](https://img.shields.io/badge/Android-Native%20WebView-10b981?style=for-the-badge&logo=android)
+![Screener Hub](https://img.shields.io/badge/TradeOne-Pure%20Screener%20Engine-8b5cf6?style=for-the-badge)
+
 An institutional-grade, quantitative stock screening and equity research platform tailored for Indian equities (**NSE & BSE**) implementing multi-factor composite scoring, CANSLIM growth criteria, 6-dimension real-time filtering, Market Heatmap treemaps, FinDesk portfolio analytics, Sector Deep-Dive matrix, and a dedicated Android Mobile WebView experience.
 
 ---

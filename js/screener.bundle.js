@@ -3217,11 +3217,18 @@
         tab.addEventListener('click', () => {
           document.querySelectorAll('.tv-tab-item').forEach(t => t.classList.remove('active'));
           tab.classList.add('active');
+          const rib = document.getElementById('protocolLayerRibbon');
           if (tab.id === 'tabNavOverview') {
+            if (rib) rib.style.display = 'none';
             this.openModal(this.activeMainStock);
+          } else if (tab.id === 'tabNavOptionChain') {
+            if (rib) rib.style.display = 'none';
+            document.getElementById('btnRightToolOptionChain')?.click();
+          } else if (tab.id === 'tabNavChart') {
+            if (rib) rib.style.display = 'none';
           } else if (tab.id === 'tabNavProtocols') {
-            const rib = document.getElementById('protocolLayerRibbon');
             if (rib) rib.style.display = 'flex';
+            document.getElementById('btnTabProtocols')?.click();
           }
         });
       });

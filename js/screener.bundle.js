@@ -2259,6 +2259,19 @@
      - Institutional 33-Point Financial & Fundamental Factor Radar
      ========================================================================== */
 
+  /* ==========================================================================
+     6. HIGH-THROUGHPUT INSTITUTIONAL STOCK SCREENER APPLICATION ENGINE
+     - Multi-Factor Composite Scoring (Quality, Growth, Valuation, Solvency, Momentum)
+     - 6-Dimension High-Throughput Filtering (Sub-5ms Parallel Evaluation)
+     - Dynamic Multi-View Table Rendering (Overview, Valuation, Growth, Quality, Solvency, Ownership, Technicals)
+     - Interactive Column-Header Instant Sorting (Asc / Desc)
+     - Real-Time Live Market Feed Integration (NSE / BSE / NIFTY 50 / SENSEX)
+     - Institutional 33-Point Financial & Fundamental Factor Radar
+     - Interactive Market Heatmap Treemap & Sector Matrix Engine
+     - FinDesk Portfolio Analytics & Performance Curve Engine
+     - Sector Analysis Deep-Dive & Speedometer Sentiment Gauge
+     ========================================================================== */
+
   class Application {
     constructor() {
       this.universe = getStockUniverse();
@@ -2273,15 +2286,20 @@
       this.isLive = true;
       this.feedMode = 'auto';
       this.dataProvider = 'auto';
-      this.streamInterval = 1800; // 1.8s Live Tick Stream
+      this.streamInterval = 1800;
       this.liveTimer = null;
       this.newsTimer = null;
       this.marketTimer = null;
       this.nlpFilter = null;
       this.activePreset = 'all';
-      this.activeColumnView = 'overview'; // 'overview', 'valuation', 'growth', 'quality', 'solvency', 'ownership', 'technical'
+      this.activeColumnView = 'overview';
       this.activeDimension = 'dim_valuation';
       this.currentResults = [];
+
+      // Active view state
+      this.activeHeatmapIndex = 'NIFTY 50';
+      this.activePortfolioTf = '1Y';
+      this.activeSectorName = 'NIFTY Bank';
 
       // RELAXED DEFAULT FILTERS ON STARTUP SO ALL STOCKS SHOW UP INSTANTLY
       this.filters = {
@@ -2412,7 +2430,7 @@
       const min = ist.getMinutes();
       const curMins = hr * 60 + min;
       const isWeekday = (day >= 1 && day <= 5);
-      const isOpen = isWeekday && (curMins >= 555 && curMins <= 930); // 09:15 to 15:30
+      const isOpen = isWeekday && (curMins >= 555 && curMins <= 930);
       return { isOpen, istTimeStr: ist.toLocaleTimeString('en-IN', { hour12: false }) };
     }
 
@@ -2484,7 +2502,6 @@
 
         // Dimension Criteria Evaluations
         const checks = {
-          // 1. Valuation
           mcap: marketCapCat === 'ALL' ||
                 (marketCapCat === 'LARGE' && s.marketCapCr >= 50000) ||
                 (marketCapCat === 'MID' && s.marketCapCr >= 15000 && s.marketCapCr < 50000) ||
@@ -2493,32 +2510,22 @@
           pe: s.pe <= maxPe,
           peg: s.peg <= maxPeg,
           fcf: (s.fcfYield || 0) >= minFcfYield,
-
-          // 2. Growth
           sales: s.salesGrowthYoY >= minSalesGrowth,
           sales3y: (s.sales3Y_CAGR || s.salesGrowthYoY) >= minSales3yCagr,
           pat: s.epsGrowthYoY >= minPatGrowth,
           pat3y: (s.eps3Y_CAGR || s.epsGrowthYoY) >= minPat3yCagr,
-
-          // 3. Quality
           roce: s.roce >= minRoce,
           roe: s.roe >= minRoe,
           opm: s.opm >= minOpm,
           pio: s.piotroskiScore >= minPiotroski,
-
-          // 4. Solvency
           de: s.debtToEquity <= maxDebtEquity,
           intCov: s.interestCoverage >= minInterestCov,
           currRatio: s.currentRatio >= minCurrentRatio,
           stopLoss: s.stopLossPct <= maxStopLossPct,
-
-          // 5. Ownership
           promoter: s.promoterHoldingPct >= minPromoter,
           pledge: s.promoterPledgePct <= maxPledge,
           inst: (s.fiiHoldingPct + s.diiHoldingPct) >= minInstHolding,
           insider: !requireInsiderBuys || s.recentInsiderBuying,
-
-          // 6. Technicals
           rs: s.rsScore >= minRsScore,
           rsi: s.rsi >= minRsi,
           volBurst: s.volumeBurstPct >= minBurstPct,
@@ -2584,7 +2591,6 @@
 
       const view = this.activeColumnView;
 
-      // 1. Render Headers
       const headerConfigs = {
         overview: [
           { key: 'symbol', label: 'STOCK / ISIN' },
@@ -2673,7 +2679,6 @@
       thHtml += '</tr>';
       thead.innerHTML = thHtml;
 
-      // Wire column header click sorting
       thead.querySelectorAll('th[data-sort]').forEach(th => {
         const k = th.dataset.sort;
         if (k === 'actions') return;
@@ -2688,7 +2693,6 @@
         });
       });
 
-      // 2. Render Rows
       if (!this.currentResults.length) {
         tbody.innerHTML = `
           <tr>
@@ -2822,14 +2826,397 @@
       }
       tbody.innerHTML = rowsHtml;
 
-      // Row Click / Analyze Button to open Stock Detail Modal
       tbody.querySelectorAll('tr[data-symbol]').forEach(tr => {
-        tr.addEventListener('click', (e) => {
+        tr.addEventListener('click', () => {
           const sym = tr.dataset.symbol;
           const target = this.universe.find(x => x.symbol === sym);
           if (target) this.openModal(target);
         });
       });
+    }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       7. MARKET HEATMAP TREEMAP & SECTOR MATRIX ENGINE
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    renderMarketHeatmap(filterIndex = 'NIFTY 50') {
+      this.activeHeatmapIndex = filterIndex;
+      const container = document.getElementById('heatmapSectorsGrid');
+      if (!container) return;
+
+      // Group universe stocks by sector
+      const sectorGroups = {};
+      for (const s of this.universe) {
+        const sec = s.sector || 'Other';
+        if (!sectorGroups[sec]) sectorGroups[sec] = [];
+        sectorGroups[sec].push(s);
+      }
+
+      let gridHtml = '';
+      for (const [secName, stocks] of Object.entries(sectorGroups)) {
+        const avgChg = stocks.reduce((acc, x) => acc + x.dayChangePct, 0) / stocks.length;
+        const avgSign = avgChg >= 0 ? '+' : '';
+        const chgClass = avgChg >= 0 ? '#34d399' : '#f87171';
+
+        gridHtml += `
+          <div class="heatmap-sector-cluster" style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
+              <span style="font-weight:800; font-size:12px; color:#ffffff;">${secName}</span>
+              <span style="font-family:var(--font-mono); font-size:11px; font-weight:700; color:${chgClass};">${avgSign}${avgChg.toFixed(2)}%</span>
+            </div>
+            <div class="heatmap-tiles-cluster" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:6px;">
+        `;
+
+        for (const s of stocks) {
+          let bg = '#166534';
+          let textColor = '#ffffff';
+          if (s.dayChangePct >= 3.0) bg = '#15803d';
+          else if (s.dayChangePct >= 1.0) bg = '#166534';
+          else if (s.dayChangePct > 0) bg = '#14532d';
+          else if (s.dayChangePct <= -3.0) bg = '#b91c1c';
+          else if (s.dayChangePct <= -1.0) bg = '#991b1b';
+          else if (s.dayChangePct < 0) bg = '#7f1d1d';
+          else bg = '#334155';
+
+          const sign = s.dayChangePct > 0 ? '+' : '';
+
+          gridHtml += `
+            <div class="heatmap-tile" data-sym="${s.symbol}" style="background:${bg}; color:${textColor}; padding:10px 8px; border-radius:6px; text-align:center; cursor:pointer; transition:transform 0.15s ease;">
+              <div class="heatmap-tile-sym" style="font-weight:800; font-size:12px;">${s.symbol}</div>
+              <div class="heatmap-tile-chg" style="font-family:var(--font-mono); font-size:11px; font-weight:700;">${sign}${s.dayChangePct}%</div>
+              <div style="font-size:9.5px; opacity:0.85; font-family:var(--font-mono);">\u20B9${s.ltp.toFixed(0)}</div>
+            </div>
+          `;
+        }
+
+        gridHtml += `</div></div>`;
+      }
+      container.innerHTML = gridHtml;
+
+      // Click tiles to open stock detail modal
+      container.querySelectorAll('.heatmap-tile[data-sym]').forEach(tile => {
+        tile.addEventListener('click', () => {
+          const sym = tile.dataset.sym;
+          const target = this.universe.find(x => x.symbol === sym);
+          if (target) this.openModal(target);
+        });
+      });
+
+      // Top Gainers & Losers sidebars
+      const sortedGainers = [...this.universe].sort((a, b) => b.dayChangePct - a.dayChangePct).slice(0, 5);
+      const sortedLosers = [...this.universe].sort((a, b) => a.dayChangePct - b.dayChangePct).slice(0, 5);
+
+      const gainersEl = document.getElementById('heatmapTopGainersList');
+      if (gainersEl) {
+        gainersEl.innerHTML = sortedGainers.map(s => `
+          <div class="heatmap-rank-row" style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; font-family:var(--font-mono);">
+            <span style="font-weight:700; color:#ffffff;">${s.symbol}</span>
+            <span style="color:#34d399; font-weight:700;">+${s.dayChangePct}% (\u20B9${s.ltp.toFixed(1)})</span>
+          </div>
+        `).join('');
+      }
+
+      const losersEl = document.getElementById('heatmapTopLosersList');
+      if (losersEl) {
+        losersEl.innerHTML = sortedLosers.map(s => `
+          <div class="heatmap-rank-row" style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; font-family:var(--font-mono);">
+            <span style="font-weight:700; color:#ffffff;">${s.symbol}</span>
+            <span style="color:#f87171; font-weight:700;">${s.dayChangePct}% (\u20B9${s.ltp.toFixed(1)})</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       8. FINDESK PORTFOLIO ANALYTICS ENGINE
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    renderPortfolio(timeframe = '1Y') {
+      this.activePortfolioTf = timeframe;
+
+      // 1. Populate Holdings Table with Live Universe Stocks
+      const tbody = document.getElementById('findeskHoldingsBody');
+      if (tbody) {
+        const portfolioHoldings = [
+          { symbol: 'TRENT', qty: 150, avg: 5420.00 },
+          { symbol: 'DIXON', qty: 60, avg: 11200.00 },
+          { symbol: 'BEL', qty: 1200, avg: 245.00 },
+          { symbol: 'HAL', qty: 180, avg: 3850.00 },
+          { symbol: 'POLYCAB', qty: 100, avg: 5600.00 },
+          { symbol: 'PERSISTENT', qty: 120, avg: 4350.00 }
+        ];
+
+        let hHtml = '';
+        for (const h of portfolioHoldings) {
+          const s = this.universe.find(x => x.symbol === h.symbol) || { ltp: h.avg * 1.12, dayChangePct: 1.5 };
+          const curVal = h.qty * s.ltp;
+          const invVal = h.qty * h.avg;
+          const pnl = curVal - invVal;
+          const pnlPct = ((s.ltp - h.avg) / h.avg) * 100;
+          const pnlColor = pnl >= 0 ? '#34d399' : '#f87171';
+          const sign = pnl >= 0 ? '+' : '';
+
+          hHtml += `
+            <tr data-sym="${h.symbol}" style="cursor:pointer; transition:background 0.15s ease;">
+              <td style="font-weight:700; color:#ffffff;">${h.symbol}</td>
+              <td>${h.qty}</td>
+              <td>\u20B9${h.avg.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              <td style="font-weight:700;">\u20B9${s.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
+              <td>\u20B9${curVal.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
+              <td style="color:${pnlColor}; font-weight:700;">${sign}\u20B9${pnl.toLocaleString('en-IN', { maximumFractionDigits: 0 })} (${sign}${pnlPct.toFixed(2)}%)</td>
+            </tr>
+          `;
+        }
+        tbody.innerHTML = hHtml;
+
+        tbody.querySelectorAll('tr[data-sym]').forEach(tr => {
+          tr.addEventListener('click', () => {
+            const sym = tr.dataset.sym;
+            const target = this.universe.find(x => x.symbol === sym);
+            if (target) this.openModal(target);
+          });
+        });
+      }
+
+      // 2. Draw Performance Curve Canvas
+      const perfCanvas = document.getElementById('findeskPerfCanvas');
+      if (perfCanvas) {
+        const ctx = perfCanvas.getContext('2d');
+        const rect = perfCanvas.parentElement.getBoundingClientRect();
+        perfCanvas.width = rect.width || 500;
+        perfCanvas.height = rect.height || 220;
+
+        const w = perfCanvas.width;
+        const h = perfCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw grid lines
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        ctx.lineWidth = 1;
+        for (let y = 30; y < h - 20; y += 40) {
+          ctx.beginPath();
+          ctx.moveTo(30, y);
+          ctx.lineTo(w - 10, y);
+          ctx.stroke();
+        }
+
+        // Draw Benchmark (NIFTY 50) Line in Gray
+        ctx.strokeStyle = '#64748b';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([4, 4]);
+        ctx.beginPath();
+        const benchPoints = [
+          [30, h - 40], [w * 0.25, h - 60], [w * 0.5, h - 80], [w * 0.75, h - 95], [w - 15, h - 110]
+        ];
+        benchPoints.forEach((p, idx) => {
+          if (idx === 0) ctx.moveTo(p[0], p[1]);
+          else ctx.lineTo(p[0], p[1]);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Draw Portfolio Performance Line in Vibrant Cyan with Gradient Area
+        const portPoints = [
+          [30, h - 40], [w * 0.2, h - 70], [w * 0.4, h - 90], [w * 0.6, h - 140], [w * 0.8, h - 165], [w - 15, h - 195]
+        ];
+
+        const grad = ctx.createLinearGradient(0, 0, 0, h);
+        grad.addColorStop(0, 'rgba(56, 189, 248, 0.35)');
+        grad.addColorStop(1, 'rgba(56, 189, 248, 0.01)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(30, h - 20);
+        portPoints.forEach((p) => ctx.lineTo(p[0], p[1]));
+        ctx.lineTo(w - 15, h - 20);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.strokeStyle = '#38bdf8';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        portPoints.forEach((p, idx) => {
+          if (idx === 0) ctx.moveTo(p[0], p[1]);
+          else ctx.lineTo(p[0], p[1]);
+        });
+        ctx.stroke();
+
+        // Draw dot markers
+        portPoints.forEach((p) => {
+          ctx.fillStyle = '#38bdf8';
+          ctx.beginPath();
+          ctx.arc(p[0], p[1], 4, 0, Math.PI * 2);
+          ctx.fill();
+        });
+      }
+
+      // 3. Draw Donut Chart Canvas
+      const donutCanvas = document.getElementById('findeskDonutCanvas');
+      if (donutCanvas) {
+        const ctx = donutCanvas.getContext('2d');
+        const cx = 55;
+        const cy = 55;
+        const r = 45;
+        const innerR = 28;
+
+        const slices = [
+          { val: 0.42, color: '#3b82f6' }, // Finance
+          { val: 0.28, color: '#06b6d4' }, // Tech
+          { val: 0.15, color: '#8b5cf6' }, // Energy
+          { val: 0.10, color: '#f59e0b' }, // Healthcare
+          { val: 0.05, color: '#64748b' }  // Other
+        ];
+
+        let startAngle = -Math.PI / 2;
+        slices.forEach(s => {
+          const sliceAngle = s.val * Math.PI * 2;
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, startAngle, startAngle + sliceAngle);
+          ctx.arc(cx, cy, innerR, startAngle + sliceAngle, startAngle, true);
+          ctx.closePath();
+          ctx.fill();
+          startAngle += sliceAngle;
+        });
+      }
+    }
+
+    /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+       9. SECTOR DEEP-DIVE & SPEEDOMETER SENTIMENT ENGINE
+       â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
+    renderSectorDeepDive(sectorName = 'NIFTY Bank') {
+      this.activeSectorName = sectorName;
+
+      // 1. Highlight active sidebar item
+      document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(item => {
+        if (item.dataset.sector === sectorName) item.classList.add('active');
+        else item.classList.remove('active');
+      });
+
+      // 2. Draw Sector Scatter Matrix Canvas
+      const matrixCanvas = document.getElementById('sectorMatrixCanvas');
+      if (matrixCanvas) {
+        const ctx = matrixCanvas.getContext('2d');
+        const rect = matrixCanvas.parentElement.getBoundingClientRect();
+        matrixCanvas.width = rect.width || 450;
+        matrixCanvas.height = rect.height || 280;
+
+        const w = matrixCanvas.width;
+        const h = matrixCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        // Draw crosshair axes
+        const cx = w / 2;
+        const cy = h / 2;
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(30, cy); ctx.lineTo(w - 20, cy);
+        ctx.moveTo(cx, 20); ctx.lineTo(cx, h - 20);
+        ctx.stroke();
+
+        // Quadrant Labels
+        ctx.font = '10px Inter, sans-serif';
+        ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
+        ctx.fillText('LEADING (Outperforming)', cx + 15, 35);
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
+        ctx.fillText('IMPROVING (Momentum)', 40, 35);
+
+        ctx.fillStyle = 'rgba(245, 158, 11, 0.6)';
+        ctx.fillText('WEAKENING (Topping)', cx + 15, h - 30);
+
+        ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
+        ctx.fillText('LAGGING (Defensive)', 40, h - 30);
+
+        // Plot sector bubbles
+        const sectorsData = [
+          { name: 'NIFTY Bank', x: cx + 60, y: cy - 50, color: '#38bdf8', r: 12 },
+          { name: 'NIFTY IT', x: cx - 50, y: cy - 40, color: '#a855f7', r: 10 },
+          { name: 'NIFTY Auto', x: cx + 80, y: cy - 70, color: '#22c55e', r: 11 },
+          { name: 'NIFTY Pharma', x: cx - 40, y: cy + 45, color: '#ef4444', r: 9 },
+          { name: 'NIFTY FMCG', x: cx + 30, y: cy + 50, color: '#f59e0b', r: 10 },
+          { name: 'NIFTY Metal', x: cx + 70, y: cy - 20, color: '#06b6d4', r: 9 }
+        ];
+
+        sectorsData.forEach(s => {
+          ctx.fillStyle = s.color;
+          ctx.beginPath();
+          ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.strokeStyle = '#ffffff';
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = '10.5px Inter, sans-serif';
+          ctx.fillText(s.name, s.x + s.r + 4, s.y + 3);
+        });
+      }
+
+      // 3. Draw Speedometer Sentiment Gauge Canvas
+      const gaugeCanvas = document.getElementById('sectorGaugeCanvas');
+      if (gaugeCanvas) {
+        const ctx = gaugeCanvas.getContext('2d');
+        const w = gaugeCanvas.width;
+        const h = gaugeCanvas.height;
+
+        ctx.clearRect(0, 0, w, h);
+
+        const gx = w / 2;
+        const gy = h - 15;
+        const gr = 70;
+
+        // Background arc
+        ctx.lineWidth = 14;
+        ctx.strokeStyle = '#1e293b';
+        ctx.beginPath();
+        ctx.arc(gx, gy, gr, Math.PI, Math.PI * 2);
+        ctx.stroke();
+
+        // Active Bullish Gradient Arc
+        const arcGrad = ctx.createLinearGradient(gx - gr, gy, gx + gr, gy);
+        arcGrad.addColorStop(0, '#ef4444');
+        arcGrad.addColorStop(0.5, '#f59e0b');
+        arcGrad.addColorStop(1, '#22c55e');
+
+        ctx.strokeStyle = arcGrad;
+        ctx.beginPath();
+        ctx.arc(gx, gy, gr, Math.PI, Math.PI * 1.75); // 75% Bullish
+        ctx.stroke();
+
+        // Center needle
+        const needleAngle = Math.PI * 1.75;
+        const nx = gx + Math.cos(needleAngle) * (gr - 10);
+        const ny = gy + Math.sin(needleAngle) * (gr - 10);
+
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(gx, gy);
+        ctx.lineTo(nx, ny);
+        ctx.stroke();
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.beginPath();
+        ctx.arc(gx, gy, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Score text
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 14px JetBrains Mono, monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('75% BULLISH', gx, gy - 25);
+      }
+
+      // 4. Update Sector Weightage Title
+      const titleEl = document.getElementById('sectorWeightageTitle');
+      if (titleEl) titleEl.textContent = `Sector Weightage Breakdown (${sectorName})`;
+
+      const sentEl = document.getElementById('sectorSentimentTitle');
+      if (sentEl) sentEl.textContent = `Sector Sentiment (${sectorName})`;
     }
 
     /* â”€â”€ Stock Details Modal (Factor Radar & Fundamentals) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -3028,7 +3415,6 @@
       this.filters.requireMtfGreen = false;
       this.nlpFilter = null;
 
-      // Reset DOM inputs
       const txt = document.getElementById('txtSearch');
       if (txt) txt.value = '';
       const sec = document.getElementById('selSector');
@@ -3040,7 +3426,6 @@
       const logic = document.getElementById('selMatchLogic');
       if (logic) logic.value = 'AND';
 
-      // Update preset chips
       document.querySelectorAll('#screenerPresetRibbon .preset-chip').forEach(c => {
         if (c.dataset.preset === 'all') c.classList.add('active');
         else c.classList.remove('active');
@@ -3208,7 +3593,7 @@
         document.getElementById(id)?.addEventListener('input', () => this.recalcPositionSizing());
       });
 
-      // View Switcher (TradeOne Screener, Heatmap, Portfolio, Sectors)
+      // 8. Stitch Navigation Switcher (Screener Hub, Heatmap, Portfolio, Sectors)
       document.querySelectorAll('.stitch-nav-tab').forEach(tab => {
         tab.addEventListener('click', () => {
           document.querySelectorAll('.stitch-nav-tab').forEach(t => t.classList.remove('active'));
@@ -3218,6 +3603,43 @@
             if (vc.id === target) vc.classList.add('active');
             else vc.classList.remove('active');
           });
+
+          // Trigger view specific rendering
+          if (target === 'viewMarketHeatmap') {
+            this.renderMarketHeatmap(this.activeHeatmapIndex);
+          } else if (target === 'viewFinDeskPortfolio') {
+            this.renderPortfolio(this.activePortfolioTf);
+          } else if (target === 'viewSectorDeepDive') {
+            this.renderSectorDeepDive(this.activeSectorName);
+          } else if (target === 'viewTradeoneWorkstation') {
+            this.runScan();
+          }
+        });
+      });
+
+      // 9. Heatmap Index Toggles
+      document.querySelectorAll('#heatmapIndexToggles .heatmap-toggle-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#heatmapIndexToggles .heatmap-toggle-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.renderMarketHeatmap(btn.dataset.index);
+        });
+      });
+
+      // 10. Portfolio Timeframe Buttons
+      document.querySelectorAll('#findeskTfPills .findesk-tf-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('#findeskTfPills .findesk-tf-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          this.renderPortfolio(btn.dataset.ptf);
+        });
+      });
+
+      // 11. Sector Sidebar Items
+      document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(item => {
+        item.addEventListener('click', () => {
+          const sec = item.dataset.sector;
+          this.renderSectorDeepDive(sec);
         });
       });
 
@@ -3383,6 +3805,11 @@
           }
         }
         this.runScan();
+        // If heatmap or portfolio is active, refresh them too
+        const activeTab = document.querySelector('.stitch-nav-tab.active');
+        if (activeTab?.dataset?.view === 'viewMarketHeatmap') this.renderMarketHeatmap(this.activeHeatmapIndex);
+        if (activeTab?.dataset?.view === 'viewFinDeskPortfolio') this.renderPortfolio(this.activePortfolioTf);
+        if (activeTab?.dataset?.view === 'viewSectorDeepDive') this.renderSectorDeepDive(this.activeSectorName);
       } catch(e) {}
     }
 

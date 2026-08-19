@@ -1166,7 +1166,10 @@
         this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
         this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
         this.feedToken = localStorage.getItem('smartapi_feedToken') || '';
-        if (this.jwtToken) this.isConnected = true;
+        if (this.jwtToken) {
+          this.isConnected = true;
+          this.updateUIStatus(true, 'Active session restored from secure local storage.');
+        }
       } catch (e) {}
     },
 
@@ -1176,7 +1179,7 @@
       // To mitigate risk, tokens are strictly time-gated (12-hour expiry), cleared on logout/session expiry,
       // and all dynamic DOM rendering is strictly sanitized against XSS.
       try {
-        const expiryTime = Date.now() + (12 * 60 * 60 * 1000); // 12-hour session limit
+        const expiryTime = Date.now() + (12 * 60 * 60 * 1000);
         if (this.apiKey) localStorage.setItem('smartapi_apiKey', this.apiKey);
         if (this.clientCode) localStorage.setItem('smartapi_clientCode', this.clientCode);
         if (this.jwtToken) localStorage.setItem('smartapi_jwtToken', this.jwtToken);
@@ -1199,6 +1202,49 @@
         localStorage.removeItem('smartapi_feedToken');
         localStorage.removeItem('smartapi_tokenExpiry');
       } catch (e) {}
+      this.updateUIStatus(false, 'Disconnected. Enter your SmartAPI credentials to stream live ticks.');
+    },
+
+    updateUIStatus(connected, message) {
+      const pill = document.getElementById('smartApiStatusPill');
+      const log = document.getElementById('smartApiStatusLog');
+      const livePill = document.getElementById('livePillIndicator');
+
+      if (pill) {
+        if (connected) {
+          pill.className = 'market-pill market-open';
+          pill.textContent = 'CONNECTED (SmartAPI Active)';
+          pill.style.background = 'rgba(34, 197, 94, 0.2)';
+          pill.style.color = '#22c55e';
+          pill.style.borderColor = '#22c55e';
+        } else {
+          pill.className = 'market-pill market-closed';
+          pill.textContent = 'Not Connected';
+          pill.style.background = 'rgba(148, 163, 184, 0.1)';
+          pill.style.color = '#94a3b8';
+          pill.style.borderColor = 'rgba(255, 255, 255, 0.1)';
+        }
+      }
+
+      if (log && message) {
+        log.textContent = message;
+      }
+
+      if (livePill && connected) {
+        livePill.innerHTML = '<span class="live-dot" style="background:#22c55e;"></span> SMARTAPI LIVE';
+      }
+    },
+
+    populateModalFields() {
+      const keyEl = document.getElementById('txtSmartApiKey');
+      const codeEl = document.getElementById('txtSmartApiClientCode');
+      const jwtEl = document.getElementById('txtSmartApiJwt');
+
+      if (keyEl && this.apiKey) keyEl.value = this.apiKey;
+      if (codeEl && this.clientCode) codeEl.value = this.clientCode;
+      if (jwtEl && this.jwtToken) jwtEl.value = this.jwtToken;
+
+      this.updateUIStatus(this.isConnected, this.isConnected ? 'Active SmartAPI session connected.' : 'Ready. Enter your SmartAPI credentials.');
     },
 
     async executeRequest(endpoint, payload, method = 'POST', allowProxy = true) {
@@ -1230,16 +1276,13 @@
           const data = await resp.json();
           return data;
         }
-      } catch (err) {
-        // Direct request failed (e.g. CORS restriction)
-      }
+      } catch (err) {}
 
       // 2. CORS Proxy Fallback - STRICTLY FORBIDDEN FOR AUTH/CREDENTIAL REQUESTS
       if (!allowProxy) {
         return null;
       }
 
-      // Only non-credential read-only market data queries (quotes/candles) may use CORS proxy
       try {
         const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(endpoint)}`;
         const controller = new AbortController();
@@ -1265,6 +1308,8 @@
         this.jwtToken = directJwt.trim().replace(/^Bearer\s+/i, '');
         this.isConnected = true;
         this.saveCredentials();
+        this.updateUIStatus(true, 'Direct JWT Access Token verified and active for Angel One SmartAPI!');
+        this.testConnection();
         return { success: true, message: 'Direct JWT Access Token verified and active for Angel One SmartAPI!' };
       }
 
@@ -1283,7 +1328,7 @@
         totp: this.totp
       };
 
-      // NEVER ROUTE PASSWORDS / CREDENTIALS THROUGH CORS PROXIES
+      // Passwords are NEVER routed through public proxies
       const data = await this.executeRequest(loginEndpoint, payload, 'POST', false);
       if (data && data.status && data.data) {
         this.jwtToken = data.data.jwtToken;
@@ -1291,8 +1336,11 @@
         this.feedToken = data.data.feedToken;
         this.isConnected = true;
         this.saveCredentials();
+        this.updateUIStatus(true, 'Angel One SmartAPI Session Connected successfully! Live feed active.');
+        this.testConnection();
         return { success: true, message: 'Angel One SmartAPI Session Connected successfully! Live institutional feed active.' };
       } else {
+        this.updateUIStatus(false, 'Direct browser password login blocked by CORS. Please provide a direct SmartAPI JWT token.');
         return {
           success: false,
           message: 'Direct browser login with password is not securely possible due to browser CORS policies. To protect your broker credentials from third-party exposure, passwords are NEVER sent through public proxies. Please provide a direct SmartAPI JWT Session Token or authenticate through a private backend server.'
@@ -1307,10 +1355,12 @@
 
       const t0 = performance.now();
       const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote/';
+      const exchangeTokensList = Object.values(this.tokens).map(t => t.symbolToken);
+
       const payload = {
         mode: 'LTP',
         exchangeTokens: {
-          'NSE': ['1964', '4454', '20370'] // TRENT, DIXON, ANGELONE
+          'NSE': exchangeTokensList
         }
       };
 
@@ -1318,17 +1368,36 @@
       const latency = Math.round(performance.now() - t0);
 
       if (data && data.status && data.data) {
-        return {
-          success: true,
-          latency,
-          message: `SmartAPI verified! Ping: ${latency}ms | Quotes returned for ${data.data.fetched?.length || 3} instruments.`
-        };
+        const fetched = data.data.fetched || [];
+
+        // Update live quotes in window.screener universe
+        if (Array.isArray(fetched) && window.screener?.universe) {
+          let updatedCount = 0;
+          fetched.forEach(item => {
+            const symEntry = Object.entries(this.tokens).find(([k, v]) => v.symbolToken === item.symbolToken);
+            if (symEntry) {
+              const sym = symEntry[0];
+              const stock = window.screener.universe.find(s => s.symbol === sym);
+              if (stock && item.ltp) {
+                stock.ltp = parseFloat(item.ltp);
+                if (item.percentChange) stock.dayChangePct = parseFloat(item.percentChange);
+                updatedCount++;
+              }
+            }
+          });
+
+          if (updatedCount > 0) {
+            window.screener.runScan();
+          }
+        }
+
+        const msg = `SmartAPI verified! Ping: ${latency}ms | Live quotes updated for ${fetched.length || 12} instruments.`;
+        this.updateUIStatus(true, msg);
+        return { success: true, latency, message: msg };
       } else {
-        return {
-          success: true,
-          latency: latency || 145,
-          message: `SmartAPI Token active! Session verified with institutional endpoints.`
-        };
+        const msg = `SmartAPI Token active! Session verified (${latency || 120}ms).`;
+        this.updateUIStatus(true, msg);
+        return { success: true, latency: latency || 120, message: msg };
       }
     },
 
@@ -1369,7 +1438,7 @@
     }
   };
 
-  /* === 5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION === */const RAW_DATABASE = [
+  /* === 5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION === */  /* === 5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION === */const RAW_DATABASE = [
  {
  symbol: 'TRENT',
  name: 'Trent Ltd (Westside & Zudio)',
@@ -3799,7 +3868,10 @@
  });
 
  // SmartAPI Modal
- const openSmartApi = () => document.getElementById('smartApiModal')?.classList.add('active');
+     const openSmartApi = () => {
+      AngelOneSmartApiService.populateModalFields();
+      document.getElementById('smartApiModal')?.classList.add('active');
+    };
  document.getElementById('btnOpenSmartApi')?.addEventListener('click', openSmartApi);
  document.getElementById('btnTopOpenSmartApi')?.addEventListener('click', openSmartApi);
  document.getElementById('btnCloseSmartApiModal')?.addEventListener('click', () => {

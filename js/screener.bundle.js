@@ -3233,145 +3233,350 @@
  }
  }
 
- /* === 9. SECTOR DEEP-DIVE & SPEEDOMETER SENTIMENT ENGINE
- === */
- renderSectorDeepDive(sectorName = 'NIFTY Bank') {
- this.activeSectorName = sectorName;
+ /* === 9. SECTOR DEEP-DIVE & SPEEDOMETER SENTIMENT ENGINE === */
+  renderSectorDeepDive(sectorName = 'NIFTY Bank') {
+    this.activeSectorName = sectorName || 'NIFTY Bank';
 
- // 1. Highlight active sidebar item
- document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(item => {
- if (item.dataset.sector === sectorName) item.classList.add('active');
- else item.classList.remove('active');
- });
+    const sectorDict = {
+      'NIFTY 50': {
+        name: 'NIFTY 50', chg: '+0.58%', chgVal: 0.58, score: 82, label: 'STRONG BULLISH', color: '#22c55e',
+        rsi: '64.5 (Bullish)', ma: 'Golden Cross above 50 & 200 DMA', macd: 'Positive Divergence (Expanding)',
+        quadrant: { xRel: 65, yRel: 55 },
+        weightages: [
+          { name: 'HDFC Bank Ltd', share: '11.8%', chg: '+1.50%' },
+          { name: 'Reliance Industries', share: '9.5%', chg: '+0.85%' },
+          { name: 'ICICI Bank Ltd', share: '7.8%', chg: '+1.85%' },
+          { name: 'Infosys Ltd', share: '6.2%', chg: '+1.10%' },
+          { name: 'Trent Ltd', share: '4.8%', chg: '+3.45%' }
+        ],
+        movers: [
+          { sym: 'TRENT', price: 6720.50, chg: '+3.45%', vol: '145% Vol' },
+          { sym: 'DIXON', price: 13150.00, chg: '+4.12%', vol: '180% Vol' },
+          { sym: 'PREMIERENE', price: 1085.00, chg: '+4.80%', vol: '220% Vol' },
+          { sym: 'BEL', price: 308.20, chg: '+2.85%', vol: '120% Vol' }
+        ]
+      },
+      'NIFTY Bank': {
+        name: 'NIFTY Bank', chg: '+1.20%', chgVal: 1.20, score: 88, label: 'VERY BULLISH', color: '#38bdf8',
+        rsi: '68.2 (Strong Momentum)', ma: 'Confirmed 50-DMA Support', macd: 'Bullish Crossover & High Volume',
+        quadrant: { xRel: 80, yRel: 65 },
+        weightages: [
+          { name: 'HDFC Bank Ltd', share: '28.5%', chg: '+1.50%' },
+          { name: 'ICICI Bank Ltd', share: '22.1%', chg: '+1.85%' },
+          { name: 'Axis Bank Ltd', share: '12.3%', chg: '+0.90%' },
+          { name: 'Kotak Mahindra Bank', share: '10.8%', chg: '+0.60%' },
+          { name: 'State Bank of India', share: '8.2%', chg: '+1.80%' }
+        ],
+        movers: [
+          { sym: 'ANGELONE', price: 2980.00, chg: '+3.25%', vol: '165% Vol' },
+          { sym: 'CDSL', price: 1680.00, chg: '+2.65%', vol: '140% Vol' },
+          { sym: 'ICICIBANK', price: 1245.00, chg: '+1.85%', vol: '115% Vol' },
+          { sym: 'SBIN', price: 820.00, chg: '+1.80%', vol: '110% Vol' }
+        ]
+      },
+      'NIFTY IT': {
+        name: 'NIFTY IT', chg: '+1.45%', chgVal: 1.45, score: 78, label: 'BULLISH REVERSAL', color: '#a855f7',
+        rsi: '62.4 (Recovering)', ma: 'Testing Multi-Month Resistance', macd: 'Positive Histogram Expansion',
+        quadrant: { xRel: -30, yRel: 45 },
+        weightages: [
+          { name: 'Tata Consultancy Services', share: '24.2%', chg: '+1.10%' },
+          { name: 'Infosys Ltd', share: '22.8%', chg: '+1.35%' },
+          { name: 'HCL Technologies', share: '12.5%', chg: '+1.90%' },
+          { name: 'Wipro Ltd', share: '8.4%', chg: '+0.75%' },
+          { name: 'Persistent Systems', share: '7.2%', chg: '+1.75%' }
+        ],
+        movers: [
+          { sym: 'PERSISTENT', price: 5600.00, chg: '+1.75%', vol: '135% Vol' },
+          { sym: 'DIXON', price: 13150.00, chg: '+4.12%', vol: '180% Vol' },
+          { sym: 'KAYNES', price: 5400.00, chg: '+5.20%', vol: '210% Vol' },
+          { sym: 'TCS', price: 4280.00, chg: '+1.10%', vol: '95% Vol' }
+        ]
+      },
+      'NIFTY Auto': {
+        name: 'NIFTY Auto', chg: '+0.80%', chgVal: 0.80, score: 76, label: 'BULLISH TREND', color: '#22c55e',
+        rsi: '62.0 (Trend Support)', ma: 'Ascending 50-DMA Channel', macd: 'Positive Trend Continuity',
+        quadrant: { xRel: 45, yRel: 40 },
+        weightages: [
+          { name: 'Mahindra & Mahindra', share: '21.5%', chg: '+2.10%' },
+          { name: 'Tata Motors Ltd', share: '19.8%', chg: '+1.25%' },
+          { name: 'Maruti Suzuki India', share: '18.2%', chg: '+0.60%' },
+          { name: 'Bajaj Auto Ltd', share: '12.4%', chg: '+1.85%' },
+          { name: 'TVS Motor Company', share: '9.8%', chg: '+1.40%' }
+        ],
+        movers: [
+          { sym: 'KAYNES', price: 5400.00, chg: '+5.20%', vol: '210% Vol' },
+          { sym: 'DIXON', price: 13150.00, chg: '+4.12%', vol: '180% Vol' },
+          { sym: 'M&M', price: 2950.00, chg: '+2.10%', vol: '130% Vol' },
+          { sym: 'BAJAJ-AUTO', price: 9850.00, chg: '+1.85%', vol: '115% Vol' }
+        ]
+      },
+      'NIFTY Pharma': {
+        name: 'NIFTY Pharma', chg: '-0.10%', chgVal: -0.10, score: 48, label: 'NEUTRAL / RANGING', color: '#ef4444',
+        rsi: '49.5 (Neutral)', ma: 'Oscillating at 50-DMA', macd: 'Neutral Convergence',
+        quadrant: { xRel: -55, yRel: -30 },
+        weightages: [
+          { name: 'Sun Pharmaceutical Inds', share: '28.0%', chg: '+0.45%' },
+          { name: 'Cipla Ltd', share: '16.2%', chg: '+0.20%' },
+          { name: 'Dr. Reddys Laboratories', share: '14.5%', chg: '-0.60%' },
+          { name: 'Divis Laboratories', share: '11.8%', chg: '-0.40%' },
+          { name: 'Torrent Pharmaceuticals', share: '9.5%', chg: '+0.15%' }
+        ],
+        movers: [
+          { sym: 'SUNPHARMA', price: 1720.00, chg: '+0.45%', vol: '90% Vol' },
+          { sym: 'CIPLA', price: 1540.00, chg: '+0.20%', vol: '85% Vol' },
+          { sym: 'LUPIN', price: 1980.00, chg: '-0.85%', vol: '110% Vol' },
+          { sym: 'BIOCON', price: 345.00, chg: '-1.20%', vol: '105% Vol' }
+        ]
+      },
+      'NIFTY FMCG': {
+        name: 'NIFTY FMCG', chg: '+0.20%', chgVal: 0.20, score: 55, label: 'DEFENSIVE BASE', color: '#f59e0b',
+        rsi: '52.8 (Consolidating)', ma: 'Holding 200-DMA Support', macd: 'Flat Base Histogram',
+        quadrant: { xRel: 25, yRel: -25 },
+        weightages: [
+          { name: 'ITC Ltd', share: '32.5%', chg: '+0.40%' },
+          { name: 'Hindustan Unilever Ltd', share: '28.4%', chg: '-0.30%' },
+          { name: 'Nestle India Ltd', share: '10.2%', chg: '+0.80%' },
+          { name: 'Britannia Industries', share: '7.8%', chg: '+0.35%' },
+          { name: 'Tata Consumer Products', share: '6.5%', chg: '+0.90%' }
+        ],
+        movers: [
+          { sym: 'TRENT', price: 6720.50, chg: '+3.45%', vol: '145% Vol' },
+          { sym: 'NESTLEIND', price: 2450.00, chg: '+0.80%', vol: '95% Vol' },
+          { sym: 'ITC', price: 485.00, chg: '+0.40%', vol: '110% Vol' },
+          { sym: 'HINDUNILVR', price: 2680.00, chg: '-0.30%', vol: '80% Vol' }
+        ]
+      },
+      'NIFTY Metal': {
+        name: 'NIFTY Metal', chg: '+2.40%', chgVal: 2.40, score: 92, label: 'EXTREME BULLISH', color: '#06b6d4',
+        rsi: '72.4 (Breakout Strength)', ma: 'Multi-Year 200-DMA Expansion', macd: 'Strong Bullish Expansion',
+        quadrant: { xRel: 75, yRel: 70 },
+        weightages: [
+          { name: 'Tata Steel Ltd', share: '26.5%', chg: '+2.40%' },
+          { name: 'JSW Steel Ltd', share: '24.0%', chg: '+2.10%' },
+          { name: 'Hindalco Industries', share: '21.2%', chg: '+3.10%' },
+          { name: 'Vedanta Ltd', share: '12.5%', chg: '+2.80%' },
+          { name: 'Jindal Steel & Power', share: '10.8%', chg: '+1.95%' }
+        ],
+        movers: [
+          { sym: 'SOLARINDS', price: 10220.00, chg: '+2.40%', vol: '150% Vol' },
+          { sym: 'PREMIERENE', price: 1085.00, chg: '+4.80%', vol: '220% Vol' },
+          { sym: 'HINDALCO', price: 680.00, chg: '+3.10%', vol: '175% Vol' },
+          { sym: 'TATASTEEL', price: 165.00, chg: '+2.40%', vol: '140% Vol' }
+        ]
+      }
+    };
 
- // 2. Draw Sector Scatter Matrix Canvas
- const matrixCanvas = document.getElementById('sectorMatrixCanvas');
- if (matrixCanvas) {
- const ctx = matrixCanvas.getContext('2d');
- const rect = matrixCanvas.parentElement.getBoundingClientRect();
- matrixCanvas.width = rect.width || 450;
- matrixCanvas.height = rect.height || 280;
+    const sec = sectorDict[sectorName] || sectorDict['NIFTY Bank'];
 
- const w = matrixCanvas.width;
- const h = matrixCanvas.height;
+    // 1. Highlight active sidebar item
+    document.querySelectorAll('#sectorListSidebar .sector-list-item').forEach(item => {
+      if (item.dataset.sector === sectorName) {
+        item.classList.add('active');
+        item.style.borderColor = '#38bdf8';
+        item.style.background = 'rgba(56, 189, 248, 0.12)';
+      } else {
+        item.classList.remove('active');
+        item.style.borderColor = 'rgba(255, 255, 255, 0.06)';
+        item.style.background = 'transparent';
+      }
+    });
 
- ctx.clearRect(0, 0, w, h);
+    // 2. Draw High-DPI Sector Scatter Matrix Canvas
+    const matrixCanvas = document.getElementById('sectorMatrixCanvas');
+    if (matrixCanvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = matrixCanvas.parentElement.getBoundingClientRect();
+      const displayWidth = rect.width || 480;
+      const displayHeight = rect.height || 280;
 
- // Draw crosshair axes
- const cx = w / 2;
- const cy = h / 2;
+      matrixCanvas.width = displayWidth * dpr;
+      matrixCanvas.height = displayHeight * dpr;
 
- ctx.strokeStyle = 'rgba(255, 255, 255, 0.12)';
- ctx.lineWidth = 1;
- ctx.beginPath();
- ctx.moveTo(30, cy); ctx.lineTo(w - 20, cy);
- ctx.moveTo(cx, 20); ctx.lineTo(cx, h - 20);
- ctx.stroke();
+      const ctx = matrixCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, displayWidth, displayHeight);
 
- // Quadrant Labels
- ctx.font = '10px Inter, sans-serif';
- ctx.fillStyle = 'rgba(34, 197, 94, 0.6)';
- ctx.fillText('LEADING (Outperforming)', cx + 15, 35);
+      const cx = displayWidth / 2;
+      const cy = displayHeight / 2;
 
- ctx.fillStyle = 'rgba(56, 189, 248, 0.6)';
- ctx.fillText('IMPROVING (Momentum)', 40, 35);
+      // Draw Quadrant Background Glows
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.05)'; // Leading
+      ctx.fillRect(cx, 10, cx - 15, cy - 10);
 
- ctx.fillStyle = 'rgba(245, 158, 11, 0.6)';
- ctx.fillText('WEAKENING (Topping)', cx + 15, h - 30);
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.05)'; // Improving
+      ctx.fillRect(20, 10, cx - 20, cy - 10);
 
- ctx.fillStyle = 'rgba(239, 68, 68, 0.6)';
- ctx.fillText('LAGGING (Defensive)', 40, h - 30);
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.05)'; // Lagging
+      ctx.fillRect(20, cy, cx - 20, cy - 15);
 
- // Plot sector bubbles
- const sectorsData = [
- { name: 'NIFTY Bank', x: cx + 60, y: cy - 50, color: '#38bdf8', r: 12 },
- { name: 'NIFTY IT', x: cx - 50, y: cy - 40, color: '#a855f7', r: 10 },
- { name: 'NIFTY Auto', x: cx + 80, y: cy - 70, color: '#22c55e', r: 11 },
- { name: 'NIFTY Pharma', x: cx - 40, y: cy + 45, color: '#ef4444', r: 9 },
- { name: 'NIFTY FMCG', x: cx + 30, y: cy + 50, color: '#f59e0b', r: 10 },
- { name: 'NIFTY Metal', x: cx + 70, y: cy - 20, color: '#06b6d4', r: 9 }
- ];
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.05)'; // Weakening
+      ctx.fillRect(cx, cy, cx - 15, cy - 15);
 
- sectorsData.forEach(s => {
- ctx.fillStyle = s.color;
- ctx.beginPath();
- ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
- ctx.fill();
+      // Axes
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(20, cy); ctx.lineTo(displayWidth - 15, cy);
+      ctx.moveTo(cx, 10); ctx.lineTo(cx, displayHeight - 15);
+      ctx.stroke();
 
- ctx.strokeStyle = '#ffffff';
- ctx.lineWidth = 1.5;
- ctx.stroke();
+      // Quadrant Labels
+      ctx.font = 'bold 9.5px Inter, sans-serif';
+      ctx.fillStyle = 'rgba(34, 197, 94, 0.7)';
+      ctx.fillText('LEADING (Strong RS + Momentum)', cx + 12, 24);
 
- ctx.fillStyle = '#ffffff';
- ctx.font = '10.5px Inter, sans-serif';
- ctx.fillText(s.name, s.x + s.r + 4, s.y + 3);
- });
- }
+      ctx.fillStyle = 'rgba(56, 189, 248, 0.7)';
+      ctx.fillText('IMPROVING (Momentum Accelerating)', 26, 24);
 
- // 3. Draw Speedometer Sentiment Gauge Canvas
- const gaugeCanvas = document.getElementById('sectorGaugeCanvas');
- if (gaugeCanvas) {
- const ctx = gaugeCanvas.getContext('2d');
- const w = gaugeCanvas.width;
- const h = gaugeCanvas.height;
+      ctx.fillStyle = 'rgba(239, 68, 68, 0.7)';
+      ctx.fillText('LAGGING (Defensive / Weak)', 26, displayHeight - 20);
 
- ctx.clearRect(0, 0, w, h);
+      ctx.fillStyle = 'rgba(245, 158, 11, 0.7)';
+      ctx.fillText('WEAKENING (Momentum Decelerating)', cx + 12, displayHeight - 20);
 
- const gx = w / 2;
- const gy = h - 15;
- const gr = 70;
+      // Plot Sector Bubbles
+      Object.entries(sectorDict).forEach(([k, sData]) => {
+        const bx = cx + (sData.quadrant.xRel * (cx - 40) / 100);
+        const by = cy - (sData.quadrant.yRel * (cy - 30) / 100);
+        const isSelected = (k === sectorName);
+        const r = isSelected ? 12 : 9;
 
- // Background arc
- ctx.lineWidth = 14;
- ctx.strokeStyle = '#1e293b';
- ctx.beginPath();
- ctx.arc(gx, gy, gr, Math.PI, Math.PI * 2);
- ctx.stroke();
+        if (isSelected) {
+          // Halo glow
+          ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+          ctx.beginPath();
+          ctx.arc(bx, by, r + 6, 0, Math.PI * 2);
+          ctx.fill();
+        }
 
- // Active Bullish Gradient Arc
- const arcGrad = ctx.createLinearGradient(gx - gr, gy, gx + gr, gy);
- arcGrad.addColorStop(0, '#ef4444');
- arcGrad.addColorStop(0.5, '#f59e0b');
- arcGrad.addColorStop(1, '#22c55e');
+        ctx.fillStyle = sData.color;
+        ctx.beginPath();
+        ctx.arc(bx, by, r, 0, Math.PI * 2);
+        ctx.fill();
 
- ctx.strokeStyle = arcGrad;
- ctx.beginPath();
- ctx.arc(gx, gy, gr, Math.PI, Math.PI * 1.75); // 75% Bullish
- ctx.stroke();
+        ctx.strokeStyle = isSelected ? '#ffffff' : 'rgba(255, 255, 255, 0.4)';
+        ctx.lineWidth = isSelected ? 2 : 1;
+        ctx.stroke();
 
- // Center needle
- const needleAngle = Math.PI * 1.75;
- const nx = gx + Math.cos(needleAngle) * (gr - 10);
- const ny = gy + Math.sin(needleAngle) * (gr - 10);
+        ctx.fillStyle = isSelected ? '#ffffff' : '#cbd5e1';
+        ctx.font = isSelected ? 'bold 11px Inter, sans-serif' : '10px Inter, sans-serif';
+        ctx.fillText(sData.name, bx + r + 5, by + 4);
+      });
+    }
 
- ctx.strokeStyle = '#ffffff';
- ctx.lineWidth = 3;
- ctx.beginPath();
- ctx.moveTo(gx, gy);
- ctx.lineTo(nx, ny);
- ctx.stroke();
+    // 3. Draw Speedometer Sentiment Gauge Canvas
+    const gaugeCanvas = document.getElementById('sectorGaugeCanvas');
+    if (gaugeCanvas) {
+      const dpr = window.devicePixelRatio || 1;
+      const displayW = 200;
+      const displayH = 120;
 
- ctx.fillStyle = '#38bdf8';
- ctx.beginPath();
- ctx.arc(gx, gy, 6, 0, Math.PI * 2);
- ctx.fill();
+      gaugeCanvas.width = displayW * dpr;
+      gaugeCanvas.height = displayH * dpr;
 
- // Score text
- ctx.fillStyle = '#34d399';
- ctx.font = 'bold 14px JetBrains Mono, monospace';
- ctx.textAlign = 'center';
- ctx.fillText('75% BULLISH', gx, gy - 25);
- }
+      const ctx = gaugeCanvas.getContext('2d');
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, displayW, displayH);
 
- // 4. Update Sector Weightage Title
- const titleEl = document.getElementById('sectorWeightageTitle');
- if (titleEl) titleEl.textContent = `Sector Weightage Breakdown (${sectorName})`;
+      const gx = displayW / 2;
+      const gy = displayH - 15;
+      const gr = 68;
 
- const sentEl = document.getElementById('sectorSentimentTitle');
- if (sentEl) sentEl.textContent = `Sector Sentiment (${sectorName})`;
- }
+      // Background Track
+      ctx.lineWidth = 14;
+      ctx.strokeStyle = '#1e293b';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.arc(gx, gy, gr, Math.PI, Math.PI * 2);
+      ctx.stroke();
 
- /* === Stock Details Modal (Factor Radar & Fundamentals) === */
+      // Dynamic Sentiment Arc
+      const scorePct = Math.max(5, Math.min(95, sec.score)) / 100;
+      const endAngle = Math.PI + (scorePct * Math.PI);
+
+      const grad = ctx.createLinearGradient(gx - gr, gy, gx + gr, gy);
+      grad.addColorStop(0, '#ef4444');
+      grad.addColorStop(0.4, '#f59e0b');
+      grad.addColorStop(0.7, '#22c55e');
+      grad.addColorStop(1, '#10b981');
+
+      ctx.strokeStyle = grad;
+      ctx.beginPath();
+      ctx.arc(gx, gy, gr, Math.PI, endAngle);
+      ctx.stroke();
+
+      // Dynamic Needle
+      const needleAngle = endAngle;
+      const nx = gx + Math.cos(needleAngle) * (gr - 8);
+      const ny = gy + Math.sin(needleAngle) * (gr - 8);
+
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(gx, gy);
+      ctx.lineTo(nx, ny);
+      ctx.stroke();
+
+      // Pivot
+      ctx.fillStyle = '#38bdf8';
+      ctx.beginPath();
+      ctx.arc(gx, gy, 5, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Score Text
+      ctx.fillStyle = sec.color || '#34d399';
+      ctx.font = 'bold 13px JetBrains Mono, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`${sec.score}/100 ${sec.label}`, gx, gy - 24);
+    }
+
+    // 4. Update Titles & Technical Sentiment Pills
+    const titleEl = document.getElementById('sectorWeightageTitle');
+    if (titleEl) titleEl.textContent = `Sector Weightage Breakdown (${sec.name})`;
+
+    const sentEl = document.getElementById('sectorSentimentTitle');
+    if (sentEl) sentEl.textContent = `Sector Sentiment (${sec.name})`;
+
+    const sideSent = document.getElementById('sideSectorSentiment');
+    if (sideSent) {
+      sideSent.textContent = `${sec.label} (${sec.score}/100)`;
+      sideSent.style.color = sec.color || '#34d399';
+    }
+
+    // 5. Update Sector Weightage List
+    const weightageBox = document.querySelector('.sector-weightage-box');
+    if (weightageBox) {
+      let wHtml = `<div style="font-weight:700; color:#ffffff; font-size:11px; margin-bottom:6px;" id="sectorWeightageTitle">Sector Weightage Breakdown (${escapeHtml(sec.name)})</div>`;
+      wHtml += sec.weightages.map(w => `
+        <div class="sector-weightage-row" style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; font-family:var(--font-mono);">
+          <span style="font-weight:700; color:#ffffff;">${escapeHtml(w.name)}</span>
+          <span style="color:var(--text-muted);">(${escapeHtml(w.share)} Share, <strong style="color:#34d399;">${escapeHtml(w.chg)}</strong>)</span>
+        </div>
+      `).join('');
+      weightageBox.innerHTML = wHtml;
+    }
+
+    // 6. Update Top Movers within Sector
+    const moversList = document.getElementById('sectorTopMoversList');
+    if (moversList) {
+      moversList.innerHTML = sec.movers.map(m => `
+        <div class="sector-weightage-row" data-sym="${escapeHtml(m.sym)}" style="display:flex; justify-content:space-between; align-items:center; padding:6px 4px; border-bottom:1px solid rgba(255,255,255,0.05); font-size:11px; font-family:var(--font-mono); cursor:pointer; border-radius:4px; transition:background 0.15s ease;">
+          <span style="font-weight:800; color:#ffffff;">${escapeHtml(m.sym)}</span>
+          <span>\u20B9${m.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })} <strong style="color:#34d399;">${escapeHtml(m.chg)}</strong> <span style="color:var(--text-muted); font-size:9.5px;">(${escapeHtml(m.vol)})</span></span>
+        </div>
+      `).join('');
+
+      moversList.querySelectorAll('.sector-weightage-row[data-sym]').forEach(row => {
+        row.addEventListener('click', () => {
+          const sym = row.dataset.sym;
+          const target = this.universe.find(x => x.symbol === sym);
+          if (target) this.openModal(target);
+        });
+      });
+    }
+  }
+
+  /* === Stock Details Modal (Factor Radar & Fundamentals) === */
  openModal(stock) {
  this.currentModalStock = stock;
  const modal = document.getElementById('stockModal');

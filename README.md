@@ -1,6 +1,6 @@
 # 🚀 Universal Indian Stock Screener (NSE / BSE)
 
-An institutional-grade, quantitative stock screening and equity research platform tailored for Indian equities (**NSE & BSE**) implementing multi-factor composite scoring, CANSLIM growth criteria, 6-dimension real-time filtering, Market Heatmap treemaps, FinDesk portfolio analytics, Sector Deep-Dive matrix, TradingView Lightweight Charts, and dedicated Android Mobile WebView experience.
+An institutional-grade, quantitative stock screening and equity research platform tailored for Indian equities (**NSE & BSE**) implementing multi-factor composite scoring, CANSLIM growth criteria, 6-dimension real-time filtering, Market Heatmap treemaps, FinDesk portfolio analytics, Sector Deep-Dive matrix, and a dedicated Android Mobile WebView experience.
 
 ---
 
@@ -9,17 +9,17 @@ An institutional-grade, quantitative stock screening and equity research platfor
 | Platform Version | Live Direct Link | Description |
 | :--- | :--- | :--- |
 | 🖥️ **Full Desktop Terminal** | [**Open Desktop Terminal**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/) | High-Throughput TradeOne Super-Hub with 12 Universal Equities, Heatmap, Portfolio & Sectors |
-| 📱 **Android Mobile View** | [**Open Mobile View**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/mobile.html) | Native touch-optimized mobile trading station with swipe navigation |
-| 📈 **Standalone Charting Station** | [**Open Chart Workstation**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/chart.html?symbol=TRENT) | TradingView Lightweight Chart workstation accepting dynamic `?symbol=X` query params |
+| 📱 **Android Mobile View** | [**Open Mobile View**](https://maroon7doc.github.io/ALL-INDIA-STOCK-SCREENER7/mobile.html) | Native touch-optimized mobile trading station with swipe navigation & stock cards |
 
 ---
 
 ## ⚡ Core Features & Modules
 
-### 1. 🎛️ High-Throughput Screener Hub (`index.html`)
+### 1. 🎛️ High-Throughput Screener Hub (`index.html` & `mobile.html`)
 - **6 Factor Dimensions**: Valuation (P/E, PEG, FCF), Growth (Sales YoY, PAT CAGR), Quality (ROCE, ROE, OPM, Piotroski 0-9), Solvency (D/E, Interest Coverage, Current Ratio, Stop Loss %), Ownership (Promoter %, FII %, DII %, Insider Buys), and Technicals (Mansfield RS, RSI, Volume Burst, 50/200 DMA, MTF Green).
 - **Strategy Presets Ribbon**: 1-Click activation for CANSLIM, Quality Compounders, Deep Value, Momentum Breakouts, Institutional Stake, Volume Shockers, and Multibaggers.
 - **Dynamic Table Views**: Overview, Valuation, Growth, Quality, Solvency, Ownership, and Technicals with instant column sorting.
+- **Stock Detail Modal**: Multi-tab deep dive with Factor Scores Radar, Financial Matrix, Equity Thesis, Catalysts & Risks, and Position Sizing Calculator.
 
 ### 2. 🗺️ Market Heatmap Treemap
 - Real-time sector clusters color-coded by day change % with top gainers and losers leaderboards.
@@ -30,9 +30,8 @@ An institutional-grade, quantitative stock screening and equity research platfor
 ### 4. 🌐 Sector Deep-Dive Analysis
 - 2D Relative Strength vs Momentum Quadrant Scatter Matrix with speedometer sentiment gauge.
 
-### 5. 📈 Standalone Charting Workstation (`chart.html?symbol=X`)
-- Supports dynamic `?symbol=` query parameters (e.g. `chart.html?symbol=DIXON` or `chart.html?symbol=HAL`).
-- Renders TradingView Lightweight Charts with candlestick series, volume histogram, timeframe selectors, and direct links to NSE India, Screener.in, TradingView, and Google Finance.
+### 5. 📱 Android & Mobile WebView Client (`mobile.html`)
+- Native touch-optimized bottom navigation switching across TradeOne Screener Cards, Market Heatmap, Portfolio Holdings, Sector Intelligence, CANSLIM Protocols, and Scalper Terminal.
 
 ---
 
@@ -40,9 +39,8 @@ An institutional-grade, quantitative stock screening and equity research platfor
 
 ```
 ALL-INDIA-STOCK-SCREENER7/
-├── index.html                  # Master Web Application (Desktop & Tablet)
-├── mobile.html                 # Android Mobile Web Client
-├── chart.html                  # Multi-Asset Charting Workstation (?symbol=X)
+├── index.html                  # Master Web Application (Desktop & Tablet Terminal)
+├── mobile.html                 # Dedicated Android Mobile Web Client
 ├── css/
 │   └── styles.css              # Universal High-Contrast Institutional Dark Theme
 ├── js/
@@ -58,7 +56,8 @@ ALL-INDIA-STOCK-SCREENER7/
 │       ├── server.js           # Node.js REST API Server
 │       └── package.json        # NPM Package Manifest
 ├── tools/
-│   └── debug_test_suite.ps1    # Automated Diagnostic & Static Analysis Test Suite
+│   ├── debug_test_suite.ps1    # Automated Diagnostic & Static Analysis Test Suite
+│   └── audit_all_controls.ps1  # Interactive Control Binding Verifier
 ├── start_server.bat            # 1-Click Local Server Launcher
 ├── server.ps1                  # Root Convenience Server Launcher
 ├── .gitignore                  # Git Ignore Specifications

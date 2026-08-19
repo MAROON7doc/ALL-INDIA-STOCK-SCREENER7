@@ -1,1090 +1,453 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
- <meta charset="UTF-8">
- <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
- <meta name="theme-color" content="#050811">
- <meta name="mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-capable" content="yes">
- <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
- <title>Universal Indian Screener | Android Native Mobile Trading Station</title>
- <meta name="description" content="Dedicated touch-optimized mobile trading station for Universal Indian Stock Screener with 10 CANSLIM protocols, live data feed modes, and 60 FPS GPU charts.">
- <link rel="stylesheet" href="css/styles.css">
- <style>
- /* === ANDROID WEBVIEW DEDICATED MOBILE TRADING STATION STYLES
- === */
- :root {
- --mobile-nav-height: 60px;
- --mobile-header-height: 52px;
- --safe-bottom: env(safe-area-inset-bottom, 0px);
- --safe-top: env(safe-area-inset-top, 0px);
- }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+  <meta name="theme-color" content="#050811">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Universal Indian Screener | Mobile Web Client</title>
+  <meta name="description" content="Dedicated touch-optimized mobile trading and screening station for Universal Indian Stock Screener (NSE / BSE).">
+  <link rel="stylesheet" href="css/styles.css">
+  <style>
+    :root {
+      --mobile-nav-height: 56px;
+      --mobile-header-height: 50px;
+      --safe-bottom: env(safe-area-inset-bottom, 0px);
+      --safe-top: env(safe-area-inset-top, 0px);
+    }
 
- *, *::before, *::after {
- box-sizing: border-box;
- }
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
 
- body {
- background: #050811;
- color: #e2e8f0;
- margin: 0;
- padding: 0;
- padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 12px);
- padding-top: var(--safe-top);
- -webkit-tap-highlight-color: transparent;
- user-select: none;
- -webkit-user-select: none;
- font-family: 'Inter', system-ui, -apple-system, sans-serif;
- }
+    body {
+      background: #050811;
+      color: #e2e8f0;
+      margin: 0;
+      padding: 0;
+      padding-bottom: calc(var(--mobile-nav-height) + var(--safe-bottom) + 12px);
+      padding-top: var(--safe-top);
+      -webkit-tap-highlight-color: transparent;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
 
- /* === Sticky Mobile Header === */
- .mobile-app-header {
- position: sticky;
- top: 0;
- z-index: 200;
- background: #080f1e;
- border-bottom: 1px solid rgba(255, 255, 255, 0.08);
- padding: 8px 12px;
- display: flex;
- align-items: center;
- justify-content: space-between;
- gap: 8px;
- }
+    .mobile-app-header {
+      position: sticky;
+      top: 0;
+      z-index: 200;
+      background: #080f1e;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding: 8px 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
 
- .mobile-tab-view {
- display: none;
- padding: 10px 10px;
- }
+    .mobile-tab-view {
+      display: none;
+      padding: 10px 10px;
+    }
 
- .mobile-tab-view.active {
- display: block;
- animation: tabFadeIn 0.16s ease-out;
- }
+    .mobile-tab-view.active {
+      display: block;
+      animation: tabFadeIn 0.16s ease-out;
+    }
 
- @keyframes tabFadeIn {
- from { opacity: 0; transform: translateY(4px); }
- to { opacity: 1; transform: translateY(0); }
- }
+    @keyframes tabFadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
- /* === Fixed Bottom Navigation Bar === */
- .mobile-bottom-nav {
- position: fixed;
- bottom: 0;
- left: 0;
- right: 0;
- height: var(--mobile-nav-height);
- background: rgba(8, 16, 32, 0.96);
- border-top: 1px solid rgba(255, 255, 255, 0.1);
- display: flex;
- align-items: stretch;
- justify-content: space-around;
- z-index: 999;
- padding-bottom: var(--safe-bottom);
- backdrop-filter: blur(16px);
- -webkit-backdrop-filter: blur(16px);
- }
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--mobile-nav-height);
+      background: rgba(8, 16, 32, 0.96);
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      display: flex;
+      align-items: stretch;
+      justify-content: space-around;
+      z-index: 999;
+      padding-bottom: var(--safe-bottom);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
 
- .mobile-nav-item {
- display: flex;
- flex-direction: column;
- align-items: center;
- justify-content: center;
- gap: 3px;
- flex: 1;
- height: 100%;
- background: transparent;
- border: none;
- color: rgba(148, 163, 184, 0.65);
- cursor: pointer;
- font-size: 10px;
- font-weight: 600;
- transition: all 0.15s ease;
- touch-action: manipulation;
- position: relative;
- }
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      flex: 1;
+      height: 100%;
+      background: transparent;
+      border: none;
+      color: rgba(148, 163, 184, 0.65);
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: 600;
+      transition: all 0.15s ease;
+      touch-action: manipulation;
+      position: relative;
+    }
 
- .mobile-nav-item svg {
- width: 19px;
- height: 19px;
- stroke: currentColor;
- }
+    .mobile-nav-item.active {
+      color: var(--accent-blue);
+    }
 
- .mobile-nav-item.active {
- color: var(--accent-blue);
- }
+    .mobile-nav-item.active::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 22px;
+      height: 2px;
+      background: var(--accent-blue);
+      border-radius: 2px 2px 0 0;
+    }
 
- .mobile-nav-item.active svg {
- stroke: var(--accent-blue);
- transform: translateY(-1px);
- }
+    .mobile-stock-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px;
+      margin-bottom: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
 
- .mobile-nav-item.active::after {
- content: '';
- position: absolute;
- bottom: 0;
- left: 50%;
- transform: translateX(-50%);
- width: 22px;
- height: 2px;
- background: var(--accent-blue);
- border-radius: 2px 2px 0 0;
- }
-
- /* === Responsive Android Stock Cards === */
- .mobile-stock-card {
- background: var(--bg-card);
- border: 1px solid var(--border-subtle);
- border-radius: var(--radius-md);
- padding: 12px;
- margin-bottom: 8px;
- display: flex;
- flex-direction: column;
- gap: 8px;
- cursor: pointer;
- transition: all 0.15s ease;
- }
-
- .mobile-stock-card:active {
- background: rgba(56, 189, 248, 0.08);
- border-color: var(--accent-blue);
- }
-
- .mobile-card-top {
- display: flex;
- align-items: flex-start;
- justify-content: space-between;
- }
-
- .mobile-card-metrics {
- display: grid;
- grid-template-columns: repeat(4, 1fr);
- gap: 4px;
- background: rgba(0, 0, 0, 0.25);
- border-radius: 6px;
- padding: 6px 8px;
- }
-
- .mobile-card-actions {
- display: flex;
- align-items: center;
- gap: 6px;
- margin-top: 2px;
- }
-
- .mobile-card-actions .btn {
- flex: 1;
- text-align: center;
- justify-content: center;
- padding: 7px 8px;
- font-size: 11px;
- }
-
- /* === Data Feed Control Drawer === */
- .feed-control-drawer {
- background: rgba(10, 20, 38, 0.85);
- border: 1px solid rgba(255, 255, 255, 0.09);
- border-radius: 8px;
- padding: 8px 10px;
- margin-bottom: 8px;
- }
-
- .feed-drawer-header {
- display: flex;
- align-items: center;
- justify-content: space-between;
- cursor: pointer;
- font-size: 11px;
- font-weight: 700;
- color: var(--text-secondary);
- }
-
- .feed-drawer-content {
- display: none;
- flex-direction: column;
- gap: 8px;
- margin-top: 8px;
- padding-top: 8px;
- border-top: 1px solid rgba(255, 255, 255, 0.07);
- }
-
- .feed-drawer-content.open {
- display: flex;
- }
-
- .feed-chip-group {
- display: flex;
- flex-wrap: wrap;
- gap: 5px;
- }
-
- .feed-chip {
- padding: 4px 8px;
- border: 1px solid rgba(255, 255, 255, 0.12);
- border-radius: 14px;
- background: rgba(255, 255, 255, 0.04);
- font-size: 10px;
- font-weight: 600;
- color: var(--text-muted);
- cursor: pointer;
- transition: all 0.15s ease;
- touch-action: manipulation;
- }
-
- .feed-chip.active {
- background: rgba(56, 189, 248, 0.16);
- border-color: var(--accent-blue);
- color: var(--accent-blue);
- }
-
- .feed-chip.active-green {
- background: rgba(16, 185, 129, 0.16);
- border-color: var(--accent-green);
- color: var(--accent-green);
- }
-
- /* === Live OHLCV Bar === */
- .mobile-ohlcv-bar {
- display: flex;
- align-items: center;
- gap: 8px;
- background: rgba(0, 0, 0, 0.3);
- border: 1px solid rgba(255, 255, 255, 0.06);
- border-radius: 6px;
- padding: 5px 8px;
- margin-bottom: 6px;
- font-size: 10px;
- font-family: var(--font-mono);
- overflow-x: auto;
- white-space: nowrap;
- scrollbar-width: none;
- }
-
- .mobile-ohlcv-bar::-webkit-scrollbar {
- display: none;
- }
-
- /* === Chart Canvas Container Sizing on Android === */
- #mainCanvasContainer {
- width: 100%;
- height: 480px;
- min-height: 380px;
- background: #070c17;
- border: 1px solid var(--border-subtle);
- border-radius: var(--radius-md);
- position: relative;
- overflow: hidden;
- touch-action: none;
- margin-bottom: 6px;
- }
-
- @media (max-height: 700px) {
- #mainCanvasContainer {
- height: 380px;
- min-height: 320px;
- }
- }
- </style>
- <script defer src="js/screener.bundle.js"></script>
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
+    .mobile-stock-card:active {
+      background: rgba(56, 189, 248, 0.08);
+      border-color: var(--accent-blue);
+    }
+  </style>
+  <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
 
- <!-- Top TradeOne Mobile App Bar -->
- <header class="tradeone-header" style="height:44px; padding:0 10px;">
- <div style="display:flex; align-items:center; gap:8px;">
- <div class="tradeone-brand-logo" style="width:22px; height:22px; font-size:12px;"> </div>
- <span style="font-weight:800; font-size:13px; color:#ffffff;">TradeOne</span>
-
- <!-- NIFTY Badge -->
- <div class="tradeone-index-badge" style="padding:2px 6px; font-size:9.5px;" id="tradeoneNiftyBadge">
- <span class="tradeone-index-name">NIFTY</span>
- <span class="tradeone-expiry-tag" style="font-size:7.5px; padding:0 2px;">EXP</span>
- <span class="tradeone-index-price" id="tradeoneNiftyLtp">24,243.50</span>
- <span class="tradeone-index-chg down" id="tradeoneNiftyChg" style="font-size:9px;">-0.18%</span>
- </div>
- </div>
-
- <div style="display:flex; align-items:center; gap:4px;">
- <button class="btn btn-sm" id="btnToggleLive" style="padding:3px 6px; font-size:10px;">
- Pause
- </button>
- <a href="index.html" class="btn btn-sm" style="color:var(--accent-blue); border-color:rgba(56,189,248,0.4); text-decoration:none; padding:3px 6px; font-size:10px;" title="Switch to Full Desktop Screener Terminal">
- Desktop
- </a>
- <div class="tradeone-avatar" style="width:24px; height:24px; font-size:9.5px;">GD</div>
- </div>
- </header>
-
- <!-- Live Market Ticker Tape -->
- <div class="market-ticker-tape" id="marketTickerTape" style="border-radius:0;">
- <div class="ticker-item">
- <span class="ticker-name">NIFTY 50</span>
- <span class="ticker-val" id="valNifty">24,835.10</span>
- <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
- </div>
- <div class="ticker-item">
- <span class="ticker-name">BSE SENSEX</span>
- <span class="ticker-val" id="valSensex">81,380.40</span>
- <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
- </div>
- <div class="ticker-item">
- <span class="ticker-name">INDIA VIX</span>
- <span class="ticker-val">12.85</span>
- <span class="ticker-chg neg">-0.45 (-3.38%)</span>
- </div>
- <div class="ticker-item">
- <span class="ticker-name">BANK NIFTY</span>
- <span class="ticker-val">52,140.60</span>
- <span class="ticker-chg pos">+378.20 (+0.73%)</span>
- </div>
- </div>
-
- <!-- =========================================================================
- VIEW 1: WATCHLIST & SCANNER CARDS
- ========================================================================= -->
- <section class="mobile-tab-view active" id="viewWatchlist">
-
- <!-- Investor Mode Chips -->
- <div class="investor-modes-ribbon" style="margin-bottom:8px;">
- <button class="investor-chip active" data-profile="all"> All Profiles</button>
- <button class="investor-chip" data-profile="compounder"> Compounder</button>
- <button class="investor-chip" data-profile="multibagger"> Multibagger</button>
- <button class="investor-chip" data-profile="garp"> GARP</button>
- <button class="investor-chip" data-profile="deep_value"> Deep Value</button>
- <button class="investor-chip" data-profile="dividend"> Dividend</button>
- <button class="investor-chip" data-profile="momentum"> Momentum</button>
- </div>
-
- <!-- Presets Ribbon -->
- <div class="protocol-ribbon" style="margin-bottom:8px;">
- <div class="preset-group">
- <button class="preset-chip active" data-preset="all"> All (12)</button>
- <button class="preset-chip" data-preset="user_master"> 10 Rules</button>
- <button class="preset-chip" data-preset="cup_handle"> Cup & Handle</button>
- <button class="preset-chip" data-preset="consolidation_7w"> 7W Base</button>
- <button class="preset-chip" data-preset="vol_shocker"> Vol Shocker</button>
- <button class="preset-chip" data-preset="nr_breakout"> NR4/NR7</button>
- <button class="preset-chip" data-preset="sebi_insider"> SEBI Insider</button>
- <button class="preset-chip" data-preset="smc_accum"> SMC</button>
- <button class="preset-chip" data-preset="dmr_leaders"> DMR</button>
- </div>
- </div>
-
- <!-- AI NLP Search Input -->
- <div class="nlp-search-box" style="margin-bottom:8px;">
- <div class="nlp-input-row">
- <span style="color:var(--accent-blue); font-size:13px;"> </span>
- <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Ask AI Screener (e.g. 'High ROCE low debt')...">
- <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;"> </button>
- </div>
- </div>
-
- <!-- Screener Results Header -->
- <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 2px;">
- <div style="font-size:12px; font-weight:700; color:var(--text-primary);">
- Scanned Universe (<span id="statScannedCount" style="color:var(--accent-blue);">12</span>)
- </div>
- <div style="font-size:11px; font-weight:600; color:var(--accent-green);" id="statAvgReturn">
- Avg Return: +3.4%
- </div>
- </div>
-
- <!-- Native Stock Cards List Container -->
- <div id="mobileStockCardsList">
- <!-- Dynamically populated from JS universe -->
- </div>
-
- <!-- Fallback Hidden Table & Selectors for Bundle Sync -->
- <div style="display:none;">
- <tbody id="screenerTableBody"></tbody>
- <span id="marketStatusBadge"></span>
- <span id="livePillIndicator"></span>
- <span id="gpuStatusBadge"></span>
- <select id="selDataProvider"><option value="auto" selected></option><option value="smartapi"></option><option value="yfinance"></option><option value="nsebse"></option></select>
- <select id="selFeedMode"><option value="auto" selected></option><option value="nse_strict"></option><option value="paused"></option><option value="simulation"></option></select>
- <select id="selStreamSpeed"><option value="500"></option><option value="1000"></option><option value="1800" selected></option><option value="3000"></option><option value="5000"></option></select>
- <select id="selExchange"><option value="ALL" selected></option></select>
- <select id="selSector"><option value="ALL" selected></option></select>
- <select id="selSortBy"><option value="matchCount" selected></option></select>
- <span id="statMatchRate"></span>
- <span id="statVolSurge"></span>
- <span id="statRiskScore"></span>
- <span id="breadthAdvances"></span>
- <span id="breadthDeclines"></span>
- <span id="breadthSentiment"></span>
- </div>
-
- </section>
-
- <!-- =========================================================================
- VIEW 2: FULL-SCREEN INTERACTIVE GPU CANDLESTICK CHART
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewChart">
-
- <!-- Active Stock Header & Scalper Bar -->
- <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
- <div>
- <div style="font-size:15px; font-weight:700; font-family:var(--font-mono); color:var(--text-primary);" id="mainChartStockTitle">
- TRENT <span style="font-size:13px; color:var(--accent-green);" id="mainChartPrice">&#8377;7,120.50 (+3.4%)</span>
- </div>
- <div style="display:flex; align-items:center; gap:4px; margin-top:2px;">
- <span class="tag-index" id="mainChartIndexBadge" style="font-size:9px; padding:1px 5px;">NIFTY 50</span>
- <span class="tag tag-cwh" id="mainChartPatternBadge" style="font-size:9px; padding:1px 5px;">Cup & Handle</span>
- </div>
- </div>
-
- <div style="display:flex; gap:4px;">
- <button class="btn btn-sm" id="btnResetChartZoom" style="padding:4px 8px; font-size:11px;"> Fit</button>
- <button class="btn btn-sm" id="btnPopoutChart" style="color:var(--accent-green); padding:4px 8px; font-size:11px;"> Pop-Out</button>
- </div>
- </div>
-
- <!-- Touch Scalper 1-Click Order Bar -->
- <div style="display:flex; align-items:center; justify-content:space-between; gap:6px; background:#0b111e; border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:5px 8px; margin-bottom:6px;" id="scalperOrderOverlay">
- <button class="btn-scalper-buy" id="btnScalperBuy" style="flex:1; justify-content:center; padding:6px 8px;">
- <span>BUY @</span> <span id="scalperBuyPrice">&#8377;7,120.50</span>
- </button>
- <div style="display:flex; align-items:center; gap:2px;">
- <input type="number" class="scalper-qty-input" id="scalperOrderQty" value="1" min="1" max="10000" style="width:38px; height:28px;">
- </div>
- <button class="btn-scalper-sell" id="btnScalperSell" style="flex:1; justify-content:center; padding:6px 8px;">
- <span>SELL @</span> <span id="scalperSellPrice">&#8377;7,118.00</span>
- </button>
- </div>
-
- <!-- Live OHLCV Bar -->
- <div class="mobile-ohlcv-bar" id="mobileOhlcvBar">
- <span>O: <strong id="mOhlcO" style="color:#e2e8f0;">&#8377;6,980.00</strong></span>
- <span>H: <strong id="mOhlcH" style="color:var(--accent-green);">&#8377;7,158.00</strong></span>
- <span>L: <strong id="mOhlcL" style="color:var(--accent-red);">&#8377;6,950.00</strong></span>
- <span>C: <strong id="mOhlcC" style="color:var(--accent-blue);">&#8377;7,120.50</strong></span>
- <span>VOL: <strong id="mOhlcVol" style="color:var(--accent-gold);">3.4x Burst</strong></span>
- </div>
-
- <!-- Interactive Data Feed Source & Speed Controls -->
- <div class="feed-control-drawer">
- <div class="feed-drawer-header" id="btnToggleFeedDrawer">
- <div style="display:flex; align-items:center; gap:6px;">
- <span class="live-dot" style="width:6px; height:6px;"></span>
- <span>Feed: <strong id="txtCurrentFeedSummary" style="color:var(--accent-blue);">Universal AI Live 1.8s</strong></span>
- </div>
- <span id="feedDrawerChevron" style="font-size:10px; color:var(--text-muted);"> Settings </span>
- </div>
-
- <div class="feed-drawer-content" id="feedDrawerContent">
- <div>
- <div style="font-size:9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Data Provider</div>
- <div class="feed-chip-group" id="groupProviderChips">
- <button class="feed-chip active" data-val="auto"> Auto-Best</button>
- <button class="feed-chip" data-val="nse"> NSE Direct</button>
- <button class="feed-chip" data-val="bse"> BSE Direct</button>
- <button class="feed-chip" data-val="smartapi"> SmartAPI</button>
- </div>
- </div>
-
- <div>
- <div style="font-size:9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Stream Feed Mode</div>
- <div class="feed-chip-group" id="groupFeedModeChips">
- <button class="feed-chip active-green" data-val="simulation"> Universal Live</button>
- <button class="feed-chip" data-val="auto"> Exchange Live</button>
- <button class="feed-chip" data-val="paused"> Paused</button>
- </div>
- </div>
-
- <div>
- <div style="font-size:9px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:4px;">Stream Refresh Rate</div>
- <div class="feed-chip-group" id="groupSpeedChips">
- <button class="feed-chip" data-val="500"> 0.5s</button>
- <button class="feed-chip" data-val="1000"> 1.0s</button>
- <button class="feed-chip active" data-val="1800"> 1.8s</button>
- <button class="feed-chip" data-val="3000"> 3.0s</button>
- <button class="feed-chip" data-val="5000"> 5.0s</button>
- </div>
- </div>
- </div>
- </div>
-
- <!-- Stock Selector Pills -->
- <div class="stock-pill-selector" id="stockPillSelector" style="margin-bottom:6px; max-width:100%;">
- <!-- Dynamically filled -->
- </div>
-
- <!-- Time Horizon Toolbar (1m -> ALL) -->
- <div class="tv-btn-group" id="tvIntervalGroup" style="margin-bottom:6px; overflow-x:auto; flex-wrap:nowrap;">
- <span class="tv-group-label" style="font-size:8.5px;">Horizon:</span>
- <button class="tv-btn" data-interval="1m">1m</button>
- <button class="tv-btn" data-interval="5m">5m</button>
- <button class="tv-btn" data-interval="15m">15m</button>
- <button class="tv-btn" data-interval="1H">1H</button>
- <button class="tv-btn" data-interval="4H">4H</button>
- <button class="tv-btn active" data-interval="1D">1D</button>
- <button class="tv-btn" data-interval="1W">1W</button>
- <button class="tv-btn" data-interval="1M">1M</button>
- <button class="tv-btn" data-range="6M">6M</button>
- <button class="tv-btn" data-range="1Y">1Y</button>
- <button class="tv-btn" data-range="ALL">ALL</button>
- </div>
-
- <!-- Visual Protocols Ribbon -->
- <div class="protocol-layer-ribbon" style="margin-bottom:6px;">
- <button class="layer-toggle active" data-layer="p1_growth">P1: EPS</button>
- <button class="layer-toggle active" data-layer="p2_rsi">P2: RSI</button>
- <button class="layer-toggle active" data-layer="p3_vol">P3: Vol</button>
- <button class="layer-toggle active" data-layer="p4_base7w">P4: 7W</button>
- <button class="layer-toggle active" data-layer="p5_cup">P5: Cup</button>
- <button class="layer-toggle active" data-layer="p6_sl">P6: SL</button>
- <button class="layer-toggle active" data-layer="p9_rs">P9: RS</button>
- <button class="layer-toggle active" data-layer="p10_mtf">P10: MTF</button>
- </div>
-
- <!-- GPU WebGL Canvas Area -->
- <div class="chart-container-box" id="mainCanvasContainer">
- <!-- Master GPU WebGL 60 FPS Candlestick Engine -->
- </div>
-
- <div style="font-size:10px; color:var(--text-muted); text-align:center; font-family:var(--font-mono); margin-top:4px;">
- 1-finger pan 2-finger pinch zoom Tap candle for OHLCV
- </div>
-
- </section>
-
- <!-- =========================================================================
- VIEW 3: 10 CANSLIM PROTOCOLS CONFIGURATION
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewProtocols">
- <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px;">
- <h3 style="margin:0; font-size:14px; font-weight:700;">10 CANSLIM Protocols Engine</h3>
- <button class="btn btn-sm" id="btnResetFilters" style="padding:3px 8px; font-size:10.5px;">Reset Rules</button>
- </div>
-
- <div class="protocol-list" style="display:flex; flex-direction:column; gap:8px;">
-
- <!-- P1 -->
- <div class="protocol-card active" id="card_p1">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P1</span>
- <span class="protocol-name">EPS & Sales Growth (>15%)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p1" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P2 -->
- <div class="protocol-card active" id="card_p2">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P2</span>
- <span class="protocol-name">RSI(14) Momentum (&ge;65)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p2" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P3 -->
- <div class="protocol-card active" id="card_p3">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P3</span>
- <span class="protocol-name">Volume Surge (>40% above SMA20)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p3" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P4 -->
- <div class="protocol-card" id="card_p4">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P4</span>
- <span class="protocol-name">7-Week Base Consolidation (&le;18%)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p4"><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P5 -->
- <div class="protocol-card" id="card_p5">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P5</span>
- <span class="protocol-name">Cup with Handle Pivot Breakout</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p5"><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P6 -->
- <div class="protocol-card active" id="card_p6">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P6</span>
- <span class="protocol-name">Risk Management SL (&le;8.0%)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p6" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P7 -->
- <div class="protocol-card active" id="card_p7">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P7</span>
- <span class="protocol-name">ROCE / ROE Quality (&ge;17%)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p7" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P8 -->
- <div class="protocol-card active" id="card_p8">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P8</span>
- <span class="protocol-name">3-Year EPS CAGR (&ge;20%)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p8" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P9 -->
- <div class="protocol-card active" id="card_p9">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P9</span>
- <span class="protocol-name">Mansfield RS vs Nifty (&ge;80)</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p9" checked><span class="slider"></span></label>
- </div>
- </div>
-
- <!-- P10 -->
- <div class="protocol-card active" id="card_p10">
- <div class="protocol-header">
- <div class="protocol-title-wrap">
- <span class="protocol-badge">P10</span>
- <span class="protocol-name">Multi-Timeframe 6/6 Green Alignment</span>
- </div>
- <label class="switch"><input type="checkbox" id="chk_p10" checked><span class="slider"></span></label>
- </div>
- </div>
-
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW 4: LIVE FINANCIAL NEWS WIRE
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewNews">
- <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:10px;">
- <h3 style="margin:0; font-size:14px; font-weight:700;">Live Market News Wire</h3>
- <span class="val-pill" style="font-size:10px;">SEBI & Exchange Filings</span>
- </div>
- <div class="news-feed-list" id="newsFeedList" style="display:flex; flex-direction:column; gap:8px;">
- <!-- Dynamically filled -->
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW 5: POSITION SIZING & RISK CALCULATOR
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewCalc">
- <div style="margin-bottom:10px;">
- <h3 style="margin:0; font-size:14px; font-weight:700;">Institutional Position Sizing</h3>
- <p style="margin:2px 0 0 0; font-size:11px; color:var(--text-secondary);">2R Profit Target & Stop-Loss Calculator</p>
- </div>
-
- <div class="calc-grid" style="display:grid; grid-template-columns:1fr; gap:8px; margin-bottom:12px;">
- <div class="calc-card">
- <div class="calc-label">Total Trading Capital (&#8377;)</div>
- <input type="number" class="calc-input" id="calcCapital" value="500000" step="10000">
- </div>
- <div class="calc-card">
- <div class="calc-label">Max Risk Per Trade (%)</div>
- <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25" max="3.0">
- </div>
- <div class="calc-card">
- <div class="calc-label">Entry Price (&#8377;)</div>
- <input type="number" class="calc-input" id="calcEntryPrice" value="7120.50">
- </div>
- <div class="calc-card">
- <div class="calc-label">Stop-Loss Price (&#8377;)</div>
- <input type="number" class="calc-input" id="calcStopLossPrice" value="6622.05">
- </div>
- </div>
-
- <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
- <div class="metric-chip-box">
- <div class="metric-chip-label">Allowed Risk (&#8377;)</div>
- <div class="metric-chip-val" style="color:var(--accent-red);" id="resMaxRisk">&#8377;5,000</div>
- </div>
- <div class="metric-chip-box">
- <div class="metric-chip-label">Recommended Shares</div>
- <div class="metric-chip-val" style="color:var(--accent-blue);" id="resMaxShares">10 Shares</div>
- </div>
- <div class="metric-chip-box">
- <div class="metric-chip-label">Position Value (&#8377;)</div>
- <div class="metric-chip-val" id="resPositionVal">&#8377;71,205</div>
- </div>
- <div class="metric-chip-box">
- <div class="metric-chip-label">2R Profit Target (&#8377;)</div>
- <div class="metric-chip-val" style="color:var(--accent-green);" id="res2RTarget">&#8377;8,117.40 (+14%)</div>
- </div>
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW: MOBILE MARKET HEATMAP (Screen 1)
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewMobileHeatmap">
- <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:8px;"> Market Heatmap</div>
- <div class="heatmap-sectors-grid" id="mHeatmapSectorsGrid" style="display:flex; flex-direction:column; gap:8px;">
- <!-- Dynamically populated mobile heatmap clusters -->
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW: MOBILE FINDESK PORTFOLIO (Screen 2)
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewMobilePortfolio">
- <div style="font-size:15px; font-weight:800; color:#ffffff; margin-bottom:8px;"> Portfolio Analytics</div>
-
- <div class="findesk-metrics-row" style="grid-template-columns:1fr 1fr; margin-bottom:10px;">
- <div class="findesk-metric-card">
- <span class="findesk-metric-label">Total Value</span>
- <span class="findesk-metric-val" style="font-size:15px;">&#8377; 87,45,200</span>
- </div>
- <div class="findesk-metric-card">
- <span class="findesk-metric-label">Today's P&L</span>
- <span class="findesk-metric-val green" style="font-size:15px;">+ &#8377; 32,500</span>
- </div>
- <div class="findesk-metric-card">
- <span class="findesk-metric-label">Overall P&L</span>
- <span class="findesk-metric-val green" style="font-size:15px;">+ &#8377; 22.15L (+33.9%)</span>
- </div>
- <div class="findesk-metric-card">
- <span class="findesk-metric-label">Buying Power</span>
- <span class="findesk-metric-val blue" style="font-size:15px;">&#8377; 12,50,000</span>
- </div>
- </div>
-
- <!-- Holdings Table Mobile -->
- <div class="findesk-holdings-panel">
- <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px;">Holdings (5 Positions)</div>
- <table class="findesk-holdings-table" style="font-size:10px;">
- <thead>
- <tr><th>Symbol</th><th>Qty</th><th>LTP</th><th>Unrealized P&L</th></tr>
- </thead>
- <tbody id="mFindeskHoldingsBody">
- <!-- Dynamically populated -->
- </tbody>
- </table>
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW: MOBILE SCALPER TERMINAL (Screen 4)
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewMobileScalper">
- <div style="font-size:15px; font-weight:800; color:#38bdf8; margin-bottom:8px;"> Scalper Execution Terminal</div>
-
- <div style="display:flex; gap:8px; margin-bottom:10px;">
- <button class="btn-scalper-mkt-buy" style="flex:1;" onclick="window.screener?.showToast(' Scalper BUY Executed', 'success')">BUY MKT</button>
- <button class="btn-scalper-mkt-sell" style="flex:1;" onclick="window.screener?.showToast(' Scalper SELL Executed', 'warn')">SELL MKT</button>
- </div>
-
- <div class="dom-ladder-panel">
- <div class="dom-ladder-header">
- <span>Order Book (DOM Level-2)</span>
- <span style="color:#38bdf8;">NIFTY 50 </span>
- </div>
- <table class="dom-table">
- <thead>
- <tr><th>Qty</th><th>Bid</th><th>Ask</th><th>Qty</th></tr>
- </thead>
- <tbody id="mDomLadderTableBody">
- <!-- Dynamically populated DOM rows -->
- </tbody>
- </table>
- </div>
- </section>
-
- <!-- =========================================================================
- VIEW: MOBILE SECTOR DEEP-DIVE (Screen 5)
- ========================================================================= -->
- <section class="mobile-tab-view" id="viewMobileSectors">
- <div style="font-size:15px; font-weight:800; color:#38bdf8; margin-bottom:8px;"> Sector Deep-Dive</div>
-
- <div class="sector-sentiment-panel" style="margin-bottom:10px;">
- <div style="font-size:12px; font-weight:700; color:#ffffff;">Sector Sentiment (NIFTY Bank)</div>
- <div class="sentiment-gauge-wrap">
- <canvas id="mSectorGaugeCanvas" width="180" height="110"></canvas>
- </div>
- <div style="font-size:10px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:2px;">
- <div style="color:#34d399;"> RSI: 62 (Bullish)</div>
- <div style="color:#34d399;"> MA Crossover: Golden Cross (Bullish)</div>
- </div>
- </div>
- </section>
-
- <!-- =========================================================================
- NATIVE BOTTOM NAVIGATION BAR (5 STITCH VIEWS)
- ========================================================================= -->
- <nav class="mobile-bottom-nav">
- <button class="mobile-nav-item active" data-target="viewWatchlist">
- <span style="font-size:16px;"> </span>
- <span>TradeOne</span>
- </button>
- <button class="mobile-nav-item" data-target="viewChart">
- <span style="font-size:16px;"> </span>
- <span>Chart</span>
- </button>
- <button class="mobile-nav-item" data-target="viewMobileHeatmap">
- <span style="font-size:16px;"> </span>
- <span>Heatmap</span>
- </button>
- <button class="mobile-nav-item" data-target="viewMobilePortfolio">
- <span style="font-size:16px;"> </span>
- <span>Portfolio</span>
- </button>
- <button class="mobile-nav-item" data-target="viewMobileScalper">
- <span style="font-size:16px;"> </span>
- <span>Scalper</span>
- </button>
- <button class="mobile-nav-item" data-target="viewMobileSectors">
- <span style="font-size:16px;"> </span>
- <span>Sectors</span>
- </button>
- </nav>
-
- <!-- Stock Detail Modal -->
- <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
- <div class="modal-container">
- <div class="modal-header">
- <div class="modal-title-group">
- <div class="brand-logo" id="modalLogo">&#8377;</div>
- <div>
- <div style="display:flex; align-items:center; gap:8px;">
- <h2 id="modalStockSymbol" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
- <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
- </div>
- <div id="modalStockName" style="font-size:11px; color:var(--text-muted);">Trent Ltd</div>
- </div>
- </div>
-
- <div style="display:flex; align-items:center; gap:8px;">
- <div style="text-align:right;">
- <div id="modalLTP" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">&#8377;7,120.50</div>
- <div id="modalDayChg" style="font-size:10.5px; font-weight:600; color:var(--accent-green);">+3.4%</div>
- </div>
- <button class="modal-close-btn" id="btnCloseModal">&times;</button>
- </div>
- </div>
-
- <div class="modal-tabs">
- <div class="modal-tab active" data-tab="chart">Chart</div>
- <div class="modal-tab" data-tab="calculator">Position Sizing</div>
- <div class="modal-tab" data-tab="thesis">Thesis</div>
- </div>
-
- <div class="modal-body">
- <div class="tab-pane active" id="tab-chart">
- <div id="modalCanvasContainer" style="height:340px; min-height:300px; width:100%;"></div>
- </div>
- <div class="tab-pane" id="tab-calculator">
- <!-- Calculator UI -->
- </div>
- <div class="tab-pane" id="tab-thesis">
- <div id="thesisCardContent"></div>
- </div>
- </div>
- </div>
- </div>
-
- <script>
- // Global Tab Switching Function
- function switchMobileTab(targetId) {
- document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
- document.querySelectorAll('.mobile-tab-view').forEach(v => {
- v.classList.remove('active');
- v.style.display = 'none';
- });
-
- const targetBtn = document.querySelector(`.mobile-nav-item[data-target="${targetId}"]`);
- if (targetBtn) targetBtn.classList.add('active');
-
- const targetView = document.getElementById(targetId);
- if (targetView) {
- targetView.classList.add('active');
- targetView.style.display = 'block';
-
- if (targetId === 'viewChart' && window.screener?.mainChart) {
- // Immediately resize and render the GPU Canvas
- requestAnimationFrame(() => {
- window.screener.mainChart.resize();
- window.screener.mainChart.render();
- });
- setTimeout(() => {
- window.screener.mainChart.resize();
- window.screener.mainChart.render();
- updateLiveOhlcvBar();
- }, 80);
- } else if (targetId === 'viewMobileHeatmap') {
- const container = document.getElementById('mHeatmapSectorsGrid');
- if (container && window.screener) {
- window.screener.renderMarketHeatmap();
- container.innerHTML = document.getElementById('heatmapSectorsGrid')?.innerHTML || '';
- }
- } else if (targetId === 'viewMobilePortfolio') {
- const tbody = document.getElementById('mFindeskHoldingsBody');
- if (tbody && window.screener) {
- window.screener.renderFinDeskPortfolio();
- tbody.innerHTML = document.getElementById('findeskHoldingsBody')?.innerHTML || '';
- }
- } else if (targetId === 'viewMobileScalper') {
- const tbody = document.getElementById('mDomLadderTableBody');
- if (tbody && window.screener) {
- window.screener.renderScalperTerminal();
- tbody.innerHTML = document.getElementById('domLadderTableBody')?.innerHTML || '';
- }
- } else if (targetId === 'viewMobileSectors') {
- if (window.screener) {
- const canvas = document.getElementById('mSectorGaugeCanvas');
- if (canvas) {
- const ctx = canvas.getContext('2d');
- const cx = 90, cy = 85, r = 60;
- ctx.clearRect(0, 0, 180, 110);
- ctx.beginPath();
- ctx.arc(cx, cy, r, Math.PI, 0);
- ctx.lineWidth = 12;
- ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
- ctx.stroke();
- const endAngle = Math.PI + 0.75 * Math.PI;
- const grad = ctx.createLinearGradient(10, cy, 170, cy);
- grad.addColorStop(0, '#ef4444');
- grad.addColorStop(0.5, '#f59e0b');
- grad.addColorStop(1, '#10b981');
- ctx.beginPath();
- ctx.arc(cx, cy, r, Math.PI, endAngle);
- ctx.lineWidth = 12;
- ctx.strokeStyle = grad;
- ctx.lineCap = 'round';
- ctx.stroke();
- ctx.fillStyle = '#ffffff';
- ctx.font = 'bold 15px JetBrains Mono, monospace';
- ctx.textAlign = 'center';
- ctx.fillText('75/100', cx, cy - 8);
- ctx.fillStyle = '#34d399';
- ctx.font = 'bold 9px JetBrains Mono, monospace';
- ctx.fillText('BULLISH', cx, cy + 8);
- }
- }
- }
- }
- }
- window.switchMobileTab = switchMobileTab;
-
- // Bottom Navigation Switcher
- document.querySelectorAll('.mobile-nav-item').forEach(btn => {
- btn.addEventListener('click', () => {
- switchMobileTab(btn.dataset.target);
- });
- });
-
- // Feed Drawer Toggle
- const btnToggleFeed = document.getElementById('btnToggleFeedDrawer');
- const feedContent = document.getElementById('feedDrawerContent');
- const feedChevron = document.getElementById('feedDrawerChevron');
- if (btnToggleFeed && feedContent) {
- btnToggleFeed.addEventListener('click', () => {
- const isOpen = feedContent.classList.toggle('open');
- if (feedChevron) feedChevron.textContent = isOpen ? ' Settings ' : ' Settings ';
- });
- }
-
- // Feed Provider Chips
- document.querySelectorAll('#groupProviderChips .feed-chip').forEach(chip => {
- chip.addEventListener('click', () => {
- document.querySelectorAll('#groupProviderChips .feed-chip').forEach(c => c.classList.remove('active'));
- chip.classList.add('active');
- const val = chip.dataset.val;
- const sel = document.getElementById('selDataProvider');
- if (sel) {
- sel.value = val;
- sel.dispatchEvent(new Event('change'));
- }
- updateFeedSummary();
- });
- });
-
- // Feed Mode Chips
- document.querySelectorAll('#groupFeedModeChips .feed-chip').forEach(chip => {
- chip.addEventListener('click', () => {
- document.querySelectorAll('#groupFeedModeChips .feed-chip').forEach(c => c.classList.remove('active', 'active-green'));
- chip.classList.add('active');
- if (chip.dataset.val === 'simulation') chip.classList.add('active-green');
- const val = chip.dataset.val;
- const sel = document.getElementById('selFeedMode');
- if (sel) {
- sel.value = val;
- sel.dispatchEvent(new Event('change'));
- }
- updateFeedSummary();
- });
- });
-
- // Stream Speed Chips
- document.querySelectorAll('#groupSpeedChips .feed-chip').forEach(chip => {
- chip.addEventListener('click', () => {
- document.querySelectorAll('#groupSpeedChips .feed-chip').forEach(c => c.classList.remove('active'));
- chip.classList.add('active');
- const val = chip.dataset.val;
- const sel = document.getElementById('selStreamSpeed');
- if (sel) {
- sel.value = val;
- sel.dispatchEvent(new Event('change'));
- }
- updateFeedSummary();
- });
- });
-
- function updateFeedSummary() {
- const pText = document.querySelector('#groupProviderChips .feed-chip.active')?.textContent.trim().split(' ')[1] || 'Auto';
- const mText = document.querySelector('#groupFeedModeChips .feed-chip.active')?.textContent.trim().split(' ')[1] || 'Live';
- const sText = document.querySelector('#groupSpeedChips .feed-chip.active')?.textContent.trim().split(' ')[1] || '1.8s';
- const summaryEl = document.getElementById('txtCurrentFeedSummary');
- if (summaryEl) summaryEl.textContent = `${pText} ${mText} ${sText}`;
- }
-
- // Live OHLCV Bar Updater
- function updateLiveOhlcvBar() {
- const chart = window.app?.mainChart;
- if (!chart || !chart.stock) return;
- const stock = chart.stock;
- const candles = chart.allCandles;
- const last = candles && candles.length ? candles[candles.length - 1] : null;
- if (!last) return;
-
- const setEl = (id, txt) => {
- const el = document.getElementById(id);
- if (el) el.textContent = txt;
- };
-
- setEl('mOhlcO', `&#8377;${last.open.toFixed(2)}`);
- setEl('mOhlcH', `&#8377;${last.high.toFixed(2)}`);
- setEl('mOhlcL', `&#8377;${last.low.toFixed(2)}`);
- setEl('mOhlcC', `&#8377;${last.close.toFixed(2)}`);
- setEl('mOhlcVol', `${(last.volume / 100000).toFixed(2)}L Vol`);
- }
-
- // Hook chart tick updates into OHLCV bar
- window.addEventListener('load', () => {
- setInterval(() => {
- if (document.getElementById('viewChart')?.classList.contains('active')) {
- updateLiveOhlcvBar();
- }
- }, 1000);
- });
- </script>
+  <!-- Sticky Mobile Header -->
+  <header class="mobile-app-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="brand-logo" style="width:24px; height:24px; font-size:12px;">&#8377;</div>
+      <div>
+        <div style="font-weight:800; font-size:13px; color:#ffffff; letter-spacing:-0.02em;">TRADEONE MOBILE</div>
+        <div style="font-size:9.5px; color:var(--text-muted);">NSE / BSE Stock Screener</div>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:6px;">
+      <span class="live-pill" id="livePillIndicator" style="font-size:9px; padding:2px 6px;">
+        <span class="live-dot"></span> LIVE
+      </span>
+      <a href="index.html" class="btn btn-sm" style="font-size:10px; padding:3px 8px; border-color:rgba(255,255,255,0.15); color:#94a3b8; text-decoration:none;">Desktop</a>
+    </div>
+  </header>
+
+  <!-- VIEW 1: WATCHLIST & SCANNER CARDS -->
+  <section class="mobile-tab-view active" id="viewWatchlist">
+    <!-- Investor Mode Chips -->
+    <div class="investor-modes-ribbon" style="margin-bottom:8px; overflow-x:auto; display:flex; gap:4px; padding-bottom:4px;">
+      <button class="investor-chip active" data-profile="all">All Profiles</button>
+      <button class="investor-chip" data-profile="compounder">Compounder</button>
+      <button class="investor-chip" data-profile="multibagger">Multibagger</button>
+      <button class="investor-chip" data-profile="garp">GARP</button>
+      <button class="investor-chip" data-profile="deep_value">Deep Value</button>
+      <button class="investor-chip" data-profile="dividend">Dividend</button>
+      <button class="investor-chip" data-profile="momentum">Momentum</button>
+    </div>
+
+    <!-- Presets Ribbon -->
+    <div class="protocol-ribbon" style="margin-bottom:8px; overflow-x:auto; display:flex; gap:4px; padding-bottom:4px;">
+      <button class="preset-chip active" data-preset="all">All (12)</button>
+      <button class="preset-chip" data-preset="user_master">10 Rules</button>
+      <button class="preset-chip" data-preset="cup_handle">Cup & Handle</button>
+      <button class="preset-chip" data-preset="consolidation_7w">7W Base</button>
+      <button class="preset-chip" data-preset="vol_shocker">Vol Shocker</button>
+      <button class="preset-chip" data-preset="nr_breakout">NR4/NR7</button>
+      <button class="preset-chip" data-preset="sebi_insider">SEBI Insider</button>
+      <button class="preset-chip" data-preset="smc_accum">SMC</button>
+      <button class="preset-chip" data-preset="dmr_leaders">DMR</button>
+    </div>
+
+    <!-- AI NLP Search Input -->
+    <div class="nlp-search-box" style="margin-bottom:8px;">
+      <div class="nlp-input-row" style="display:flex; align-items:center; background:#0b1329; border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:4px 8px;">
+        <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Search symbol or filter (e.g. 'high roce')..." style="flex:1; background:transparent; border:none; color:#ffffff; font-size:12px; outline:none;">
+        <button class="nlp-clear-btn" id="btnNlpClear" style="display:none; background:none; border:none; color:#94a3b8; cursor:pointer;">&times;</button>
+      </div>
+    </div>
+
+    <!-- Screener Results Header -->
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; padding:0 2px;">
+      <div style="font-size:12px; font-weight:700; color:var(--text-primary);">
+        Scanned Universe (<span id="statScannedCount" style="color:var(--accent-blue);">12</span>)
+      </div>
+      <div style="font-size:11px; font-weight:600; color:var(--accent-green);" id="statAvgReturn">
+        Avg Return: +3.4%
+      </div>
+    </div>
+
+    <!-- Native Stock Cards List Container -->
+    <div id="mobileStockCardsList">
+      <!-- Dynamically populated from JS universe -->
+    </div>
+
+    <!-- Hidden Synchronizers for JS bundle compatibility -->
+    <div style="display:none;">
+      <tbody id="screenerTableBody"></tbody>
+      <span id="marketStatusBadge"></span>
+      <span id="gpuStatusBadge"></span>
+      <select id="selDataProvider"><option value="auto" selected></option></select>
+      <select id="selFeedMode"><option value="auto" selected></option></select>
+      <select id="selStreamSpeed"><option value="1800" selected></option></select>
+      <select id="selExchange"><option value="ALL" selected></option></select>
+      <select id="selSector"><option value="ALL" selected></option></select>
+      <select id="selSortBy"><option value="qualityScore" selected></option></select>
+      <span id="statMatchRate"></span>
+      <span id="statVolSurge"></span>
+      <span id="statRiskScore"></span>
+      <span id="breadthAdvances"></span>
+      <span id="breadthDeclines"></span>
+      <span id="breadthSentiment"></span>
+    </div>
+  </section>
+
+  <!-- VIEW 2: MARKET HEATMAP -->
+  <section class="mobile-tab-view" id="viewMobileHeatmap">
+    <div style="font-size:14px; font-weight:800; color:#ffffff; margin-bottom:8px;">Market Heatmap Treemap</div>
+    <div id="heatmapSectorsGrid" style="display:flex; flex-direction:column; gap:8px;"></div>
+  </section>
+
+  <!-- VIEW 3: FINDESK PORTFOLIO -->
+  <section class="mobile-tab-view" id="viewMobilePortfolio">
+    <div style="font-size:14px; font-weight:800; color:#ffffff; margin-bottom:8px;">Portfolio Analytics</div>
+    <div class="findesk-holdings-panel" style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:10px;">
+      <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:6px;">Holdings Ledger</div>
+      <table class="findesk-holdings-table" style="width:100%; font-size:10px; border-collapse:collapse;">
+        <thead>
+          <tr style="border-bottom:1px solid rgba(255,255,255,0.08); color:var(--text-muted); text-align:left;">
+            <th>Symbol</th><th>Qty</th><th>LTP</th><th style="text-align:right;">P&L</th>
+          </tr>
+        </thead>
+        <tbody id="findeskHoldingsBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- VIEW 4: SECTOR DEEP-DIVE -->
+  <section class="mobile-tab-view" id="viewMobileSectors">
+    <div style="font-size:14px; font-weight:800; color:#38bdf8; margin-bottom:8px;">Sector Intelligence</div>
+    <div style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px; text-align:center;">
+      <div style="font-size:12px; font-weight:700; color:#ffffff; margin-bottom:8px;">Sector Sentiment Gauge</div>
+      <canvas id="sectorGaugeCanvas" width="180" height="110" style="display:inline-block;"></canvas>
+      <div style="font-size:11px; color:#34d399; font-weight:700; margin-top:4px;" id="sideSectorSentiment">BULLISH (+75/100)</div>
+    </div>
+  </section>
+
+  <!-- VIEW 5: PROTOCOLS & SLIDERS -->
+  <section class="mobile-tab-view" id="viewProtocols">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+      <h3 style="margin:0; font-size:14px; font-weight:700;">10 CANSLIM Protocols</h3>
+      <button class="btn btn-sm" id="btnResetFilters" style="font-size:10px; padding:2px 6px;">Reset</button>
+    </div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div style="background:rgba(15,23,42,0.6); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+          <span>Min ROCE %</span>
+          <span id="pill_roce" style="color:var(--accent-green); font-weight:700;">&ge; 0%</span>
+        </div>
+        <input type="range" id="rng_minRoce" min="0" max="40" step="1" value="0" style="width:100%;">
+      </div>
+
+      <div style="background:rgba(15,23,42,0.6); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+          <span>Max Debt to Equity</span>
+          <span id="pill_debtEquity" style="color:var(--accent-blue); font-weight:700;">&le; 5.0</span>
+        </div>
+        <input type="range" id="rng_maxDebtEquity" min="0" max="5" step="0.1" value="5" style="width:100%;">
+      </div>
+
+      <div style="background:rgba(15,23,42,0.6); padding:8px 10px; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:4px;">
+          <span>Min Mansfield Relative Strength</span>
+          <span id="pill_minRs" style="color:#f59e0b; font-weight:700;">&ge; 0</span>
+        </div>
+        <input type="range" id="rng_minRs" min="0" max="100" step="1" value="0" style="width:100%;">
+      </div>
+    </div>
+  </section>
+
+  <!-- VIEW 6: SCALPER EXECUTION TERMINAL -->
+  <section class="mobile-tab-view" id="viewMobileScalper">
+    <div style="font-size:14px; font-weight:800; color:#38bdf8; margin-bottom:8px;">Scalper Terminal</div>
+    <div style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:12px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <span style="font-weight:700; font-size:13px;" id="scalperSymbolText">TRENT</span>
+        <span class="val-pill" style="font-size:9.5px;">EQ ORDER</span>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn btn-primary" id="btnScalperBuy" style="flex:1; background:#16a34a; border-color:#22c55e;">
+          BUY @ <span id="scalperBuyPrice">&#8377;6,720.50</span>
+        </button>
+        <button class="btn" id="btnScalperSell" style="flex:1; background:#dc2626; border-color:#ef4444; color:#ffffff;">
+          SELL @ <span id="scalperSellPrice">&#8377;6,708.00</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- NATIVE BOTTOM NAVIGATION BAR -->
+  <nav class="mobile-bottom-nav">
+    <button class="mobile-nav-item active" data-target="viewWatchlist">
+      <span>TradeOne</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewMobileHeatmap">
+      <span>Heatmap</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewMobilePortfolio">
+      <span>Portfolio</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewMobileSectors">
+      <span>Sectors</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewProtocols">
+      <span>Protocols</span>
+    </button>
+    <button class="mobile-nav-item" data-target="viewMobileScalper">
+      <span>Scalper</span>
+    </button>
+  </nav>
+
+  <!-- Stock Detail Modal -->
+  <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
+    <div class="modal-container" style="max-height:85vh; overflow-y:auto;">
+      <div class="modal-header">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <h2 id="modalStockSymbol" style="font-size:16px; font-weight:700; font-family:var(--font-mono); margin:0;">TRENT</h2>
+            <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
+          </div>
+          <div id="modalStockName" style="font-size:11px; color:var(--text-muted); margin-top:2px;">Trent Ltd</div>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div style="text-align:right;">
+            <div id="modalLTP" style="font-size:16px; font-weight:700; font-family:var(--font-mono);">&#8377;6,720.50</div>
+            <div id="modalDayChg" style="font-size:10.5px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+          </div>
+          <button class="modal-close-btn" id="btnCloseModal">&times;</button>
+        </div>
+      </div>
+
+      <div class="modal-tabs" style="display:flex; gap:4px; border-bottom:1px solid rgba(255,255,255,0.08); padding:6px 12px;">
+        <div class="modal-tab active" data-tab="fundamental_radar" style="font-size:11px; padding:4px 8px; cursor:pointer;">Factor Scores</div>
+        <div class="modal-tab" data-tab="calculator" style="font-size:11px; padding:4px 8px; cursor:pointer;">Risk Sizing</div>
+        <div class="modal-tab" data-tab="thesis" style="font-size:11px; padding:4px 8px; cursor:pointer;">Equity Thesis</div>
+      </div>
+
+      <div class="modal-body" style="padding:12px;">
+        <!-- Factor Scores Tab -->
+        <div class="tab-content" id="tab_fundamental_radar" style="display:block;">
+          <div style="display:flex; justify-content:space-between; align-items:center; background:#090e1a; padding:8px 12px; border-radius:6px; margin-bottom:10px;">
+            <span style="font-size:11px; color:var(--text-muted);">Composite Score</span>
+            <span id="modalFactorOverall" style="font-size:16px; font-weight:800; color:#38bdf8;">92</span>
+            <span id="modalFactorGrade" class="factor-grade-pill">A+ Grade</span>
+          </div>
+
+          <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; margin-bottom:12px;">
+            <div style="display:flex; justify-content:space-between;"><span>Quality & Profitability:</span> <strong id="modalFactorQuality" style="color:var(--accent-green);">95/100</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Growth & Runway:</span> <strong id="modalFactorGrowth" style="color:#38bdf8;">90/100</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Financial Solvency:</span> <strong id="modalFactorSolvency" style="color:#10b981;">98/100</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Valuation Buffer:</span> <strong id="modalFactorValuation" style="color:#f59e0b;">78/100</strong></div>
+            <div style="display:flex; justify-content:space-between;"><span>Momentum & Technicals:</span> <strong id="modalFactorMomentum" style="color:var(--accent-green);">96/100</strong></div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:10.5px; background:rgba(15,23,42,0.6); padding:8px; border-radius:6px;">
+            <div>ROCE / ROE: <strong id="modalRoceRoe">28.5% / 24.2%</strong></div>
+            <div>P/E: <strong id="modalPeRatios">112.4</strong></div>
+            <div>Debt to Equity: <strong id="modalDebtEquity">0.08</strong></div>
+            <div>Piotroski Score: <strong id="modalPiotroskiScore" style="color:var(--accent-green);">8/9</strong></div>
+          </div>
+        </div>
+
+        <!-- Position Sizing Tab -->
+        <div class="tab-content" id="tab_calculator" style="display:none;">
+          <div style="display:flex; flex-direction:column; gap:8px; font-size:11px;">
+            <div>
+              <label style="color:var(--text-muted); font-size:10px;">Trading Capital (&#8377;)</label>
+              <input type="number" id="calcCapital" value="500000" style="width:100%; background:#090e1a; border:1px solid rgba(255,255,255,0.08); color:#ffffff; padding:6px; border-radius:4px;">
+            </div>
+            <div>
+              <label style="color:var(--text-muted); font-size:10px;">Risk % per Trade</label>
+              <input type="number" id="calcRiskPct" value="1.0" step="0.1" style="width:100%; background:#090e1a; border:1px solid rgba(255,255,255,0.08); color:#ffffff; padding:6px; border-radius:4px;">
+            </div>
+            <div>
+              <label style="color:var(--text-muted); font-size:10px;">Entry Price (&#8377;)</label>
+              <input type="number" id="calcEntryPrice" value="6720" style="width:100%; background:#090e1a; border:1px solid rgba(255,255,255,0.08); color:#ffffff; padding:6px; border-radius:4px;">
+            </div>
+            <div>
+              <label style="color:var(--text-muted); font-size:10px;">Stop Loss Price (&#8377;)</label>
+              <input type="number" id="calcStopLossPrice" value="6380" style="width:100%; background:#090e1a; border:1px solid rgba(255,255,255,0.08); color:#ffffff; padding:6px; border-radius:4px;">
+            </div>
+
+            <div style="background:#090e1a; padding:8px; border-radius:6px; margin-top:6px;">
+              <div style="display:flex; justify-content:space-between; font-size:11px;"><span>Suggested Shares:</span> <strong id="calcSharesOut" style="color:#38bdf8;">14 Qty</strong></div>
+              <div style="display:flex; justify-content:space-between; font-size:11px; margin-top:2px;"><span>Max Risk:</span> <strong id="calcRiskAmountOut" style="color:#ef4444;">&#8377;5,000</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Equity Thesis Tab -->
+        <div class="tab-content" id="tab_thesis" style="display:none; font-size:11.5px; line-height:1.5;">
+          <div id="modalThesisText" style="color:var(--text-secondary); margin-bottom:8px;"></div>
+          <div id="modalCatalysts" style="color:#34d399; margin-bottom:6px;"></div>
+          <div id="modalBearCase" style="color:#f87171;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchMobileTab(targetId) {
+      document.querySelectorAll('.mobile-nav-item').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mobile-tab-view').forEach(v => {
+        v.classList.remove('active');
+        v.style.display = 'none';
+      });
+
+      const targetBtn = document.querySelector(`.mobile-nav-item[data-target="${targetId}"]`);
+      if (targetBtn) targetBtn.classList.add('active');
+
+      const targetView = document.getElementById(targetId);
+      if (targetView) {
+        targetView.classList.add('active');
+        targetView.style.display = 'block';
+
+        if (targetId === 'viewMobileHeatmap' && window.screener) {
+          window.screener.renderMarketHeatmap();
+        } else if (targetId === 'viewMobilePortfolio' && window.screener) {
+          window.screener.renderPortfolio();
+        } else if (targetId === 'viewMobileSectors' && window.screener) {
+          window.screener.renderSectorDeepDive();
+        }
+      }
+    }
+
+    document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchMobileTab(btn.dataset.target);
+      });
+    });
+  </script>
 </body>
 </html>

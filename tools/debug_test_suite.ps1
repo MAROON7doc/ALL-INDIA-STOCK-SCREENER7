@@ -19,7 +19,6 @@ Write-Host "`n[TEST 1] Checking Core Assets Existence & Non-Zero Size..." -Foreg
 $coreFiles = @(
     "js\screener.bundle.js",
     "index.html",
-    "chart.html",
     "mobile.html",
     "css\styles.css"
 )
@@ -66,7 +65,6 @@ if ($openCurly -eq $closeCurly -and $openParen -eq $closeParen -and $openSquare 
 # TEST 3: Verify DOM IDs Referenced in JS Exist in HTML
 Write-Host "`n[TEST 3] Verifying DOM ID Bindings in JavaScript vs HTML..." -ForegroundColor Yellow
 $htmlContent = [System.IO.File]::ReadAllText((Join-Path $BaseDirectory "index.html"))
-$chartHtmlContent = [System.IO.File]::ReadAllText((Join-Path $BaseDirectory "chart.html"))
 $mobileHtmlContent = [System.IO.File]::ReadAllText((Join-Path $BaseDirectory "mobile.html"))
 
 $idMatches = [System.Text.RegularExpressions.Regex]::Matches($jsContent, "getElementById\(['""]([^'""]+)['""]\)")
@@ -80,10 +78,9 @@ Write-Host "  * Found $($uniqueIds.Keys.Count) unique getElementById references 
 $unmatchedIds = @()
 foreach ($id in $uniqueIds.Keys) {
     $foundInIndex = $htmlContent -match "id=['""]$id['""]"
-    $foundInChart = $chartHtmlContent -match "id=['""]$id['""]"
     $foundInMobile = $mobileHtmlContent -match "id=['""]$id['""]"
     $isRuntimeGenerated = $id -in @('tv-spin-style', 'btnEmptyViewAll', 'btnEmptyReset', 'btnTopExportCsv', 'btnTopCopyTickers')
-    if (-not $foundInIndex -and -not $foundInChart -and -not $foundInMobile -and -not $isRuntimeGenerated) {
+    if (-not $foundInIndex -and -not $foundInMobile -and -not $isRuntimeGenerated) {
         $unmatchedIds += $id
     }
 }

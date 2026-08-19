@@ -191,24 +191,6 @@
           </svg>
           News (<span id="newsCountBadge">8</span>)
         </button>
-
-        <button class="btn btn-sm" id="btnExportCsv" title="Export Results to CSV">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-            <polyline points="7 10 12 15 17 10"></polyline>
-            <line x1="12" y1="15" x2="12" y2="3"></line>
-          </svg>
-          Export CSV
-        </button>
-
-        <button class="btn btn-sm" id="btnCopyTickers" title="Copy Ticker List">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-          </svg>
-          Copy Tickers
-        </button>
-
         <button class="btn btn-sm" id="btnOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Connect Free Angel One SmartAPI for Live Market Feeds & Orders">
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
@@ -294,7 +276,7 @@
         <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">💎 SMC Accumulation</button>
         <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">📈 DMR Leaders</button>
       </div>
-      <div id="scanStatusBadge" class="val-pill">Live Scanner Active</div>
+      <div id="topScanStatusBadge" class="val-pill">Live Scanner Active</div>
     </div>
   </header>
 
@@ -1111,129 +1093,6 @@
         </div>
       </div>
 
-      <!-- High-Level Metric Cards -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-header">Matching Stocks</div>
-          <div class="stat-value" id="statMatchingCount">0</div>
-          <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">Cup & Handle Breakouts</div>
-          <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">0</div>
-          <div class="stat-sub">High-quality CANSLIM bases</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">7-Week Consolidations</div>
-          <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">0</div>
-          <div class="stat-sub">Volatility Contraction Bases</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-header">Average RS Rating</div>
-          <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">0</div>
-          <div class="stat-sub">Outperforming NIFTY 50</div>
-        </div>
-      </div>
-
-      <!-- Natural Language AI / NLP Filter Search Bar -->
-      <div class="nlp-search-container" id="nlpSearchContainer">
-        <div class="nlp-input-row">
-          <div class="nlp-icon">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-          </div>
-          <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter Bar: e.g. 'show me low debt companies with promoter buying' or 'vol shocker with nr7'...">
-          <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">✕ Clear</button>
-        </div>
-        <div class="nlp-chips-row">
-          <span style="color:var(--text-muted); font-size:10px; font-weight:600;">⚡ UNIVERSAL PROMPTS:</span>
-          <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
-          <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
-          <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
-          <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker + vwap"</button>
-          <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
-          <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
-          <button class="nlp-suggestion-chip" data-prompt="sector dmr momentum leaders">"dmr leaders"</button>
-          <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
-        </div>
-      </div>
-
-      <!-- Table Filter Bar -->
-      <div class="table-header-bar">
-        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-          <div class="search-box-wrap">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-            <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
-          </div>
-
-          <select id="selExchange">
-            <option value="ALL">All Exchanges (NSE & BSE)</option>
-            <option value="NSE">NSE Only</option>
-            <option value="BSE">BSE Only</option>
-          </select>
-
-          <select id="selSector">
-            <option value="ALL">All Sectors</option>
-            <option value="Defence">Defence & Aerospace</option>
-            <option value="Retail">Retail & Consumer</option>
-            <option value="EMS">EMS & Electronics</option>
-            <option value="IT">IT & Software</option>
-            <option value="Wires">Wires & Cables</option>
-            <option value="Renewable">Renewable Energy</option>
-            <option value="Financial">Financial Infrastructure</option>
-          </select>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:6px;">
-          <span style="font-size:11px; color:var(--text-muted);">Sort By:</span>
-          <select id="selSortBy">
-            <option value="qualityScore">Quality Score (0-100)</option>
-            <option value="moatScore">Moat Score (0-10)</option>
-            <option value="matchCount">Protocol Match Count (10/10)</option>
-            <option value="dmrScore">Dynamic Momentum Rank (DMR)</option>
-            <option value="fcfYield">Free Cash Flow Yield %</option>
-            <option value="rsScore">RS Score (Highest First)</option>
-            <option value="volumeBurst">Volume Burst / Shocker %</option>
-            <option value="deliveryPct">Delivery % (Institutional)</option>
-            <option value="epsGrowthYoY">EPS YoY Growth</option>
-            <option value="salesGrowthYoY">Sales YoY Growth</option>
-            <option value="roe">ROE / ROCE %</option>
-            <option value="eps3Y_CAGR">3Y EPS CAGR</option>
-            <option value="ltp">Current Price (LTP)</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Results Table -->
-      <div class="table-container">
-        <table class="screener-table">
-          <thead>
-            <tr>
-              <th>Stock / ISIN</th>
-              <th>Live LTP (₹) & Day Chg</th>
-              <th>MTF Trend (6)</th>
-              <th>Quality Score</th>
-              <th>Moat (0-10)</th>
-              <th>Vol Burst</th>
-              <th>Pattern / Base</th>
-              <th>Sales YoY</th>
-              <th>EPS YoY</th>
-              <th>3-5Y CAGR</th>
-              <th>ROE / ROCE</th>
-              <th>Stop Loss (SL)</th>
-              <th>Match (10)</th>
-              <th>Action</th>
-            </tr>
-          </thead>
-          <tbody id="screenerTableBody">
-            <!-- Dynamically populated -->
-          </tbody>
-        </table>
-      </div>
     </main>
   </div>
 

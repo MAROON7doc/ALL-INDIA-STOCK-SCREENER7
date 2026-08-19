@@ -7,11 +7,10 @@
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Universal Indian Stock Screener | Multi-Market TradingView Terminal & Institutional Engine</title>
+  <title>Universal Indian Stock Screener | High-Throughput Institutional Multi-Factor Screener</title>
   <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
   <link rel="stylesheet" href="css/styles.css">
   <script defer src="js/screener.bundle.js"></script>
-  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 
@@ -318,345 +317,480 @@
     <!-- Main Content Area -->
     <main class="content-area" style="padding:0;">
       
-      <!-- 1. STITCH VIEW 1: TRADEONE PRO WORKSTATION (Screen 3) -->
+      <!-- 1. STITCH VIEW 1: HIGH-THROUGHPUT INSTITUTIONAL STOCK SCREENER HUB -->
       <div class="stitch-view-content active" id="viewTradeoneWorkstation">
         
-        <!-- TradeOne Pro Multi-Column Workstation Grid -->
-        <div class="tradeone-workstation-grid" id="tradeoneWorkstationGrid">
-          
-          <!-- Column 0: Unified Left Workstation Sidebar (260px) -->
-          <aside class="tradeone-left-sidebar" id="tradeoneLeftSidebar">
-            <!-- Top Mode Switcher Tabs: Watchlist vs Protocols -->
-            <div class="sidebar-mode-switcher">
-              <button class="sidebar-mode-btn active" id="btnTabWatchlist" data-target="panelWatchlist">
-                📋 Watchlist
-              </button>
-              <button class="sidebar-mode-btn" id="btnTabProtocols" data-target="panelProtocols">
-                ⚙️ Protocols (10 Rules)
-              </button>
+        <!-- Screener Hub Container -->
+        <div class="screener-hub-container">
+
+          <!-- Strategy Presets Bar -->
+          <div class="screener-preset-ribbon" id="screenerPresetRibbon">
+            <span class="preset-ribbon-label">âš¡ Strategies:</span>
+            <button class="preset-chip active" data-preset="all">ðŸŒŸ All Universe</button>
+            <button class="preset-chip" data-preset="canslim" title="CANSLIM High Growth with Sales/PAT CAGR > 20% and RS > 75">ðŸš€ CANSLIM High Growth</button>
+            <button class="preset-chip" data-preset="compounder" title="High ROCE/ROE > 20%, Low Debt/Equity < 0.5, High Operating Margins">ðŸ’Ž Quality Compounders</button>
+            <button class="preset-chip" data-preset="deep_value" title="Low P/E, High FCF Yield > 4%, Positive Free Cash Flow">ðŸ’° Deep Value & FCF</button>
+            <button class="preset-chip" data-preset="momentum" title="DMR Leaders, RS Rating > 80, Above 20/50/200 DMA">âš¡ Momentum Breakouts</button>
+            <button class="preset-chip" data-preset="institutional" title="High Institutional Holding (FII + DII > 30%) with Promoter Buying">ðŸ›ï¸ Institutional Accumulation</button>
+            <button class="preset-chip" data-preset="vol_shocker" title="Volume Burst > 50% above 20 DMA with NR7 Range Contraction">ðŸ“Š Volume Shockers & NR7</button>
+            <button class="preset-chip" data-preset="multibagger" title="High 3Y Sales & EPS Growth, Micro/Small-Cap, Clean Balance Sheet">ðŸŽ¯ Small-Cap Multibaggers</button>
+            <div id="scanStatusBadge" class="val-pill" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--accent-green);">ðŸŸ¢ Real-Time Scanner Active</div>
+          </div>
+
+          <!-- Top Summary KPI Stat Cards -->
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-header">Matching Stocks</div>
+              <div class="stat-value" id="statMatchingCount">0</div>
+              <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
             </div>
-
-            <!-- Subpanel 1: Watchlist (Default Active) -->
-            <div class="left-sidebar-subpanel active" id="panelWatchlist">
-              <div class="watchlist-tab-carousel">
-                <button class="watchlist-tab-chip" data-wtab="aime">Aime basket</button>
-                <button class="watchlist-tab-chip" data-wtab="health">Health</button>
-                <button class="watchlist-tab-chip" data-wtab="news">News plus</button>
-                <button class="watchlist-tab-chip active" data-wtab="stocks">Stock to watch</button>
-              </div>
-
-              <div class="watchlist-search-row">
-                <input type="text" class="watchlist-search-input" id="txtWatchlistSearch" placeholder="🔍 Search stocks...">
-              </div>
-
-              <div class="sidebar-mtf-pills" id="sidebarMtfPills" aria-label="Multi-timeframe trend">
-                <span class="mtf-chip" id="chip_5m">5m</span>
-                <span class="mtf-chip" id="chip_15m">15m</span>
-                <span class="mtf-chip" id="chip_1H">1H</span>
-                <span class="mtf-chip" id="chip_4H">4H</span>
-                <span class="mtf-chip" id="chip_1D">1D</span>
-                <span class="mtf-chip" id="chip_1W">1W</span>
-              </div>
-
-              <div class="watchlist-stock-list" id="tradeoneWatchlistList">
-                <!-- Dynamically populated from universe (BEL, PREMIERENE, HAL, SOLARINDS, KAYNES, TRENT, etc.) -->
-              </div>
-
-              <div class="options-quick-list-bar" id="btnOptionsQuickList">
-                <span>OPTIONS QUICK LIST</span>
-                <span>▾</span>
-              </div>
+            <div class="stat-card">
+              <div class="stat-header">Quality Compounders</div>
+              <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">0</div>
+              <div class="stat-sub">Score â‰¥ 80 (ROCE > 20%)</div>
             </div>
-
-            <!-- Subpanel 2: Protocols (10 Rules) -->
-            <div class="left-sidebar-subpanel" id="panelProtocols" style="display:none; padding:10px; overflow-y:auto;">
-              <div style="display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:6px; margin-bottom:8px;">
-                <span style="font-size:11px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px;">10 Institutional Protocols</span>
-                <div style="display:flex; gap:4px;">
-                  <button class="btn btn-sm" id="btnResetProtocols" style="padding:2px 6px; font-size:10px;">Reset</button>
-                  <button class="btn btn-sm" id="btnResetFilters" style="display:none;">Reset</button>
-                </div>
-              </div>
-
-              <!-- P1: EPS & Sales YoY Growth Slider -->
-              <div class="protocol-slider-card">
-                <div class="protocol-slider-header">
-                  <span class="protocol-slider-title">P1: EPS & Sales YoY Growth</span>
-                  <span class="protocol-slider-val" id="pill_salesGrowth">≥ 15%</span>
-                </div>
-                <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="5" max="50" step="5" value="15">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>5%</span><span>Min Sales</span><span>50%</span>
-                </div>
-              </div>
-
-              <!-- P2: RSI Momentum Zone Slider -->
-              <div class="protocol-slider-card">
-                <div class="protocol-slider-header">
-                  <span class="protocol-slider-title">P2: RSI Momentum Zone</span>
-                  <span class="protocol-slider-val" id="pill_rsiLevel">RSI ≥ 70</span>
-                </div>
-                <input type="range" class="stitch-range-slider" id="rng_minRsi" min="50" max="85" step="5" value="70">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>50</span><span>RSI(14)</span><span>85</span>
-                </div>
-              </div>
-
-              <!-- P3: Burst of Volume Slider -->
-              <div class="protocol-slider-card">
-                <div class="protocol-slider-header">
-                  <span class="protocol-slider-title">P3: Burst of Volume > 40%</span>
-                  <span class="protocol-slider-val" id="pill_burstPct">+40% vs SMA20</span>
-                </div>
-                <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="10" max="100" step="10" value="40">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>+10%</span><span>Volume Burst</span><span>+100%</span>
-                </div>
-              </div>
-
-              <!-- P4: 7-Week Consolidation Base Slider -->
-              <div class="protocol-slider-card">
-                <div class="protocol-slider-header">
-                  <span class="protocol-slider-title">P4: 7-Week Base Tightness</span>
-                  <span class="protocol-slider-val" id="pill_baseTightness">≤ 18%</span>
-                </div>
-                <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="30" step="1" value="18">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>5% (Tight)</span><span>Max Range</span><span>30%</span>
-                </div>
-              </div>
-
-              <!-- P5: % Stop Loss Risk Limit Slider -->
-              <div class="protocol-slider-card">
-                <div class="protocol-slider-header">
-                  <span class="protocol-slider-title">P5: % Stop Loss Risk Limit</span>
-                  <span class="protocol-slider-val" id="pill_maxStopLoss">≤ 8.0%</span>
-                </div>
-                <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>3.0%</span><span>Stop Loss</span><span>15.0%</span>
-                </div>
-              </div>
-              <div class="protocol-slider-card active" id="card_p10">
-                <div class="protocol-slider-header">
-                  <label class="protocol-slider-title" for="chk_p10">P10: Multi-Timeframe Green Alignment</label>
-                  <label class="switch" title="Require the minimum number of bullish timeframes">
-                    <input type="checkbox" id="chk_p10" checked>
-                    <span class="slider"></span>
-                  </label>
-                </div>
-                <div class="protocol-slider-val" id="val_mtfGreen">6/6 Green</div>
-                <input type="range" class="stitch-range-slider" id="rng_mtfGreen" min="1" max="6" step="1" value="6">
-                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
-                  <span>1</span><span>Minimum bullish timeframes</span><span>6</span>
-                </div>
-              </div>
+            <div class="stat-card">
+              <div class="stat-header">Momentum Breakouts</div>
+              <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">0</div>
+              <div class="stat-sub">Above 50 DMA + RS > 75</div>
             </div>
-          </aside>
+            <div class="stat-card">
+              <div class="stat-header">Average RS Rating</div>
+              <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">0</div>
+              <div class="stat-sub">Outperforming NIFTY 50</div>
+            </div>
+          </div>
 
-          <!-- Column 2: Center TradingView Scalper Workstation -->
-          <section class="terminal-center-chart">
+          <!-- Institutional 6-Dimension Filter Hub -->
+          <div class="filter-hub-card">
             
-            <div class="tv-scalper-workstation" id="mainChartCard">
-              
-              <!-- 1. Top Chart Tab Header -->
-              <div class="tv-chart-top-tabs">
-                <div class="tv-tab-group">
-                  <button class="tv-icon-btn" id="btnToggleLeftSidebar" title="Toggle Watchlist / Protocols Sidebar (Max Space) [Ctrl+B]" style="padding:2px 6px; font-size:10.5px; margin-right:4px; color:#38bdf8; border-color:rgba(56,189,248,0.3); font-weight:700;">
-                    ◧ Sidebar
-                  </button>
-                  <button type="button" class="tv-tab-item active" id="tabNavChart">Chart</button>
-                  <button type="button" class="tv-tab-item" id="tabNavOverview">Overview</button>
-                  <button type="button" class="tv-tab-item" id="tabNavOptionChain">Option Chain</button>
-                  <button type="button" class="tv-tab-item" id="tabNavProtocols">10 Protocols</button>
+            <!-- Dimension Tabs Header -->
+            <div class="filter-tabs-header">
+              <div class="filter-dimension-nav" id="filterDimensionNav">
+                <button type="button" class="dim-nav-btn active" data-dim="dim_valuation">ðŸª™ Valuation Multiples</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_growth">ðŸš€ Growth & Performance</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_quality">ðŸ’Ž Quality & Profitability</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_solvency">ðŸ›¡ï¸ Solvency & Health</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_ownership">ðŸ‘¥ Ownership & Flows</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_technical">ðŸ“ˆ Technical & Signals</button>
+              </div>
+
+              <div class="filter-header-actions">
+                <div class="match-logic-box">
+                  <span style="font-size:10.5px; color:var(--text-muted);">Logic:</span>
+                  <select id="selMatchLogic" class="filter-select-sm" title="Match condition mode">
+                    <option value="AND" selected>AND (Match All)</option>
+                    <option value="OR">OR (Match Any)</option>
+                  </select>
                 </div>
-                <div style="display:flex; align-items:center; gap:8px;">
-                  <button class="btn-scalper-mode active" id="btnToggleScalperMode" title="Toggle Instant Scalper Buy/Sell Overlay">
-                    ⚡ SCALPER MODE
-                  </button>
-                  <button class="tv-icon-btn" id="btnPopoutChart" title="Open Pop-Out Standalone Workstation Window" style="color:var(--accent-green); border-color:rgba(16,185,129,0.35);">
-                    ↗ Pop-Out
-                  </button>
-                  <button class="tv-icon-btn" id="btnMaximizeChart" title="Maximize Chart to Fullscreen Viewport">
-                    ⛶
-                  </button>
+                <button type="button" class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+                <button type="button" class="btn btn-sm" id="btnResetProtocols" style="display:none;">Reset</button>
+              </div>
+            </div>
+
+            <!-- Dimension Sub-Panels -->
+            <div class="filter-dimension-body">
+              
+              <!-- 1. Valuation Dimension -->
+              <div class="dim-panel active" id="dim_valuation">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <label class="filter-card-label">Market Cap Category</label>
+                    <select id="selMarketCapCat" class="filter-select-full">
+                      <option value="ALL" selected>All Market Caps</option>
+                      <option value="LARGE">Large Cap (> â‚¹50,000 Cr)</option>
+                      <option value="MID">Mid Cap (â‚¹15,000 - 50,000 Cr)</option>
+                      <option value="SMALL">Small Cap (â‚¹2,000 - 15,000 Cr)</option>
+                      <option value="MICRO">Micro Cap (< â‚¹2,000 Cr)</option>
+                    </select>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Max P/E Ratio</label>
+                      <span class="filter-val-badge" id="pill_peRatio">â‰¤ 120</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxPe" min="10" max="150" step="5" value="120">
+                    <div class="slider-ticks"><span>10x</span><span>Value âž” Growth</span><span>150x</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Max PEG Ratio</label>
+                      <span class="filter-val-badge" id="pill_pegRatio">â‰¤ 3.5</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxPeg" min="0.5" max="5.0" step="0.2" value="3.5">
+                    <div class="slider-ticks"><span>0.5 (Undervalued)</span><span>Max PEG</span><span>5.0</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min FCF Yield %</label>
+                      <span class="filter-val-badge" id="pill_fcfYield">â‰¥ 0.0%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minFcfYield" min="0" max="10" step="0.5" value="0">
+                    <div class="slider-ticks"><span>0%</span><span>Free Cash Flow Yield</span><span>10%</span></div>
+                  </div>
                 </div>
               </div>
 
-              <!-- 2. TradingView Master Tool Ribbon -->
-              <div class="tv-master-ribbon">
-                <div class="tv-ribbon-left">
-                  <!-- Stock Title & Ticker Badge -->
-                  <div style="font-weight:800; font-size:13px; font-family:var(--font-mono); color:var(--text-primary); margin-right:4px;" id="mainChartStockTitle">
-                    BEL <span style="font-size:12px; color:var(--accent-green); font-weight:600;" id="mainChartPrice">₹413.05 (+0.15%)</span>
+              <!-- 2. Growth Dimension -->
+              <div class="dim-panel" id="dim_growth">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Sales YoY Growth</label>
+                      <span class="filter-val-badge" id="pill_salesGrowth">â‰¥ 10%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="0" max="50" step="5" value="10">
+                    <div class="slider-ticks"><span>0%</span><span>Quarterly Sales YoY</span><span>50%</span></div>
                   </div>
 
-                  <!-- Timeframe Horizon Group -->
-                  <div class="tv-btn-group" id="tvIntervalGroup" style="padding:1px 3px;">
-                    <button class="tv-btn" data-interval="1m" title="1-Minute Live Intraday Scalp">1m</button>
-                    <button class="tv-btn active" data-interval="5m" title="5-Minute Intraday Trend">5m</button>
-                    <button class="tv-btn" data-interval="15m" title="15-Minute Intraday Swings">15m</button>
-                    <button class="tv-btn" data-interval="1H" title="1-Hour Hourly Candlesticks">1H</button>
-                    <button class="tv-btn" data-interval="4H" title="4-Hour Swing Candlesticks">4H</button>
-                    <button class="tv-btn" data-interval="1D" title="1-Day Daily Candlesticks">1D</button>
-                    <button class="tv-btn" data-interval="1W" title="1-Week Weekly Candlesticks">1W</button>
-                    <button class="tv-btn" data-interval="1M" title="1-Month Multi-Year Candlesticks">1M</button>
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min 3Y Sales CAGR</label>
+                      <span class="filter-val-badge" id="pill_sales3yCagr">â‰¥ 12%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minSales3yCagr" min="0" max="40" step="2" value="12">
+                    <div class="slider-ticks"><span>0%</span><span>3-Year Compounding</span><span>40%</span></div>
                   </div>
 
-                  <div class="tv-ribbon-divider"></div>
-
-                  <!-- Chart Type Candles vs Area -->
-                  <div class="tv-btn-group" style="padding:1px 3px;">
-                    <button class="tv-btn active" id="btnChartTypeCandle" title="Candlestick Chart">🕯️</button>
-                    <button class="tv-btn" id="btnChartTypeArea" title="Area Line Chart">📈</button>
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Profit (PAT) YoY</label>
+                      <span class="filter-val-badge" id="pill_patGrowth">â‰¥ 15%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPatGrowth" min="0" max="60" step="5" value="15">
+                    <div class="slider-ticks"><span>0%</span><span>Quarterly Profit YoY</span><span>60%</span></div>
                   </div>
 
-                  <div class="tv-ribbon-divider"></div>
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min 3Y PAT CAGR</label>
+                      <span class="filter-val-badge" id="pill_pat3yCagr">â‰¥ 15%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPat3yCagr" min="0" max="50" step="5" value="15">
+                    <div class="slider-ticks"><span>0%</span><span>3-Year Profit CAGR</span><span>50%</span></div>
+                  </div>
+                </div>
+              </div>
 
-                  <!-- fx Indicators Button -->
-                  <button class="tv-icon-btn active" id="btnToggleIndicatorsMenu" title="Toggle 10 CANSLIM Protocol Indicators Ribbon" style="color:var(--accent-blue);">
-                    <span>ƒx</span> Indicators
-                  </button>
+              <!-- 3. Quality & Profitability Dimension -->
+              <div class="dim-panel" id="dim_quality">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min ROCE %</label>
+                      <span class="filter-val-badge" id="pill_roce">â‰¥ 15%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRoce" min="5" max="40" step="1" value="15">
+                    <div class="slider-ticks"><span>5%</span><span>Return on Capital</span><span>40%</span></div>
+                  </div>
 
-                  <div class="tv-ribbon-divider"></div>
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min ROE %</label>
+                      <span class="filter-val-badge" id="pill_roe">â‰¥ 12%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRoe" min="5" max="35" step="1" value="12">
+                    <div class="slider-ticks"><span>5%</span><span>Return on Equity</span><span>35%</span></div>
+                  </div>
 
-                  <!-- Instant Orders Toggle Switch -->
-                  <label class="instant-orders-toggle" title="Enable/Disable 1-Click Buy/Sell Scalper Bar">
-                    <span>Instant Orders</span>
-                    <label class="switch" style="width:30px; height:16px;">
-                      <input type="checkbox" id="chkInstantOrders" checked>
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Operating Margin (OPM)</label>
+                      <span class="filter-val-badge" id="pill_opm">â‰¥ 10%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minOpm" min="0" max="35" step="1" value="10">
+                    <div class="slider-ticks"><span>0%</span><span>EBITDA Margin</span><span>35%</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Piotroski F-Score</label>
+                      <span class="filter-val-badge" id="pill_piotroski">â‰¥ 6 / 9</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPiotroski" min="3" max="9" step="1" value="6">
+                    <div class="slider-ticks"><span>3 (Weak)</span><span>Fundamental Health</span><span>9 (Pristine)</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. Solvency & Health Dimension -->
+              <div class="dim-panel" id="dim_solvency">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Max Debt-to-Equity</label>
+                      <span class="filter-val-badge" id="pill_debtEquity">â‰¤ 1.0</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxDebtEquity" min="0.0" max="2.5" step="0.1" value="1.0">
+                    <div class="slider-ticks"><span>0.0 (Zero Debt)</span><span>Max Leverage</span><span>2.5</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Interest Coverage</label>
+                      <span class="filter-val-badge" id="pill_interestCov">â‰¥ 3.0x</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minInterestCov" min="1.0" max="15.0" step="0.5" value="3.0">
+                    <div class="slider-ticks"><span>1.0x</span><span>EBIT / Interest</span><span>15.0x</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Current Ratio</label>
+                      <span class="filter-val-badge" id="pill_currentRatio">â‰¥ 1.2x</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minCurrentRatio" min="0.8" max="3.0" step="0.1" value="1.2">
+                    <div class="slider-ticks"><span>0.8x</span><span>Liquidity Buffer</span><span>3.0x</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Stop Loss Risk Limit</label>
+                      <span class="filter-val-badge" id="pill_maxStopLoss">â‰¤ 8.0%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
+                    <div class="slider-ticks"><span>3.0%</span><span>Max SL Drawdown</span><span>15.0%</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. Ownership & Flows Dimension -->
+              <div class="dim-panel" id="dim_ownership">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Promoter Holding %</label>
+                      <span class="filter-val-badge" id="pill_promoterHold">â‰¥ 40%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPromoter" min="20" max="75" step="5" value="40">
+                    <div class="slider-ticks"><span>20%</span><span>Promoter Skin-in-Game</span><span>75%</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Max Promoter Pledge %</label>
+                      <span class="filter-val-badge" id="pill_promoterPledge">â‰¤ 5.0%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxPledge" min="0" max="25" step="1" value="5">
+                    <div class="slider-ticks"><span>0% (Zero Pledge)</span><span>Max Pledge</span><span>25%</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Institutional (FII+DII) %</label>
+                      <span class="filter-val-badge" id="pill_instHolding">â‰¥ 15%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minInstHolding" min="0" max="50" step="5" value="15">
+                    <div class="slider-ticks"><span>0%</span><span>Smart Money Stake</span><span>50%</span></div>
+                  </div>
+
+                  <div class="filter-input-card" style="display:flex; flex-direction:column; justify-content:center;">
+                    <label class="switch-row" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+                      <span style="font-size:11.5px; font-weight:600; color:var(--text-primary);">SEBI Insider Buying (>â‚¹10L)</span>
+                      <label class="switch">
+                        <input type="checkbox" id="chk_insiderBuys">
+                        <span class="slider"></span>
+                      </label>
+                    </label>
+                    <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Filter stocks with recent promoter/director open market purchases.</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 6. Technical & Signals Dimension -->
+              <div class="dim-panel" id="dim_technical">
+                <div class="filter-grid-4">
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Min Relative Strength (RS)</label>
+                      <span class="filter-val-badge" id="pill_minRs">â‰¥ 70</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRs" min="30" max="95" step="5" value="70">
+                    <div class="slider-ticks"><span>30</span><span>Mansfield RS vs NIFTY</span><span>95</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">RSI(14) Momentum Zone</label>
+                      <span class="filter-val-badge" id="pill_rsiLevel">RSI â‰¥ 60</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRsi" min="40" max="85" step="5" value="60">
+                    <div class="slider-ticks"><span>40 (Oversold)</span><span>RSI Zone</span><span>85 (Bullish)</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">Volume Burst Spike %</label>
+                      <span class="filter-val-badge" id="pill_burstPct">â‰¥ +30%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="0" max="100" step="10" value="30">
+                    <div class="slider-ticks"><span>0%</span><span>Above 20-Day SMA</span><span>+100%</span></div>
+                  </div>
+
+                  <div class="filter-input-card">
+                    <div class="filter-card-header">
+                      <label class="filter-card-label">7-Week Base Tightness</label>
+                      <span class="filter-val-badge" id="pill_baseTightness">â‰¤ 20%</span>
+                    </div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="30" step="1" value="20">
+                    <div class="slider-ticks"><span>5% (Ultra Tight)</span><span>Max Volatility</span><span>30%</span></div>
+                  </div>
+                </div>
+
+                <!-- Technical Toggles Row -->
+                <div class="tech-toggles-row" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <label class="switch" style="width:32px; height:18px;">
+                      <input type="checkbox" id="chk_dma50" checked>
                       <span class="slider"></span>
                     </label>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price > 50 DMA</span>
                   </label>
-                </div>
 
-                <div class="tv-ribbon-right">
-                  <button class="tv-icon-btn" id="btnUndoChart" title="Undo (Ctrl+Z)">↺</button>
-                  <button class="tv-icon-btn" id="btnRedoChart" title="Redo (Ctrl+Y)">↻</button>
-                  <button class="tv-icon-btn" id="btnResetChartZoom" title="Reset Zoom to Fit Screen">🔍 Fit</button>
-                  <div class="tv-ribbon-divider"></div>
-                  <button class="tv-icon-btn" id="btnChartAlert" title="Set Price Alert">⏰</button>
-                  <button class="tv-icon-btn" id="btnChartSnapshot" title="Take Instant Chart Screenshot / Snapshot">📷</button>
-                  <button class="tv-icon-btn" id="btnChartSettings" title="Chart Appearance & Protocol Settings">⚙️</button>
-                </div>
-              </div>
+                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <label class="switch" style="width:32px; height:18px;">
+                      <input type="checkbox" id="chk_dma200" checked>
+                      <span class="slider"></span>
+                    </label>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price > 200 DMA (Long-Term Bull)</span>
+                  </label>
 
-              <!-- 10 Protocol Visual Layer Ribbon (Collapsible via fx Indicators) -->
-              <div class="protocol-layer-ribbon" id="protocolLayerRibbon" style="margin:0; border-radius:0; border-left:none; border-right:none; background:#080e1c;">
-                <span class="protocol-layer-label">Visual Overlays:</span>
-                <button class="layer-toggle active" data-layer="p1_growth" title="P1: Growth Milestone Pins & Earnings Beats">P1: EPS Growth</button>
-                <button class="layer-toggle active" data-layer="p2_rsi" title="P2: RSI(14) Momentum Oscillator Sub-Panel">P2: RSI Momentum</button>
-                <button class="layer-toggle active" data-layer="p3_vol" title="P3: Glowing Volume Burst Beacons (>50% above SMA20)">P3: Vol Burst</button>
-                <button class="layer-toggle active" data-layer="p4_base7w" title="P4: 7-Week Consolidation Bounding Box">P4: 7W Base</button>
-                <button class="layer-toggle active" data-layer="p5_cup" title="P5: Cup & Handle Golden Arc, Neckline Pivot & Target Projection">P5: Cup & Handle</button>
-                <button class="layer-toggle active" data-layer="p6_sl" title="P6: % Stop Loss & Risk/Reward Position Box">P6: Stop Loss & R:R</button>
-                <button class="layer-toggle active" data-layer="p9_rs" title="P9: Mansfield Relative Strength Curve vs NIFTY 50">P9: RS Momentum</button>
-                <button class="layer-toggle active" data-layer="p10_mtf" title="P10: Multi-Timeframe All-Green Bullish Alignment HUD (5m, 15m, 1H, 4H, 1D, 1W)">P10: MTF Green</button>
-              </div>
-
-              <!-- 3. Main Chart Middle Body: Left Drawing Bar + Center Canvas -->
-              <div class="tv-chart-body-wrapper">
-                
-                <!-- Left Drawing Tool Bar -->
-                <aside class="tv-left-drawing-bar">
-                  <button class="drawing-tool-btn active" data-tool="crosshair" title="Crosshair Cursor (✛)">✛</button>
-                  <button class="drawing-tool-btn" data-tool="trendline" title="Trend Line / Ray (╱)">╱</button>
-                  <button class="drawing-tool-btn" data-tool="fib" title="Fibonacci Retracement (≡)">≡</button>
-                  <button class="drawing-tool-btn" data-tool="rectangle" title="Order Block / Consolidation Box (⬡)">⬡</button>
-                  <div class="drawing-divider"></div>
-                  <button class="drawing-tool-btn" data-tool="text" title="Text Annotation (T)">T</button>
-                  <button class="drawing-tool-btn" data-tool="measure" title="Measure Ruler (📐)">📐</button>
-                  <button class="drawing-tool-btn" data-tool="magnet" title="Magnet Mode (🧲)">🧲</button>
-                  <div class="drawing-divider"></div>
-                  <button class="drawing-tool-btn" data-tool="lock" title="Lock Drawings (🔒)">🔒</button>
-                  <button class="drawing-tool-btn" data-tool="hide" title="Hide All Drawings (👁️)">👁️</button>
-                  <button class="drawing-tool-btn" data-tool="clear" title="Clear All Drawings (🗑️)" style="color:var(--accent-red);">🗑️</button>
-                </aside>
-
-                <!-- Center Canvas & Master TradingView Lightweight Charts Container -->
-                <div class="tv-canvas-center-wrap">
-                  
-                  <!-- Master TradingView Candlestick & Volume Engine -->
-                  <div class="chart-container-box" id="mainCanvasContainer">
-                  </div>
-
-                </div>
-
-              </div>
-
-              <!-- 4. Bottom Time Range & Live Market Clock Bar -->
-              <div class="tv-bottom-status-bar">
-                <div class="tv-bottom-left-ranges" id="tvRangeGroup">
-                  <button class="tv-bottom-range-btn" data-range="1D">1D</button>
-                  <button class="tv-bottom-range-btn" data-range="5D">5D</button>
-                  <button class="tv-bottom-range-btn" data-range="1M">1M</button>
-                  <button class="tv-bottom-range-btn" data-range="3M">3M</button>
-                  <button class="tv-bottom-range-btn" data-range="6M">6M</button>
-                  <button class="tv-bottom-range-btn" data-range="1Y">1Y</button>
-                  <button class="tv-bottom-range-btn" data-range="5Y">5Y</button>
-                  <button class="tv-bottom-range-btn" data-range="ALL">ALL</button>
-                  <span style="color:rgba(255,255,255,0.15); margin:0 4px;">|</span>
-                  <span style="color:var(--accent-blue); font-size:9.5px; font-weight:700;">Powered by ⚡ Tick by Tick</span>
-                </div>
-
-                <div class="tv-bottom-right-status">
-                  <span id="liveIstClock" class="live-ist-clock-badge">09:25:26 (UTC+5:30)</span>
-                  <div class="scale-toggle-group">
-                    <button class="scale-toggle-btn" id="btnScalePct">%</button>
-                    <button class="scale-toggle-btn" id="btnScaleLog">log</button>
-                    <button class="scale-toggle-btn active" id="btnScaleAuto">auto</button>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Stock Selector Quick Ribbon -->
-              <div style="display:flex; align-items:center; gap:6px; padding:6px 12px; background:#080e1c; border-top:1px solid rgba(255,255,255,0.04);">
-                <span style="font-size:9.5px; color:var(--text-muted); text-transform:uppercase; font-weight:700;">Quick Stocks:</span>
-                <div class="stock-pill-selector" id="stockPillSelector">
-                  <!-- Dynamically populated stock selection pills -->
+                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+                    <label class="switch" style="width:32px; height:18px;">
+                      <input type="checkbox" id="chk_p10" checked>
+                      <span class="slider"></span>
+                    </label>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (â‰¥4/6)</span>
+                  </label>
+                  <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="display:none;">
+                  <div id="val_mtfGreen" style="display:none;">4/6 Green</div>
                 </div>
               </div>
 
             </div>
+          </div>
 
-          </section>
+          <!-- Natural Language AI / NLP Filter Search Bar -->
+          <div class="nlp-search-container" id="nlpSearchContainer">
+            <div class="nlp-input-row">
+              <div class="nlp-icon">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+              </div>
+              <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter: e.g. 'high quality compounder with zero debt and promoter buying' or 'vol shocker with nr7'...">
+              <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">âœ• Clear</button>
+            </div>
+            <div class="nlp-chips-row">
+              <span style="color:var(--text-muted); font-size:10px; font-weight:600;">âš¡ QUICK PROMPTS:</span>
+              <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
+              <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
+              <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
+              <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker"</button>
+              <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
+              <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
+              <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
+            </div>
+          </div>
 
-          <!-- Column 3: Right Action Sidebar (Zerodha/Dhan/TradeOne Style) -->
-          <aside class="tradeone-right-sidebar">
-            <button class="tradeone-sidebar-btn active" id="btnRightToolWatchlist" title="Watchlist">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"></path></svg>
-              <span>Watchlist</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolPositions" title="Positions">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-              <span>Positions</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolOrders" title="Orders">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-              <span>Orders</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolDepth" title="Market Depth">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"></path></svg>
-              <span>Depth</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolOptionChain" title="Option Chain">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-              <span>Option Chain</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolProtocols" title="10 Protocols Engine">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-              <span>Protocols</span>
-            </button>
-            <button class="tradeone-sidebar-btn" id="btnRightToolMore" title="More">
-              <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><circle cx="12" cy="12" r="1"></circle><circle cx="12" cy="5" r="1"></circle><circle cx="12" cy="19" r="1"></circle></svg>
-              <span>More</span>
-            </button>
-          </aside>
+          <!-- High-Throughput Interactive Screener Table Controls Bar -->
+          <div class="table-header-bar">
+            
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <!-- Omnibar Search -->
+              <div class="search-box-wrap">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
+              </div>
+
+              <!-- Sector Dropdown -->
+              <select id="selSector" class="filter-select-sm">
+                <option value="ALL">All Sectors</option>
+                <option value="Defence">Defence & Aerospace</option>
+                <option value="Retail">Retail & Consumer</option>
+                <option value="EMS">EMS & Electronics</option>
+                <option value="IT">IT & Software</option>
+                <option value="Wires">Wires & Cables</option>
+                <option value="Renewable">Renewable Energy</option>
+                <option value="Financial">Financial Infrastructure</option>
+              </select>
+
+              <!-- Exchange Dropdown -->
+              <select id="selExchange" class="filter-select-sm">
+                <option value="ALL">All Exchanges (NSE & BSE)</option>
+                <option value="NSE">NSE Only</option>
+                <option value="BSE">BSE Only</option>
+              </select>
+            </div>
+
+            <!-- Column View Switcher & Action Buttons -->
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+              
+              <!-- Column View Category Switcher -->
+              <div class="column-view-group" id="columnViewGroup">
+                <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">View:</span>
+                <select id="selColumnView" class="filter-select-sm" title="Switch active column dataset">
+                  <option value="overview" selected>ðŸ“Š Overview & Scores</option>
+                  <option value="valuation">ðŸª™ Valuation Multiples</option>
+                  <option value="growth">ðŸš€ Growth & Performance</option>
+                  <option value="quality">ðŸ’Ž Quality & Profitability</option>
+                  <option value="solvency">ðŸ›¡ï¸ Solvency & Health</option>
+                  <option value="ownership">ðŸ‘¥ Ownership & Flows</option>
+                  <option value="technical">ðŸ“ˆ Technical & Signals</option>
+                </select>
+              </div>
+
+              <!-- Sort By Dropdown -->
+              <div style="display:flex; align-items:center; gap:4px;">
+                <span style="font-size:10.5px; color:var(--text-muted);">Sort:</span>
+                <select id="selSortBy" class="filter-select-sm">
+                  <option value="qualityScore" selected>Institutional Score (0-100)</option>
+                  <option value="roce">ROCE % (Highest First)</option>
+                  <option value="salesGrowthYoY">Sales YoY Growth %</option>
+                  <option value="epsGrowthYoY">EPS YoY Growth %</option>
+                  <option value="fcfYield">Free Cash Flow Yield %</option>
+                  <option value="pe">P/E Ratio (Lowest First)</option>
+                  <option value="rsScore">RS Score (Highest First)</option>
+                  <option value="volumeBurst">Volume Burst %</option>
+                  <option value="marketCapCr">Market Cap (â‚¹ Cr)</option>
+                  <option value="ltp">Price (LTP)</option>
+                </select>
+              </div>
+
+              <button class="btn btn-sm" id="btnCopyTickers" title="Copy active filtered tickers">
+                ðŸ“‹ Copy Tickers
+              </button>
+
+              <button class="btn btn-sm" id="btnExportCsv" title="Export full 33-point institutional CSV">
+                ðŸ“¥ Export CSV
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Master Results Table -->
+          <div class="table-container">
+            <table class="screener-table">
+              <thead id="screenerTableHead">
+                <!-- Dynamically populated based on active column view -->
+              </thead>
+              <tbody id="screenerTableBody">
+                <!-- Dynamically populated -->
+              </tbody>
+            </table>
+          </div>
 
         </div>
+
       </div>
 
-      <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
+            <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
       <div class="stitch-view-content" id="viewMarketHeatmap">
         <div class="heatmap-container">
           
@@ -1159,22 +1293,120 @@
 
       <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
       <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="chart">Candlestick Chart</div>
+        <div class="modal-tab active" data-tab="fundamental_radar">ðŸ“Š Factor Scores & Fundamentals</div>
         <div class="modal-tab" data-tab="calculator">Risk & Sizing</div>
-        <div class="modal-tab" data-tab="thesis">📜 Equity Thesis & Risks</div>
-        <div class="modal-tab" data-tab="moat_intel">🏰 Moat & Governance</div>
-        <div class="modal-tab" data-tab="sebi_intel">🏛️ SEBI Insider & Forensics</div>
-        <div class="modal-tab" data-tab="peer_matrix">👥 Sector Peer Matrix</div>
-        <div class="modal-tab" data-tab="smc_dmr">⚡ Smart Money & DMR</div>
+        <div class="modal-tab" data-tab="thesis">ðŸ“œ Equity Thesis & Risks</div>
+        <div class="modal-tab" data-tab="moat_intel">ðŸ° Moat & Governance</div>
+        <div class="modal-tab" data-tab="sebi_intel">ðŸ›ï¸ SEBI Insider & Forensics</div>
+        <div class="modal-tab" data-tab="peer_matrix">ðŸ‘¥ Sector Peer Matrix</div>
+        <div class="modal-tab" data-tab="smc_dmr">âš¡ Smart Money & DMR</div>
       </div>
 
       <!-- Modal Body -->
       <div class="modal-body">
         
         <!-- Tab 1: Modal Candlestick Chart -->
-        <div class="tab-content" id="tab_chart">
-          <div class="chart-container-box" id="modalCanvasContainer" style="height: 480px;">
-            <!-- Canvas rendered by JS -->
+        <!-- Tab 1: Institutional Factor Scores & Comprehensive Fundamental Radar -->
+        <div class="tab-content" id="tab_fundamental_radar">
+          <div class="radar-modal-layout">
+            
+            <!-- Overall Score & Factor Breakdown Cards -->
+            <div class="factor-summary-panel">
+              <div class="factor-overall-card">
+                <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Composite Score</div>
+                <div class="factor-overall-score" id="modalFactorOverall">92</div>
+                <div class="factor-grade-pill" id="modalFactorGrade">A+ Institutional Grade</div>
+                <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" id="modalFactorRisk">Pristine Balance Sheet â€¢ Low Risk</div>
+              </div>
+
+              <!-- 5-Factor Score Meters -->
+              <div class="factor-meters-grid">
+                <div class="factor-meter-card">
+                  <div class="factor-meter-header">
+                    <span>Quality & Profitability</span>
+                    <strong id="modalFactorQuality">95/100</strong>
+                  </div>
+                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorQuality" style="width:95%; background:#22c55e;"></div></div>
+                </div>
+
+                <div class="factor-meter-card">
+                  <div class="factor-meter-header">
+                    <span>Growth & Runway</span>
+                    <strong id="modalFactorGrowth">90/100</strong>
+                  </div>
+                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorGrowth" style="width:90%; background:#38bdf8;"></div></div>
+                </div>
+
+                <div class="factor-meter-card">
+                  <div class="factor-meter-header">
+                    <span>Financial Solvency</span>
+                    <strong id="modalFactorSolvency">98/100</strong>
+                  </div>
+                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorSolvency" style="width:98%; background:#10b981;"></div></div>
+                </div>
+
+                <div class="factor-meter-card">
+                  <div class="factor-meter-header">
+                    <span>Valuation Score</span>
+                    <strong id="modalFactorValuation">75/100</strong>
+                  </div>
+                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorValuation" style="width:75%; background:#f59e0b;"></div></div>
+                </div>
+
+                <div class="factor-meter-card">
+                  <div class="factor-meter-header">
+                    <span>Momentum & Technicals</span>
+                    <strong id="modalFactorMomentum">88/100</strong>
+                  </div>
+                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorMomentum" style="width:88%; background:#a855f7;"></div></div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Key Financial Matrix -->
+            <div class="modal-financial-grid">
+              <div class="fund-card">
+                <div class="fund-label">ROCE / ROE</div>
+                <div class="fund-val" id="modalRoceRoe" style="color:var(--accent-green);">28.5% / 24.1%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">P/E & Sector P/E</div>
+                <div class="fund-val" id="modalPeRatios">48.2 (Sec: 54.0)</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Debt-to-Equity</div>
+                <div class="fund-val" id="modalDebtEquity" style="color:var(--accent-green);">0.08 (Zero-Debt)</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Piotroski F-Score</div>
+                <div class="fund-val" id="modalPiotroskiScore" style="color:var(--accent-blue);">8 / 9 (Pristine)</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Sales & PAT YoY</div>
+                <div class="fund-val" id="modalSalesPatYoY">+34.2% / +48.5%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">3Y Sales / PAT CAGR</div>
+                <div class="fund-val" id="modalCagr3y">+28.4% / +36.2%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">Promoter / FII / DII</div>
+                <div class="fund-val" id="modalHoldingsBreakdown">52.4% / 24.1% / 14.8%</div>
+              </div>
+              <div class="fund-card">
+                <div class="fund-label">52-Week Range</div>
+                <div class="fund-val" id="modal52wRange">â‚¹3,950 - â‚¹7,450</div>
+              </div>
+            </div>
+
+            <!-- Screener Pass / Fail Checklist -->
+            <div class="screener-checklist-panel">
+              <div style="font-weight:700; font-size:12px; color:var(--text-primary); margin-bottom:8px;">Active Screener Criteria Checklist</div>
+              <div class="checklist-grid" id="modalChecklistGrid">
+                <!-- Dynamically populated checklist -->
+              </div>
+            </div>
+
           </div>
         </div>
 

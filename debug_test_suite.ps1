@@ -71,7 +71,7 @@ foreach ($id in $uniqueIds) {
     $foundInIndex = $htmlContent -match "id=['""]$id['""]"
     $foundInChart = $chartHtmlContent -match "id=['""]$id['""]"
     $foundInMobile = $mobileHtmlContent -match "id=['""]$id['""]"
-    $isRuntimeGenerated = $id -in @('tv-spin-style', 'btnEmptyViewAll')
+    $isRuntimeGenerated = $id -in @('tv-spin-style', 'btnEmptyViewAll', 'btnEmptyReset')
     if (-not $foundInIndex -and -not $foundInChart -and -not $foundInMobile -and -not $isRuntimeGenerated) {
         $unmatchedIds += $id
     }

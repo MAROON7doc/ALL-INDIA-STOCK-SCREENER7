@@ -117,6 +117,29 @@ if ($cssContent -match "\.tag-index" -and $cssContent -match "\.exch-pill-btn" -
     $errorsFound++
 }
 
+# TEST 6: Backend Architecture & Server Assets Check
+Write-Host "`n[TEST 6] Validating Backend Architecture & Server Files..." -ForegroundColor Yellow
+$backendFiles = @(
+    "backend\server.ps1",
+    "backend\python\api_server.py",
+    "backend\python\screener.py",
+    "backend\python\patterns.py",
+    "backend\python\requirements.txt",
+    "backend\node\server.js",
+    "backend\node\package.json",
+    "server.ps1",
+    "start_server.bat"
+)
+
+foreach ($bf in $backendFiles) {
+    if (Test-Path $bf) {
+        Write-Host "  [PASS] Backend asset $bf confirmed" -ForegroundColor Green
+    } else {
+        Write-Host "  [FAIL] Missing backend asset $bf" -ForegroundColor Red
+        $errorsFound++
+    }
+}
+
 # FINAL DIAGNOSTIC SUMMARY
 Write-Host "`n==========================================================" -ForegroundColor Cyan
 Write-Host " DIAGNOSTIC RESULT SUMMARY" -ForegroundColor Cyan

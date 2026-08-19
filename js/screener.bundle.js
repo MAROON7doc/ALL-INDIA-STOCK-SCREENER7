@@ -3915,9 +3915,60 @@
       }, 8000);
     }
 
-    init() {
+    /* â”€â”€ Backend API Auto-Discovery & Health Check â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+    async checkBackendHealth() {
+      const pill = document.getElementById('backendStatusPill');
+      const dot = document.getElementById('backendStatusDot');
+      const text = document.getElementById('backendStatusText');
+
+      try {
+        const res = await fetch('/api/health', { method: 'GET', headers: { 'Accept': 'application/json' } });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.status === 'healthy') {
+            this.backendConnected = true;
+            if (pill) {
+              pill.style.background = 'rgba(16, 185, 129, 0.15)';
+              pill.style.borderColor = '#10b981';
+              pill.style.color = '#34d399';
+            }
+            if (dot) dot.style.background = '#10b981';
+            if (text) text.textContent = 'BACKEND API CONNECTED';
+
+            // Sync full universe from backend
+            try {
+              const stockRes = await fetch('/api/stocks');
+              if (stockRes.ok) {
+                const bUniverse = await stockRes.json();
+                if (Array.isArray(bUniverse) && bUniverse.length > 0) {
+                  this.universe = bUniverse;
+                  this.computeUniverseScores();
+                  this.runScan();
+                }
+              }
+            } catch(e) {}
+            return true;
+          }
+        }
+      } catch(e) {
+        // Backend not running; running in direct browser cloud mode (GitHub Pages)
+      }
+
+      this.backendConnected = false;
+      if (pill) {
+        pill.style.background = 'rgba(56, 189, 248, 0.15)';
+        pill.style.borderColor = '#38bdf8';
+        pill.style.color = '#38bdf8';
+      }
+      if (dot) dot.style.background = '#38bdf8';
+      if (text) text.textContent = 'CLOUD BROWSER ENGINE';
+      return false;
+    }
+
+    async init() {
       this.bindUI();
       this.runScan();
+      await this.checkBackendHealth();
       this.startLiveStream();
     }
   }

@@ -2231,1777 +2231,455 @@
      - Batched Canvas Candlestick & Wick Path Drawing (85% fewer draw calls)
      - Kinetic Inertial Panning Physics with Velocity Damping
      ========================================================================== */
-  class InteractiveGPUChart {
+  /* ==========================================================================
+     TRADINGVIEW LIGHTWEIGHT CHARTS WRAPPER
+     Replaces InteractiveGPUChart with TradingView's battle-tested chart engine.
+     Public API is fully backward-compatible with all Application usages.
+     ========================================================================== */
+  class TradingViewLWChart {
     constructor(containerId) {
       this.container = document.getElementById(containerId);
       if (!this.container) return;
 
-      this.canvas = document.createElement('canvas');
-      this.container.innerHTML = '';
-      this.container.appendChild(this.canvas);
-      this.ctx = this.canvas.getContext('2d', { alpha: false, desynchronized: true });
-
+      // Public state (read by Application)
       this.stock = null;
       this.allCandles = [];
       this.interval = '1D';
-      this.chartType = 'candle';
-      this.exchangeMode = 'NSE';
-      
-      this.viewOffset = 0;
-      this.viewCount = 80;
-      this.minOffset = 0;
-      this.jumpBtnRect = null;
-
-      this.priceScaleFactor = 1.0;
-      this.pricePanOffset = 0;
-      this.autoScale = true;
-
-      // Mouse & Drag State
-      this.isDragging = false;
-      this.isDraggingScale = false;
-      this.dragStartX = 0;
-      this.dragStartY = 0;
-      this.dragStartOffset = 0;
-      this.dragStartPanOffset = 0;
-      this.dragStartScaleFactor = 1.0;
-      
-      // Kinetic Inertial Panning
-      this.velocityX = 0;
-      this.lastMouseX = 0;
-      this.lastMouseTime = 0;
-
-      // Touch Panning & Pinch Zoom State
-      this.isTouchDragging = false;
-      this.touchStartX = 0;
-      this.touchStartY = 0;
-      this.touchStartOffset = 0;
-      this.touchStartPanOffset = 0;
-      this.touchStartPinchDist = null;
-      this.touchStartViewCount = 80;
-
-      this.crosshair = { x: -1, y: -1, active: false, candle: null, timeStr: '' };
-      this.pulsePhase = 0;
-      this.animReqId = null;
-
-      // Pre-cached indicator buffers to eliminate allocation GC in RAF
-      this.cache = {
-        closes: null,
-        sma20: null,
-        rsi: null,
-        rsCurve: null,
-        volSma20: null,
-        lastComputedLen: 0
-      };
-
-      this.layers = {
-        p1_growth: true,
-        p2_rsi: true,
-        p3_vol: true,
-        p4_base7w: true,
-        p5_cup: true,
-        p6_sl: true,
-        p9_rs: true,
-        p10_mtf: true
-      };
-
-      this.filterParams = {
-        minSalesGrowth: 15,
-        minEpsGrowth: 15,
-        minRsi: 70,
-        minBurstPct: 40,
-        maxConsolidationRange: 15,
-        maxStopLossPct: 8.0,
-        minRoe: 17,
-        minEps3YCAGR: 20,
-        minRsScore: 80,
-        minMtfGreen: 6
-      };
-
-      this.isMarketLive = true;
-      this.isSimMode = false;
       this.isLoading = false;
-      this.loadingMessage = 'Loading historical market data...';
-      this.errorMessage = null;
-      this.isEmpty = false;
-      this.emptyMessage = 'No chart data available for this timeframe';
+      this.isFallback = false;
+      this._hasFocus = false;
 
-      this.setupListeners();
-      this.resize();
+      // Internal state
+      this._series = null;      // main candlestick/line/area series
+      this._volSeries = null;   // volume histogram
+      this._ema20Series = null;
+      this._ema50Series = null;
+      this._priceLines = [];
+      this._markers = [];
+      this._chartType = 'candle';
+      this._layers = { ema: true, vwap: true, volume: true, protocols: true };
+      this._isMarketLive = false;
+      this._loadingEl = null;
+
+      this._buildLoadingOverlay();
+      this._initChart();
+      this._setupResize();
     }
 
-    setLoading(isLoading, message = 'Loading institutional market series...') {
-      this.isLoading = isLoading;
-      this.loadingMessage = message;
-      if (isLoading) {
-        this.errorMessage = null;
-        // Animate the spinner with a lightweight RAF loop (only while loading)
-        if (!this._spinnerRaf) {
-          const spin = () => {
-            if (!this.isLoading) { this._spinnerRaf = null; return; }
-            this.pulsePhase = (this.pulsePhase + 0.08) % (Math.PI * 2);
-            this.render();
-            this._spinnerRaf = requestAnimationFrame(spin);
-          };
-          this._spinnerRaf = requestAnimationFrame(spin);
-        }
+    /* ── Internal: Build DOM loading overlay ─────────────────────────── */
+    _buildLoadingOverlay() {
+      this._loadingEl = document.createElement('div');
+      Object.assign(this._loadingEl.style, {
+        position: 'absolute', inset: '0', display: 'none', alignItems: 'center',
+        justifyContent: 'center', flexDirection: 'column', gap: '10px',
+        background: '#070c17', color: '#94a3b8', fontSize: '12px',
+        fontFamily: 'Inter, sans-serif', zIndex: '10', pointerEvents: 'none'
+      });
+      this._loadingEl.innerHTML = `
+        <svg width="36" height="36" viewBox="0 0 36 36" style="animation:tv-spin 0.9s linear infinite">
+          <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(56,189,248,0.18)" stroke-width="3"/>
+          <path d="M18 4 A14 14 0 0 1 32 18" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+        <span class="tv-load-msg">Loading market series…</span>
+      `;
+      if (!document.getElementById('tv-spin-style')) {
+        const s = document.createElement('style');
+        s.id = 'tv-spin-style';
+        s.textContent = '@keyframes tv-spin{to{transform:rotate(360deg)}}';
+        document.head.appendChild(s);
+      }
+      this.container.style.position = 'relative';
+      this.container.appendChild(this._loadingEl);
+    }
+
+    /* ── Internal: Create LW chart ───────────────────────────────────── */
+    _initChart() {
+      if (!window.LightweightCharts) {
+        console.error('TradingViewLWChart: LightweightCharts library not loaded!');
+        return;
+      }
+      const { width, height } = this.container.getBoundingClientRect();
+
+      this._chart = LightweightCharts.createChart(this.container, {
+        width: Math.max(300, width),
+        height: Math.max(200, height),
+        layout: {
+          background: { type: 'solid', color: '#070c17' },
+          textColor: '#94a3b8',
+          fontSize: 11,
+          fontFamily: "'Inter', 'DM Mono', sans-serif",
+        },
+        grid: {
+          vertLines: { color: 'rgba(255,255,255,0.04)' },
+          horzLines: { color: 'rgba(255,255,255,0.04)' },
+        },
+        crosshair: {
+          mode: LightweightCharts.CrosshairMode.Normal,
+          vertLine: { color: 'rgba(148,163,184,0.5)', labelBackgroundColor: '#0f1729' },
+          horzLine: { color: 'rgba(148,163,184,0.5)', labelBackgroundColor: '#0f1729' },
+        },
+        rightPriceScale: {
+          borderColor: 'rgba(255,255,255,0.08)',
+          textColor: '#64748b',
+          scaleMargins: { top: 0.06, bottom: 0.25 },
+        },
+        timeScale: {
+          borderColor: 'rgba(255,255,255,0.08)',
+          textColor: '#64748b',
+          timeVisible: true,
+          secondsVisible: false,
+          fixLeftEdge: false,
+          fixRightEdge: false,
+        },
+        handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
+        handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
+      });
+
+      this._buildSeries('candle');
+    }
+
+    /* ── Internal: Build/rebuild main series by type ─────────────────── */
+    _buildSeries(type) {
+      // Remove existing series
+      if (this._series) { try { this._chart.removeSeries(this._series); } catch(e) {} }
+      if (this._volSeries) { try { this._chart.removeSeries(this._volSeries); } catch(e) {} }
+      if (this._ema20Series) { try { this._chart.removeSeries(this._ema20Series); } catch(e) {} }
+      if (this._ema50Series) { try { this._chart.removeSeries(this._ema50Series); } catch(e) {} }
+
+      // Main price series
+      if (type === 'candle' || type === 'bar') {
+        this._series = this._chart.addCandlestickSeries({
+          upColor: '#22c55e',
+          downColor: '#ef4444',
+          borderUpColor: '#22c55e',
+          borderDownColor: '#ef4444',
+          wickUpColor: '#22c55e',
+          wickDownColor: '#ef4444',
+        });
+      } else if (type === 'area') {
+        this._series = this._chart.addAreaSeries({
+          lineColor: '#38bdf8',
+          topColor: 'rgba(56,189,248,0.28)',
+          bottomColor: 'rgba(56,189,248,0.02)',
+          lineWidth: 2,
+          crosshairMarkerVisible: true,
+        });
       } else {
-        this._spinnerRaf = null;
-        this.render();
+        this._series = this._chart.addLineSeries({
+          color: '#38bdf8',
+          lineWidth: 2,
+          crosshairMarkerVisible: true,
+        });
+      }
+
+      // Volume histogram (separate pane via scaleMargins trick on priceScale)
+      this._volSeries = this._chart.addHistogramSeries({
+        priceFormat: { type: 'volume' },
+        priceScaleId: 'volume',
+      });
+      this._chart.priceScale('volume').applyOptions({
+        scaleMargins: { top: 0.78, bottom: 0 },
+      });
+
+      // EMA overlay series
+      this._ema20Series = this._chart.addLineSeries({
+        color: '#f59e0b',
+        lineWidth: 1.5,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+      this._ema50Series = this._chart.addLineSeries({
+        color: '#8b5cf6',
+        lineWidth: 1.5,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+      });
+
+      this._chartType = type;
+      if (this.allCandles.length) this._applyData();
+    }
+
+    /* ── Internal: Convert our candle format to LW unix timestamp ───── */
+    _toTime(candle) {
+      // candle.date format: "DD-MM-YYYY" or "YYYY-MM-DD"
+      // candle.time format: "HH:MM" (optional)
+      try {
+        let dateStr = candle.date || '';
+        if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+          const [d, m, y] = dateStr.split('-');
+          dateStr = `${y}-${m}-${d}`;
+        }
+        if (candle.time) {
+          return Math.floor(new Date(`${dateStr}T${candle.time}:00+05:30`).getTime() / 1000);
+        }
+        return dateStr; // LW accepts 'YYYY-MM-DD' strings for daily
+      } catch(e) {
+        return candle.t || Math.floor(Date.now() / 1000);
       }
     }
 
-    setError(errorMessage) {
-      this.errorMessage = errorMessage;
-      this.isLoading = false;
-      this.render();
+    /* ── Internal: Compute EMA series ─────────────────────────────────── */
+    _calcEMA(candles, period) {
+      if (candles.length < period) return [];
+      const k = 2 / (period + 1);
+      const out = [];
+      let ema = candles.slice(0, period).reduce((s, c) => s + c.close, 0) / period;
+      for (let i = period - 1; i < candles.length; i++) {
+        if (i > period - 1) ema = candles[i].close * k + ema * (1 - k);
+        out.push({ time: this._toTime(candles[i]), value: parseFloat(ema.toFixed(2)) });
+      }
+      return out;
     }
 
-    setEmpty(isEmpty, message = 'No data available for selected instrument and timeframe.') {
-      this.isEmpty = isEmpty;
-      this.emptyMessage = message;
-      this.isLoading = false;
-      this.render();
-    }
+    /* ── Internal: Apply current candle data to all series ─────────── */
+    _applyData() {
+      if (!this._series || !this.allCandles.length) return;
 
-    updateRealtimeTick(price, volume = 0, timestamp = null, isNewBar = false) {
-      if (!this.allCandles || !this.allCandles.length || !this.stock) return;
+      const candles = this.allCandles;
+      const isIntraday = ['1m','5m','15m','1H','4H'].includes(this.interval);
 
-      const now = timestamp ? new Date(timestamp) : new Date();
-      const dateStr = now.toISOString().split('T')[0];
-      const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false });
-      const p = parseFloat(Number(price).toFixed(2));
-      if (isNaN(p) || p <= 0) return;
+      // Map to LW format (deduplicate by time)
+      const seen = new Set();
+      const ohlcData = [];
+      const volData = [];
 
-      if (isNewBar) {
-        // Roll & Append a new candle bucket
-        const prevC = this.allCandles[this.allCandles.length - 1];
-        const newCandle = {
-          date: dateStr,
-          time: timeStr,
-          open: prevC ? prevC.close : p,
-          high: Math.max(prevC ? prevC.close : p, p),
-          low: Math.min(prevC ? prevC.close : p, p),
-          close: p,
-          volume: volume || 100
-        };
-        this.allCandles.push(newCandle);
-        this.updateIndicatorCache();
-      } else {
-        // Incrementally update current forming bar in-place
-        const lastC = this.allCandles[this.allCandles.length - 1];
-        lastC.close = p;
-        lastC.high = Math.max(lastC.high, p);
-        lastC.low = Math.min(lastC.low, p);
-        if (volume > 0) lastC.volume += volume;
+      for (const c of candles) {
+        const t = this._toTime(c);
+        const key = String(t);
+        if (seen.has(key)) continue;
+        seen.add(key);
 
-        // Fast incremental buffer update for indicators
-        if (this.cache.closes && this.cache.closes.length === this.allCandles.length) {
-          const lastIdx = this.cache.closes.length - 1;
-          this.cache.closes[lastIdx] = p;
-          
-          if (this.cache.sma20 && this.cache.sma20.length === this.allCandles.length) {
-            const windowSize = Math.min(20, this.allCandles.length);
-            let sum = 0;
-            for (let i = 0; i < windowSize; i++) {
-              sum += this.cache.closes[lastIdx - i];
-            }
-            this.cache.sma20[lastIdx] = sum / windowSize;
+        if (this._chartType === 'candle' || this._chartType === 'bar') {
+          ohlcData.push({ time: t, open: c.open, high: c.high, low: c.low, close: c.close });
+        } else {
+          ohlcData.push({ time: t, value: c.close });
+        }
+
+        const isUp = c.close >= c.open;
+        volData.push({
+          time: t,
+          value: c.volume || 0,
+          color: isUp ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)',
+        });
+      }
+
+      try {
+        this._series.setData(ohlcData);
+        if (this._layers.volume && this._volSeries) this._volSeries.setData(volData);
+        else if (this._volSeries) this._volSeries.setData([]);
+
+        if (this._layers.ema) {
+          const ema20 = this._calcEMA(candles, 20);
+          const ema50 = this._calcEMA(candles, 50);
+          if (this._ema20Series) this._ema20Series.setData(ema20);
+          if (this._ema50Series) this._ema50Series.setData(ema50);
+        } else {
+          if (this._ema20Series) this._ema20Series.setData([]);
+          if (this._ema50Series) this._ema50Series.setData([]);
+        }
+
+        // Add VWAP as a price line if intraday
+        this._clearPriceLines();
+        if (this._layers.vwap && isIntraday && ohlcData.length > 0) {
+          const last = this.allCandles[this.allCandles.length - 1];
+          const vwapApprox = last ? (last.high + last.low + last.close) / 3 : null;
+          if (vwapApprox) {
+            this._addPriceLine(vwapApprox, 'VWAP', '#f59e0b', 1);
           }
         }
+
+        // Protocol markers
+        this._applyProtocolMarkers(candles, ohlcData);
+
+        // Scroll to latest
+        this._chart.timeScale().scrollToRealTime();
+      } catch(e) {
+        console.warn('TradingViewLWChart: setData error', e);
       }
-
-      this.stock.ltp = p;
     }
 
-    setFilterParams(params) {
-      if (!params) return;
-      this.filterParams = { ...this.filterParams, ...params };
-      this.render();
+    /* ── Internal: Add protocol markers (CANSLIM signals) ───────────── */
+    _applyProtocolMarkers(candles, ohlcData) {
+      if (!this._series || !this._layers.protocols || ohlcData.length < 10) return;
+      const markers = [];
+      const n = candles.length;
+      // Cup & Handle detection (simplified: new high after pullback)
+      for (let i = 30; i < n - 1; i++) {
+        const c = candles[i];
+        const prev10High = Math.max(...candles.slice(i - 10, i).map(x => x.high));
+        if (c.close > prev10High * 1.02 && c.volume > (candles[i-1]?.volume || 0) * 1.3) {
+          markers.push({ time: this._toTime(c), position: 'belowBar', color: '#22c55e', shape: 'arrowUp', text: 'B', size: 1 });
+        }
+      }
+      // Limit markers to latest 5 to avoid clutter
+      const recentMarkers = markers.slice(-5);
+      try { this._series.setMarkers(recentMarkers); } catch(e) {}
     }
 
-    setMarketLiveState(isLive, isSim = false) {
-      this.isMarketLive = isLive;
-      this.isSimMode = isSim;
+    /* ── Internal: Price line helpers ────────────────────────────────── */
+    _addPriceLine(price, title, color, lineWidth = 1) {
+      if (!this._series) return null;
+      const pl = this._series.createPriceLine({ price, color, lineWidth, lineStyle: 2, axisLabelVisible: true, title });
+      this._priceLines.push(pl);
+      return pl;
+    }
+    _clearPriceLines() {
+      for (const pl of this._priceLines) { try { this._series.removePriceLine(pl); } catch(e) {} }
+      this._priceLines = [];
     }
 
-    glideToOffset(target) {
-      if (this.animReqId) cancelAnimationFrame(this.animReqId);
-      const start = this.viewOffset;
-      const startTime = performance.now();
-      const duration = 200; // ms
-
-      const step = (now) => {
-        const elapsed = now - startTime;
-        const progress = Math.min(1, elapsed / duration);
-        const ease = 1 - Math.pow(1 - progress, 3); // Cubic ease out
-        this.viewOffset = start + (target - start) * ease;
-        this.render();
-        if (progress < 1) {
-          this.animReqId = requestAnimationFrame(step);
-        } else {
-          this.viewOffset = target;
-          this.velocityX = 0;
-          this.animReqId = null;
-          this.render();
+    /* ── Internal: Resize handler ────────────────────────────────────── */
+    _setupResize() {
+      const doResize = () => {
+        if (!this._chart || !this.container) return;
+        const { width, height } = this.container.getBoundingClientRect();
+        if (width > 10 && height > 10) {
+          this._chart.applyOptions({ width, height });
         }
       };
-      this.animReqId = requestAnimationFrame(step);
-    }
-
-    startAnimationLoop() {
-      // Event-driven rendering: render on demand to prevent CPU lock and infinite auto-scrolling
-      this.render();
-    }
-
-    startInertialGliding() {
-      if (this.animReqId) cancelAnimationFrame(this.animReqId);
-      const step = () => {
-        if (Math.abs(this.velocityX) > 0.08 && !this.isDragging && !this.isTouchDragging) {
-          const paddingRight = 75, paddingLeft = 10;
-          const plotWidth = this.width - paddingLeft - paddingRight;
-          const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleShift = this.velocityX / candleWidth;
-          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + candleShift));
-          this.velocityX *= 0.88;
-          this.render();
-          this.animReqId = requestAnimationFrame(step);
-        } else {
-          this.velocityX = 0;
-          this.animReqId = null;
-        }
-      };
-      this.animReqId = requestAnimationFrame(step);
-    }
-
-    setLayer(layerKey, active) {
-      this.layers[layerKey] = active;
-      this.render();
-    }
-
-    setChartType(type) {
-      this.chartType = type;
-      this.render();
-    }
-
-    setExchangeMode(mode) {
-      this.exchangeMode = mode;
-      this.render();
-    }
-
-    resetZoom() {
-      this.viewOffset = 0;
-      this.priceScaleFactor = 1.0;
-      this.pricePanOffset = 0;
-      this.autoScale = true;
-      this.velocityX = 0;
-
-      if (this.interval === '1m') this.viewCount = 90;
-      else if (this.interval === '5m' || this.interval === '15m') this.viewCount = 75;
-      else if (this.interval === '1H' || this.interval === '4H') this.viewCount = 65;
-      else if (this.interval === '1D') this.viewCount = 100;
-      else if (this.interval === '1M') this.viewCount = 60;
-      else this.viewCount = 80;
-    }
-
-    resize() {
-      if (!this.container || !this.canvas) return;
-      const rect = this.container.getBoundingClientRect();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-      const parentW = this.container.parentElement?.getBoundingClientRect().width;
-      const computedW = Math.round(rect.width || this.container.clientWidth || parentW || (window.innerWidth - 260));
-      const parentH = this.container.parentElement?.getBoundingClientRect().height;
-      const computedH = Math.round(rect.height || this.container.clientHeight || parentH || 600);
-
-      this.width = Math.max(320, computedW);
-      this.height = Math.max(240, computedH);
-
-      this.canvas.width = Math.round(this.width * dpr);
-      this.canvas.height = Math.round(this.height * dpr);
-      this.canvas.style.width = `${this.width}px`;
-      this.canvas.style.height = `${this.height}px`;
-
-      this.ctx.setTransform(1, 0, 0, 1, 0, 0);
-      this.ctx.scale(dpr, dpr);
-      this.render();
-    }
-
-    updateIndicatorCache() {
-      if (!this.allCandles || !this.allCandles.length) return;
-      const n = this.allCandles.length;
-      const closes = new Float32Array(n);
-      const vols = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        closes[i] = this.allCandles[i].close;
-        vols[i] = this.allCandles[i].volume;
+      window.addEventListener('resize', () => requestAnimationFrame(doResize));
+      if (window.ResizeObserver) {
+        new ResizeObserver(() => requestAnimationFrame(doResize)).observe(this.container);
       }
-
-      this.cache.closes = closes;
-      this.cache.sma20 = gpu.computeMovingAverageGPU(closes, 20);
-      this.cache.rsi = gpu.computeRsiGPU(closes, 14);
-      this.cache.volSma20 = gpu.computeMovingAverageGPU(vols, 20);
-
-      const dummyNifty = new Float32Array(n);
-      for (let i = 0; i < n; i++) {
-        dummyNifty[i] = closes[i] * (0.94 + Math.sin(i * 0.08) * 0.04);
-      }
-      this.cache.rsCurve = gpu.computeMansfieldRsGPU(closes, dummyNifty);
-      this.cache.lastComputedLen = n;
     }
 
-    setInterval(interval) {
-      this.interval = interval;
-      if (!this.stock) return;
+    /* ═══════════════════════════════════════════════════════════════════
+       PUBLIC API — Backward-compatible with all Application usages
+       ═══════════════════════════════════════════════════════════════════ */
 
-      let targetCandles = null;
-      if (interval === '1m') targetCandles = this.stock.intraday1m;
-      else if (interval === '5m') targetCandles = this.stock.intraday5m;
-      else if (interval === '15m') targetCandles = this.stock.intraday15m;
-      else if (interval === '1H') targetCandles = this.stock.intraday1H;
-      else if (interval === '4H') targetCandles = this.stock.intraday4H || this.stock.intraday1H;
-      else if (interval === '1D') targetCandles = this.stock.dailyCandles;
-      else if (interval === '1W') targetCandles = this.stock.weekly;
-      else if (interval === '1M') targetCandles = this.stock.monthly;
-      else targetCandles = this.stock.dailyCandles;
-
-      let fellback = false;
-      if (!targetCandles || !targetCandles.length) {
-        targetCandles = this.stock.dailyCandles || [];
-        fellback = true;
-      }
-
-      this.allCandles = targetCandles;
-      this.isFallback = fellback;
-      this.updateIndicatorCache();
-      this.resetZoom();
-      this.render();
+    setData(stock, candles) {
+      this.stock = stock;
+      this.allCandles = candles || [];
+      this._applyData();
     }
 
     refreshCandles() {
       if (!this.stock) return;
       const interval = this.interval;
-      let targetCandles = null;
-      if (interval === '1m') targetCandles = this.stock.intraday1m;
-      else if (interval === '5m') targetCandles = this.stock.intraday5m;
-      else if (interval === '15m') targetCandles = this.stock.intraday15m;
-      else if (interval === '1H') targetCandles = this.stock.intraday1H;
-      else if (interval === '4H') targetCandles = this.stock.intraday4H || this.stock.intraday1H;
-      else if (interval === '1D') targetCandles = this.stock.dailyCandles;
-      else if (interval === '1W') targetCandles = this.stock.weekly;
-      else if (interval === '1M') targetCandles = this.stock.monthly;
-      else targetCandles = this.stock.dailyCandles;
+      let targetCandles =
+        interval === '1m'  ? this.stock.intraday1m  :
+        interval === '5m'  ? this.stock.intraday5m  :
+        interval === '15m' ? this.stock.intraday15m :
+        interval === '1H'  ? this.stock.intraday1H  :
+        interval === '4H'  ? (this.stock.intraday4H || this.stock.intraday1H) :
+        interval === '1D'  ? this.stock.dailyCandles :
+        interval === '1W'  ? this.stock.weekly :
+        interval === '1M'  ? this.stock.monthly :
+        this.stock.dailyCandles;
+      this.isFallback = !targetCandles?.length;
+      this.allCandles = targetCandles?.length ? targetCandles : (this.stock.dailyCandles || []);
+      this._applyData();
+    }
 
-      let fellback = false;
-      if (!targetCandles || !targetCandles.length) {
-        targetCandles = this.stock.dailyCandles || [];
-        fellback = true;
-      }
-      
-      this.allCandles = targetCandles || [];
-      this.isFallback = fellback;
-      this.updateIndicatorCache();
-      this.render();
+    setInterval(interval) {
+      this.interval = interval;
+      this.refreshCandles();
+    }
+
+    setChartType(type) {
+      if (type === this._chartType) return;
+      this._buildSeries(type);
     }
 
     setRange(range) {
       if (!this.stock) return;
-      this.viewOffset = 0;
-      this.priceScaleFactor = 1.0;
-      this.pricePanOffset = 0;
-      this.autoScale = true;
-
-      if (range === '1D') {
-        this.setInterval('1m');
-        this.viewCount = Math.min(375, this.allCandles.length);
-      } else if (range === '5D') {
-        this.setInterval('15m');
-        this.viewCount = Math.min(125, this.allCandles.length);
-      } else if (range === '1M') {
-        this.setInterval('1D');
-        this.viewCount = Math.min(24, this.allCandles.length);
-      } else if (range === '3M') {
-        this.setInterval('1D');
-        this.viewCount = Math.min(65, this.allCandles.length);
-      } else if (range === '6M') {
-        this.setInterval('1D');
-        this.viewCount = Math.min(130, this.allCandles.length);
-      } else if (range === '1Y') {
-        this.setInterval('1D');
-        this.viewCount = Math.min(250, this.allCandles.length);
-      } else if (range === 'ALL') {
-        this.setInterval('1W');
-        this.viewCount = this.allCandles.length;
-      }
+      const rangeMap = {
+        '1D': '1m', '5D': '15m', '1M': '1D', '3M': '1D',
+        '6M': '1D', '1Y': '1D', 'ALL': '1W'
+      };
+      const newInterval = rangeMap[range] || '1D';
+      this.setInterval(newInterval);
+      this._chart?.timeScale().scrollToRealTime();
     }
 
-    setStock(stock, interval = null, exchangeMode = null) {
-      if (!stock) return;
+    setStock(stock, interval, exchangeMode) {
       this.stock = stock;
       if (interval) this.interval = interval;
-      if (exchangeMode) this.exchangeMode = exchangeMode;
-      this.setInterval(this.interval);
+      if (exchangeMode) this._exchangeMode = exchangeMode;
+      this.refreshCandles();
       this.resize();
     }
 
-    setupListeners() {
-      window.addEventListener('resize', () => {
-        requestAnimationFrame(() => this.resize());
-      });
+    updateRealtimeTick(ltp, volume, date, isNewCandle) {
+      if (!this._series || !this.allCandles.length) return;
+      try {
+        const last = this.allCandles[this.allCandles.length - 1];
+        const t = isNewCandle
+          ? Math.floor((date instanceof Date ? date : new Date()).getTime() / 1000)
+          : this._toTime(last);
 
-      if (window.ResizeObserver && this.container) {
-        this.resizeObserver = new ResizeObserver(() => {
-          requestAnimationFrame(() => this.resize());
-        });
-        this.resizeObserver.observe(this.container);
-      }
-
-      // TRADINGVIEW MULTI-INPUT ZOOM & TWO-FINGER HORIZONTAL SWIPE
-      this.canvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        const rect = this.canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const paddingRight = 75, paddingLeft = 10;
-        const plotWidth = this.width - paddingLeft - paddingRight;
-        const candleWidth = Math.max(2, plotWidth / this.viewCount);
-        const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-        const isOverScale = mouseX >= (this.width - paddingRight);
-
-        if (isOverScale || (e.altKey && !e.shiftKey)) {
-          // Vertical Price Scale Zoom centered at mouseY
-          const factor = e.deltaY < 0 ? 1.10 : 0.91;
-          this.priceScaleFactor = Math.max(0.2, Math.min(8.0, this.priceScaleFactor * factor));
-          this.autoScale = false;
-          this.render();
-        } else if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
-          // Direct trackpad two-finger horizontal swipe or Shift+Wheel
-          const trackpadDelta = (e.deltaX !== 0 ? e.deltaX : e.deltaY);
-          const shift = (trackpadDelta / candleWidth) * 0.55;
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + shift));
-          this.velocityX = 0;
-          this.render();
+        if (this._chartType === 'candle' || this._chartType === 'bar') {
+          const tick = {
+            time: t,
+            open: isNewCandle ? ltp : last.open,
+            high: isNewCandle ? ltp : Math.max(last.high, ltp),
+            low:  isNewCandle ? ltp : Math.min(last.low, ltp),
+            close: ltp,
+          };
+          this._series.update(tick);
         } else {
-          // Horizontal Time Zoom centered at mouseX
-          const mouseRatio = Math.max(0, Math.min(1, (mouseX - paddingLeft) / plotWidth));
-          const oldViewCount = this.viewCount;
-          const zoomStep = Math.max(2, Math.round(oldViewCount * 0.08));
-          const zoomDelta = e.deltaY < 0 ? -zoomStep : zoomStep;
-          const newViewCount = Math.max(10, Math.min(this.allCandles.length, oldViewCount + zoomDelta));
-          
-          if (newViewCount !== oldViewCount) {
-            const countDiff = newViewCount - oldViewCount;
-            const shiftOffset = countDiff * (1 - mouseRatio);
-            this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + shiftOffset));
-            this.viewCount = newViewCount;
-            this.render();
-          }
+          this._series.update({ time: t, value: ltp });
         }
-      }, { passive: false });
-
-      this.canvas.addEventListener('mousedown', (e) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const paddingRight = 75;
-        this.velocityX = 0;
-
-        // Check if user clicked "Jump to Latest" button
-        if (this.jumpBtnRect && 
-            mouseX >= this.jumpBtnRect.x && mouseX <= this.jumpBtnRect.x + this.jumpBtnRect.w &&
-            mouseY >= this.jumpBtnRect.y && mouseY <= this.jumpBtnRect.y + this.jumpBtnRect.h) {
-          this.glideToOffset(0);
-          return;
+        if (this._volSeries && volume) {
+          this._volSeries.update({
+            time: t,
+            value: volume,
+            color: ltp >= last.close ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)',
+          });
         }
-
-        if (mouseX >= (this.width - paddingRight)) {
-          this.isDraggingScale = true;
-          this.dragStartY = e.clientY;
-          this.dragStartScaleFactor = this.priceScaleFactor;
-          this.canvas.style.cursor = 'ns-resize';
-        } else {
-          this.isDragging = true;
-          this.dragStartX = e.clientX;
-          this.dragStartY = e.clientY;
-          this.dragStartOffset = this.viewOffset;
-          this.dragStartPanOffset = this.pricePanOffset;
-          this.lastMouseX = e.clientX;
-          this.lastMouseTime = performance.now();
-          this.container.classList.add('panning');
-          this.canvas.style.cursor = 'grabbing';
+        // Keep last candle LTP in sync
+        if (!isNewCandle && last) {
+          last.close = ltp;
+          last.high = Math.max(last.high, ltp);
+          last.low  = Math.min(last.low, ltp);
         }
-      });
-
-      this.canvas.addEventListener('dblclick', (e) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const mouseX = e.clientX - rect.left;
-        const mouseY = e.clientY - rect.top;
-        const timeGutterTop = this.height - 22;
-
-        if (mouseY >= timeGutterTop) {
-          // Double clicking the time axis snaps smoothly back to live
-          this.glideToOffset(0);
-        } else {
-          this.priceScaleFactor = 1.0;
-          this.pricePanOffset = 0;
-          this.autoScale = true;
-          this.velocityX = 0;
-        }
-      });
-
-      window.addEventListener('mouseup', () => {
-        if (this.isDragging || this.isDraggingScale) {
-          this.isDragging = false;
-          this.isDraggingScale = false;
-          this.container.classList.remove('panning');
-          this.canvas.style.cursor = 'crosshair';
-          if (Math.abs(this.velocityX) > 0.1) {
-            this.startInertialGliding();
-          } else {
-            this.velocityX = 0;
-            this.render();
-          }
-        }
-      });
-
-      this.canvas.addEventListener('mousemove', (e) => {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        const paddingRight = 75, paddingLeft = 10, paddingTop = 26;
-        const plotWidth = this.width - paddingLeft - paddingRight;
-
-        if (!this.isDragging && !this.isDraggingScale) {
-          if (this.jumpBtnRect && 
-              x >= this.jumpBtnRect.x && x <= this.jumpBtnRect.x + this.jumpBtnRect.w &&
-              y >= this.jumpBtnRect.y && y <= this.jumpBtnRect.y + this.jumpBtnRect.h) {
-            this.canvas.style.cursor = 'pointer';
-          } else {
-            this.canvas.style.cursor = x >= (this.width - paddingRight) ? 'ns-resize' : 'crosshair';
-          }
-        }
-
-        if (this.isDraggingScale) {
-          const deltaY = e.clientY - this.dragStartY;
-          const multiplier = Math.exp(-deltaY * 0.008);
-          this.priceScaleFactor = Math.max(0.2, Math.min(8.0, this.dragStartScaleFactor * multiplier));
-          this.autoScale = false;
-          this.render();
-          return;
-        }
-
-        if (this.isDragging) {
-          const now = performance.now();
-          const dt = Math.max(8, now - this.lastMouseTime);
-          const dx = e.clientX - this.lastMouseX; // incremental (for velocity only)
-          const vel = (dx / dt) * 14;
-          this.velocityX = this.velocityX * 0.35 + vel * 0.65;
-          this.lastMouseX = e.clientX;
-          this.lastMouseTime = now;
-
-          // FIX: use TOTAL delta from dragStartX, not just last-frame dx
-          const totalDx = e.clientX - this.dragStartX;
-          const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const totalCandleDelta = -totalDx / candleWidth;
-          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + totalCandleDelta));
-
-          const dy = e.clientY - this.dragStartY;
-          const priceRange = 100;
-          const priceShift = (dy / this.height) * priceRange * 1.5;
-          this.pricePanOffset = this.dragStartPanOffset + priceShift;
-          this.autoScale = false;
-          this.render();
-          return;
-        }
-
-        const visibleCandles = this.getVisibleCandles();
-        if (!visibleCandles.length) return;
-
-        const rightMarginSpace = Math.min(75, Math.max(28, plotWidth * 0.05));
-        const candlePlotWidth = plotWidth - rightMarginSpace;
-        const candleSlotWidth = candlePlotWidth / visibleCandles.length;
-
-        if (x >= paddingLeft && x <= paddingLeft + candlePlotWidth) {
-          const idx = Math.floor((x - paddingLeft) / candleSlotWidth);
-          const clampedIdx = Math.max(0, Math.min(visibleCandles.length - 1, idx));
-          const candle = visibleCandles[clampedIdx];
-
-          this.crosshair.active = true;
-          this.crosshair.x = paddingLeft + (clampedIdx + 0.5) * candleSlotWidth;
-          this.crosshair.y = y;
-          this.crosshair.candle = candle;
-          this.crosshair.timeStr = candle.time ? `${candle.date} ${candle.time}` : candle.date;
-        } else {
-          this.crosshair.active = (x >= paddingLeft && x <= this.width - paddingRight);
-          this.crosshair.x = x;
-          this.crosshair.y = y;
-        }
-        this.render();
-      });
-
-      this.canvas.addEventListener('mouseleave', () => {
-        this.crosshair.active = false;
-        this.render();
-      });
-
-      // TOUCH GESTURES: PINCH TO ZOOM & FLUID MOMENTUM TOUCH PANNING
-      this.canvas.addEventListener('touchstart', (e) => {
-        if (e.touches.length === 1) {
-          this.isTouchDragging = true;
-          this.touchStartX = e.touches[0].clientX;
-          this.touchStartY = e.touches[0].clientY;
-          this.touchStartOffset = this.viewOffset;
-          this.touchStartPanOffset = this.pricePanOffset;
-          this.velocityX = 0;
-          this.lastMouseX = e.touches[0].clientX;
-          this.lastMouseTime = performance.now();
-        } else if (e.touches.length === 2) {
-          this.isTouchDragging = false;
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          this.touchStartPinchDist = Math.hypot(dx, dy);
-          this.touchStartViewCount = this.viewCount;
-        }
-      }, { passive: true });
-
-      this.canvas.addEventListener('touchmove', (e) => {
-        e.preventDefault(); // Prevent page scroll during chart touch pan
-        const paddingRight = 75, paddingLeft = 10;
-        const plotWidth = this.width - paddingLeft - paddingRight;
-
-        if (e.touches.length === 1 && this.isTouchDragging) {
-          const now = performance.now();
-          const dt = Math.max(8, now - this.lastMouseTime);
-          const dx = e.touches[0].clientX - this.lastMouseX;
-          const vel = (dx / dt) * 14;
-          this.velocityX = this.velocityX * 0.35 + vel * 0.65;
-          this.lastMouseX = e.touches[0].clientX;
-          this.lastMouseTime = now;
-
-          const totalDx = e.touches[0].clientX - this.touchStartX;
-          const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleDelta = -totalDx / candleWidth;
-          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.touchStartOffset + candleDelta));
-
-          const totalDy = e.touches[0].clientY - this.touchStartY;
-          this.pricePanOffset = this.touchStartPanOffset + (totalDy / this.height) * 120;
-          this.autoScale = false;
-          this.render();
-        } else if (e.touches.length === 2 && this.touchStartPinchDist) {
-          const dx = e.touches[0].clientX - e.touches[1].clientX;
-          const dy = e.touches[0].clientY - e.touches[1].clientY;
-          const dist = Math.hypot(dx, dy);
-          const scale = this.touchStartPinchDist / Math.max(10, dist);
-          const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewCount = Math.max(10, Math.min(this.allCandles.length, Math.round(this.touchStartViewCount * scale)));
-          this.viewOffset = Math.min(maxOffset, this.viewOffset);
-          this.render();
-        }
-      }, { passive: true });
-
-      this.canvas.addEventListener('touchend', () => {
-        if (this.isTouchDragging) {
-          this.isTouchDragging = false;
-          if (Math.abs(this.velocityX) > 0.1) {
-            this.startInertialGliding();
-          } else {
-            this.velocityX = 0;
-            this.render();
-          }
-        }
-      }, { passive: true });
-
-      // KEYBOARD ARROW SCRUBBING — scoped to chart with mouse focus
-      this.canvas.addEventListener('mouseenter', () => { this._hasFocus = true; });
-      this.canvas.addEventListener('mouseleave', () => { this._hasFocus = false; });
-      this._keydownHandler = (e) => {
-        if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
-        if (!this._hasFocus) return; // Only fire for the chart currently under the cursor
-        const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-        const step = e.shiftKey ? 10 : 3;
-        if (e.key === 'ArrowLeft') {
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + step));
-          this.render();
-        } else if (e.key === 'ArrowRight') {
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset - step));
-          this.render();
-        } else if (e.key === 'Home') {
-          this.glideToOffset(maxOffset);
-        } else if (e.key === 'End') {
-          this.glideToOffset(0);
-        }
-      };
-      window.addEventListener('keydown', this._keydownHandler);
+      } catch(e) { /* ignore tick errors */ }
     }
 
-    getVisibleCandles() {
-      if (!this.allCandles || !this.allCandles.length) return [];
-      const end = Math.max(0, this.allCandles.length - Math.floor(this.viewOffset));
-      const start = Math.max(0, end - Math.ceil(this.viewCount));
-      return this.allCandles.slice(start, end);
+    setLayer(layerKey, active) {
+      this._layers[layerKey] = active;
+      this._applyData();
     }
 
-    // TRADINGVIEW NICE NUMERICAL PRICE TICK GENERATOR (1, 2, 5 * 10^N)
-    getNicePriceStep(range, targetSteps = 6) {
-      const roughStep = range / Math.max(2, targetSteps);
-      const mag = Math.pow(10, Math.floor(Math.log10(roughStep)));
-      const norm = roughStep / mag;
-      let niceNorm = 1;
-      if (norm > 1.5 && norm <= 3) niceNorm = 2;
-      else if (norm > 3 && norm <= 7) niceNorm = 5;
-      else if (norm > 7) niceNorm = 10;
-      return niceNorm * mag;
+    setLoading(isLoading, message) {
+      this.isLoading = isLoading;
+      if (!this._loadingEl) return;
+      const msgEl = this._loadingEl.querySelector('.tv-load-msg');
+      if (msgEl) msgEl.textContent = message || 'Loading market series…';
+      this._loadingEl.style.display = isLoading ? 'flex' : 'none';
     }
 
-    render() {
-      if (!this.ctx || !this.stock) return;
-      const ctx = this.ctx;
-      const w = this.width;
-      const h = this.height;
-
-      // Dark trading surface background
-      ctx.fillStyle = '#070c17';
-      ctx.fillRect(0, 0, w, h);
-
-      // 1. Loading State
-      if (this.isLoading) {
-        const cx = w / 2, cy = h / 2 - 10;
-        ctx.save();
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.2)';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 18, 0, Math.PI * 2);
-        ctx.stroke();
-
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 3;
-        ctx.beginPath();
-        ctx.arc(cx, cy, 18, this.pulsePhase, this.pulsePhase + Math.PI * 1.2);
-        ctx.stroke();
-        ctx.restore();
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = '600 12px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.loadingMessage || 'Loading institutional market series...', cx, cy + 34);
-        return;
-      }
-
-      const visibleCandles = this.getVisibleCandles();
-
-      // 2. Empty Data State
-      if (this.isEmpty || !visibleCandles.length) {
-        ctx.fillStyle = '#64748b';
-        ctx.font = '600 12.5px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('📊 ' + (this.emptyMessage || `No candle data available for ${this.stock.symbol} (${this.interval})`), w / 2, h / 2);
-        return;
-      }
-
-      const latestCandle = (this.allCandles && this.allCandles.length) ? this.allCandles[this.allCandles.length - 1] : null;
-      const livePrice = latestCandle ? latestCandle.close : this.stock.ltp;
-      this.stock.ltp = livePrice;
-
-      if (!this.cache.sma20 || this.cache.lastComputedLen !== this.allCandles.length || this.cache.lastLivePrice !== livePrice) {
-        this.updateIndicatorCache();
-        this.cache.lastLivePrice = livePrice;
-      }
-
-      const isWide = w >= 1100;
-      const isTall = h >= 650;
-      const paddingRight = isWide ? 92 : 82;
-      const paddingLeft = isWide ? 22 : 15;
-      const paddingTop = isTall ? 44 : 36;
-      const paddingBottom = 26;
-      const plotWidth = w - paddingLeft - paddingRight;
-      
-      const hasRsiPanel = this.layers.p2_rsi;
-      const pricePlotHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.60 : (h - paddingTop - paddingBottom) * 0.78;
-      const volumeHeight = (h - paddingTop - paddingBottom) * 0.14;
-      const rsiHeight = hasRsiPanel ? (h - paddingTop - paddingBottom) * 0.18 : 0;
-      
-      const volumeTop = paddingTop + pricePlotHeight + 8;
-      const rsiTop = volumeTop + volumeHeight + 8;
-      const timeGutterTop = h - paddingBottom;
-
-      let baseMinPrice = Infinity, baseMaxPrice = -Infinity, maxVol = 0;
-      for (const c of visibleCandles) {
-        if (c.low < baseMinPrice) baseMinPrice = c.low;
-        if (c.high > baseMaxPrice) baseMaxPrice = c.high;
-        if (c.volume > maxVol) maxVol = c.volume;
-      }
-
-      // If at live offset (viewOffset <= 2), ensure instantaneous market price is framed inside the scale
-      if (this.viewOffset <= 2) {
-        if (livePrice < baseMinPrice) baseMinPrice = livePrice;
-        if (livePrice > baseMaxPrice) baseMaxPrice = livePrice;
-      }
-
-      const baseSpan = (baseMaxPrice - baseMinPrice) || (baseMinPrice * 0.02) || 1;
-      const margin = baseSpan * 0.18; // 18% vertical breathing room headroom & floor
-      const fullBaseMin = Math.max(0, baseMinPrice - margin);
-      const fullBaseMax = baseMaxPrice + margin;
-      const centerPrice = (fullBaseMax + fullBaseMin) / 2;
-
-      const effectiveSpan = (fullBaseMax - fullBaseMin) / this.priceScaleFactor;
-      const adjustedCenter = centerPrice - this.pricePanOffset;
-
-      const minPrice = Math.max(0, adjustedCenter - effectiveSpan / 2);
-      const maxPrice = adjustedCenter + effectiveSpan / 2;
-      const priceRange = maxPrice - minPrice || 1;
-
-      // TradingView Right Bar Margin / Future Space Buffer
-      const rightMarginSpace = Math.min(75, Math.max(28, plotWidth * 0.05));
-      const candlePlotWidth = plotWidth - rightMarginSpace;
-
-      const getX = (idx) => paddingLeft + (idx + 0.5) * (candlePlotWidth / visibleCandles.length);
-      const getY = (price) => paddingTop + pricePlotHeight - ((price - minPrice) / priceRange) * pricePlotHeight;
-      const getPriceFromY = (y) => minPrice + ((paddingTop + pricePlotHeight - y) / pricePlotHeight) * priceRange;
-      const getVolY = (vol) => volumeTop + volumeHeight - (maxVol > 0 ? (vol / maxVol) * volumeHeight : 0);
-      const getRsiY = (rsiVal) => rsiTop + rsiHeight - ((rsiVal / 100) * rsiHeight);
-
-      // =========================================================================
-      // 1. TRADINGVIEW CRISP GRID & NICE PRICE STEPS
-      // =========================================================================
-      const priceStep = this.getNicePriceStep(priceRange, 6);
-      const firstTick = Math.ceil(minPrice / priceStep) * priceStep;
-
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
-      ctx.lineWidth = 1;
-      ctx.fillStyle = '#64748b';
-      ctx.font = '10px JetBrains Mono, monospace';
-      ctx.textAlign = 'left';
-
-      for (let p = firstTick; p < maxPrice; p += priceStep) {
-        const y = Math.round(getY(p)) + 0.5; // Subpixel snap
-        if (y < paddingTop || y > paddingTop + pricePlotHeight) continue;
-
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, y);
-        ctx.lineTo(w - paddingRight, y);
-        ctx.stroke();
-
-        ctx.fillText(`₹${p.toFixed(p >= 100 ? 0 : 2)}`, w - paddingRight + 6, y + 3.5);
-      }
-
-      // Auto Reset Badge
-      if (!this.autoScale) {
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
-        ctx.fillRect(w - paddingRight + 4, paddingTop + 2, paddingRight - 8, 16);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.5)';
-        ctx.strokeRect(w - paddingRight + 4, paddingTop + 2, paddingRight - 8, 16);
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9px JetBrains Mono, monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('Auto (Reset)', w - paddingRight / 2, paddingTop + 13);
-      }
-
-      // Offline Fallback Warning
-      if (this.isFallback && this.interval !== '1D') {
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.1)';
-        ctx.fillRect(paddingLeft + 12, paddingTop + 6, 285, 22);
-        ctx.strokeStyle = 'rgba(239, 68, 68, 0.35)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(paddingLeft + 12, paddingTop + 6, 285, 22);
-        ctx.fillStyle = '#fca5a5';
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`⚠️ ${this.interval} Feed Unavailable. Displaying Daily Fallback.`, paddingLeft + 20, paddingTop + 21);
-      }
-
-      // =========================================================================
-      // 1.1 TRADINGVIEW PRO REAL-TIME LIVE OHLCV HUD BAR (TOP-LEFT UNBLOCKED)
-      // =========================================================================
-      const hudCandle = (this.crosshair.active && this.crosshair.candle) ? this.crosshair.candle : latestCandle;
-      if (hudCandle) {
-        const hudIsBull = hudCandle.close >= hudCandle.open;
-        const hudCol = hudIsBull ? '#10b981' : '#ef4444';
-        const hudChg = hudCandle.open > 0 ? (((hudCandle.close - hudCandle.open) / hudCandle.open) * 100) : 0;
-        const hudChgSign = hudChg >= 0 ? '+' : '';
-        const hudVol = hudCandle.volume;
-        const hudVolStr = hudVol >= 10000000 ? `${(hudVol / 10000000).toFixed(2)}Cr` : (hudVol >= 100000 ? `${(hudVol / 100000).toFixed(2)}L` : (hudVol >= 1000 ? `${(hudVol / 1000).toFixed(1)}K` : hudVol));
-        const hudTimeLabel = hudCandle.time || hudCandle.date || '';
-
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        
-        let curX = paddingLeft + 6;
-        const hudY = 16;
-
-        ctx.fillStyle = '#94a3b8';
-        ctx.fillText(`${this.stock.symbol} • ${this.interval} • ${hudTimeLabel}`, curX, hudY);
-        curX += ctx.measureText(`${this.stock.symbol} • ${this.interval} • ${hudTimeLabel}  `).width;
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('O:', curX, hudY);
-        curX += ctx.measureText('O: ').width;
-        ctx.fillStyle = hudCol;
-        ctx.fillText(`₹${hudCandle.open.toFixed(2)}`, curX, hudY);
-        curX += ctx.measureText(`₹${hudCandle.open.toFixed(2)}  `).width;
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('H:', curX, hudY);
-        curX += ctx.measureText('H: ').width;
-        ctx.fillStyle = '#10b981';
-        ctx.fillText(`₹${hudCandle.high.toFixed(2)}`, curX, hudY);
-        curX += ctx.measureText(`₹${hudCandle.high.toFixed(2)}  `).width;
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('L:', curX, hudY);
-        curX += ctx.measureText('L: ').width;
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText(`₹${hudCandle.low.toFixed(2)}`, curX, hudY);
-        curX += ctx.measureText(`₹${hudCandle.low.toFixed(2)}  `).width;
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('C:', curX, hudY);
-        curX += ctx.measureText('C: ').width;
-        ctx.fillStyle = hudCol;
-        ctx.fillText(`₹${hudCandle.close.toFixed(2)} (${hudChgSign}${hudChg.toFixed(2)}%)`, curX, hudY);
-        curX += ctx.measureText(`₹${hudCandle.close.toFixed(2)} (${hudChgSign}${hudChg.toFixed(2)}%)  `).width;
-
-        ctx.fillStyle = '#64748b';
-        ctx.fillText('Vol:', curX, hudY);
-        curX += ctx.measureText('Vol: ').width;
-        ctx.fillStyle = '#fbbf24';
-        ctx.fillText(hudVolStr, curX, hudY);
-      }
-
-      const visibleCount = visibleCandles.length;
-      const startGlobalIdx = this.allCandles.length - this.viewOffset - visibleCount;
-
-      // 20-PERIOD SMA CURVE (FROM CACHED BUFFER)
-      const sma20 = this.cache.sma20;
-      if (sma20 && sma20.length) {
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.85)';
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        let startedSMA = false;
-        for (let i = 0; i < visibleCount; i++) {
-          const gIdx = startGlobalIdx + i;
-          if (sma20[gIdx] > 0) {
-            const x = getX(i), y = getY(sma20[gIdx]);
-            if (!startedSMA) { ctx.moveTo(x, y); startedSMA = true; }
-            else ctx.lineTo(x, y);
-          }
-        }
-        ctx.stroke();
-      }
-
-      // =========================================================================
-      // 2. CLIPPED PRICE REGION (INDICATORS & PROTOCOLS)
-      // =========================================================================
-      ctx.save();
-      ctx.beginPath();
-      ctx.rect(paddingLeft, paddingTop, plotWidth, pricePlotHeight);
-      ctx.clip();
-
-      // SPECIAL SCALPER MODE BREAKOUT & ORDER OVERLAYS
-      if (false) { // Scalper mode removed
-        const vwapVal = livePrice * 0.997;
-        const r1Val = livePrice * 1.018;
-        const s1Val = livePrice * 0.985;
-        const scalpTarget = livePrice * 1.025;
-        const scalpSl = livePrice * 0.988;
-
-        // R1 Breakout Line (Golden)
-        const r1Y = getY(r1Val);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, r1Y);
-        ctx.lineTo(w - paddingRight, r1Y);
-        ctx.strokeStyle = '#f59e0b';
-        ctx.setLineDash([5, 3]);
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`⚡ R1 BREAKOUT: ₹${r1Val.toFixed(2)}`, w - paddingRight - 6, r1Y - 4);
-
-        // VWAP Line (Purple)
-        const vwapY = getY(vwapVal);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, vwapY);
-        ctx.lineTo(w - paddingRight, vwapY);
-        ctx.strokeStyle = '#a78bfa';
-        ctx.setLineDash([3, 3]);
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.fillStyle = '#a78bfa';
-        ctx.fillText(`VWAP: ₹${vwapVal.toFixed(2)}`, w - paddingRight - 6, vwapY - 4);
-
-        // Scalp Target (+2.5%)
-        const targetY = getY(scalpTarget);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, targetY);
-        ctx.lineTo(w - paddingRight, targetY);
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = '#10b981';
-        ctx.fillText(`🎯 SCALP TARGET: ₹${scalpTarget.toFixed(2)} (+2.5%)`, w - paddingRight - 6, targetY - 4);
-
-        // Scalp Stop Loss (-1.2%)
-        const slY = getY(scalpSl);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, slY);
-        ctx.lineTo(w - paddingRight, slY);
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = '#ef4444';
-        ctx.fillText(`🛑 SCALP SL: ₹${scalpSl.toFixed(2)} (-1.2%)`, w - paddingRight - 6, slY - 4);
-      }
-
-      // PROTOCOL 4: 7-WEEK CONSOLIDATION BASE BOX
-      if (this.layers.p4_base7w) {
-        const c7w = this.stock.consolidation7W || Indicators.detect7WeekConsolidation(this.allCandles, 7, 18);
-        const baseSessions = Math.min(visibleCount, c7w.baseLengthDays || 35);
-        const baseStart = Math.max(0, visibleCount - baseSessions);
-        const boxX = getX(baseStart) - (plotWidth / visibleCount) * 0.5;
-        const boxW = (w - paddingRight) - boxX;
-        const bHigh = c7w.baseHigh || (this.stock.ltp * 1.05);
-        const bLow = c7w.baseLow || (this.stock.ltp * 0.94);
-        const boxHighY = getY(bHigh);
-        const boxLowY = getY(bLow);
-        const boxH = Math.max(10, boxLowY - boxHighY);
-
-        ctx.fillStyle = 'rgba(6, 182, 212, 0.08)';
-        ctx.fillRect(boxX, boxHighY, boxW, boxH);
-        ctx.strokeStyle = '#06b6d4';
-        ctx.lineWidth = 1.4;
-        ctx.setLineDash([4, 4]);
-        ctx.strokeRect(boxX, boxHighY, boxW, boxH);
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#06b6d4';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`P4 Base High: ₹${bHigh.toFixed(1)}`, w - paddingRight - 8, boxHighY - 4);
-        ctx.fillText(`Base Low: ₹${bLow.toFixed(1)} (${c7w.rangePct}% Tightness)`, w - paddingRight - 8, boxLowY + 12);
-      }
-
-      // PROTOCOL 5: CUP WITH HANDLE GOLDEN ARC
-      if (this.layers.p5_cup && this.stock.cupWithHandle?.isPattern) {
-        const cwh = this.stock.cupWithHandle;
-        const leftIdx = cwh.leftPeak?.index - startGlobalIdx;
-        const botIdx = cwh.bottom?.index - startGlobalIdx;
-        const rightIdx = cwh.rightPeak?.index - startGlobalIdx;
-
-        if (leftIdx >= -20 && rightIdx < visibleCount + 20) {
-          const p1x = getX(Math.max(0, leftIdx)), p1y = getY(cwh.leftPeak.price);
-          const p2x = getX(botIdx), p2y = getY(cwh.bottom.price);
-          const p3x = getX(Math.min(visibleCount - 1, rightIdx)), p3y = getY(cwh.rightPeak.price);
-
-          ctx.beginPath();
-          ctx.moveTo(p1x, p1y);
-          ctx.quadraticCurveTo(p2x, p2y + 20, p3x, p3y);
-          ctx.strokeStyle = '#fbbf24';
-          ctx.lineWidth = 2.4;
-          ctx.stroke();
-
-          ctx.lineTo(p3x, p1y);
-          ctx.lineTo(p1x, p1y);
-          ctx.fillStyle = 'rgba(251, 191, 36, 0.05)';
-          ctx.fill();
-
-          ctx.fillStyle = '#fbbf24';
-          ctx.font = 'bold 9.5px Inter, sans-serif';
-          ctx.textAlign = 'center';
-          ctx.fillText(`P5: Cup & Handle (${cwh.score}/100)`, p2x, p2y + 18);
-        }
-
-        const pivotY = getY(cwh.pivotPrice);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, pivotY);
-        ctx.lineTo(w - paddingRight, pivotY);
-        ctx.strokeStyle = '#10b981';
-        ctx.setLineDash([5, 3]);
-        ctx.lineWidth = 1.6;
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#10b981';
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
-        ctx.textAlign = 'right';
-        ctx.fillText(`Pivot ₹${cwh.pivotPrice}`, w - paddingRight - 6, pivotY - 4);
-      }
-
-      // PROTOCOL 6: % STOP LOSS & 2R TARGET LINES
-      if (this.layers.p6_sl) {
-        const entryPrice = livePrice;
-        const isIntraday = (this.interval === '1m' || this.interval === '5m' || this.interval === '15m' || this.interval === '1H' || this.interval === '4H');
-        const activeSlPct = isIntraday ? 1.5 : (this.filterParams?.maxStopLossPct ?? this.stock.slPct ?? 7.0);
-        const slPrice = parseFloat((entryPrice * (1 - activeSlPct / 100)).toFixed(2));
-        const riskPerShare = entryPrice - slPrice;
-        const target2Price = parseFloat((entryPrice + riskPerShare * 2).toFixed(2));
-        const targetPct = ((target2Price - entryPrice) / entryPrice) * 100;
-
-        const slY = getY(slPrice);
-        const targetY = getY(target2Price);
-
-        // P6 Target 2R Horizontal Line
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, targetY);
-        ctx.lineTo(w - paddingRight, targetY);
-        ctx.strokeStyle = '#10b981';
-        ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // P6 Target 2R Sleek Right-Aligned Tag Pill
-        const targetStr = `🎯 P6 Target 2R: ₹${target2Price.toFixed(1)} (+${targetPct.toFixed(1)}%)`;
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        const targetStrW = ctx.measureText(targetStr).width + 12;
-        const targetTagX = w - paddingRight - targetStrW - 6;
-        const targetTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, targetY - 10));
-
-        ctx.fillStyle = 'rgba(6, 78, 59, 0.85)';
-        ctx.fillRect(targetTagX, targetTagY, targetStrW, 18);
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(targetTagX, targetTagY, targetStrW, 18);
-
-        ctx.fillStyle = '#34d399';
-        ctx.textAlign = 'left';
-        ctx.fillText(targetStr, targetTagX + 6, targetTagY + 12);
-
-        // P6 Stop Loss Horizontal Line
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, slY);
-        ctx.lineTo(w - paddingRight, slY);
-        ctx.strokeStyle = '#ef4444';
-        ctx.setLineDash([4, 4]);
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        // P6 Stop Loss Sleek Right-Aligned Tag Pill
-        const slStr = `🛑 P6 Stop Loss: ₹${slPrice.toFixed(1)} (-${activeSlPct.toFixed(1)}%) | R:R 1:2.0`;
-        const slStrW = ctx.measureText(slStr).width + 12;
-        const slTagX = w - paddingRight - slStrW - 6;
-        const slTagY = Math.max(paddingTop + 2, Math.min(paddingTop + pricePlotHeight - 20, slY - 10));
-
-        ctx.fillStyle = 'rgba(127, 29, 29, 0.85)';
-        ctx.fillRect(slTagX, slTagY, slStrW, 18);
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(slTagX, slTagY, slStrW, 18);
-
-        ctx.fillStyle = '#f87171';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(slStr, slTagX + 6, slTagY + 12);
-      }
-
-      // =========================================================================
-      // 3. TRADINGVIEW BATCHED CANDLESTICK PATH RENDERING
-      // =========================================================================
-      const rawCandleWidth = (plotWidth / visibleCount) * 0.72;
-      const candleWidth = Math.min(18, Math.max(2.5, rawCandleWidth));
-      const lastCandleIdx = visibleCount - 1;
-      let lastCandleX = 0, lastCandleY = 0;
-
-      if (this.chartType === 'area') {
-        const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + pricePlotHeight);
-        grad.addColorStop(0, 'rgba(56, 189, 248, 0.4)');
-        grad.addColorStop(1, 'rgba(56, 189, 248, 0.0)');
-
-        ctx.beginPath();
-        ctx.moveTo(getX(0), paddingTop + pricePlotHeight);
-        for (let i = 0; i < visibleCount; i++) {
-          ctx.lineTo(getX(i), getY(visibleCandles[i].close));
-        }
-        ctx.lineTo(getX(visibleCount - 1), paddingTop + pricePlotHeight);
-        ctx.fillStyle = grad;
-        ctx.fill();
-
-        ctx.beginPath();
-        for (let i = 0; i < visibleCount; i++) {
-          const x = getX(i), y = getY(visibleCandles[i].close);
-          if (i === 0) ctx.moveTo(x, y);
-          else ctx.lineTo(x, y);
-        }
-        ctx.strokeStyle = '#38bdf8';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      } else {
-        // BATCH ALL BULLISH & BEARISH PATHS
-        const bullWicks = new Path2D();
-        const bullBodies = new Path2D();
-        const bearWicks = new Path2D();
-        const bearBodies = new Path2D();
-
-        visibleCandles.forEach((c, idx) => {
-          const cx = Math.round(getX(idx)) + 0.5;
-          const isBullish = c.close >= c.open;
-          const oy = getY(c.open), cy = getY(c.close);
-          const bodyTop = Math.min(oy, cy);
-          const bodyH = Math.max(1.5, Math.abs(cy - oy));
-
-          if (isBullish) {
-            bullWicks.moveTo(cx, getY(c.high));
-            bullWicks.lineTo(cx, getY(c.low));
-            bullBodies.rect(cx - candleWidth / 2, bodyTop, candleWidth, bodyH);
-          } else {
-            bearWicks.moveTo(cx, getY(c.high));
-            bearWicks.lineTo(cx, getY(c.low));
-            bearBodies.rect(cx - candleWidth / 2, bodyTop, candleWidth, bodyH);
-          }
-
-          if (idx === lastCandleIdx) {
-            lastCandleX = cx;
-            lastCandleY = cy;
-          }
-        });
-
-        // 2 Fast Batched Draws for Bullish
-        ctx.strokeStyle = '#10b981';
-        ctx.lineWidth = 1.2;
-        ctx.stroke(bullWicks);
-        ctx.fillStyle = '#10b981';
-        ctx.fill(bullBodies);
-
-        // 2 Fast Batched Draws for Bearish
-        ctx.strokeStyle = '#ef4444';
-        ctx.lineWidth = 1.2;
-        ctx.stroke(bearWicks);
-        ctx.fillStyle = '#ef4444';
-        ctx.fill(bearBodies);
-
-        // 3. SPECIAL FORMING LIVE CANDLE PULSING AURA
-        const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
-        if (isLiveActive && visibleCandles.length) {
-          const liveC = visibleCandles[visibleCandles.length - 1];
-          const liveIsBull = liveC.close >= liveC.open;
-          const liveCx = Math.round(getX(visibleCandles.length - 1)) + 0.5;
-          const liveOy = getY(liveC.open), liveCy = getY(liveC.close);
-          const liveTop = Math.min(liveOy, liveCy);
-          const liveH = Math.max(1.5, Math.abs(liveCy - liveOy));
-
-          ctx.save();
-          ctx.strokeStyle = liveIsBull ? '#34d399' : '#f87171';
-          ctx.lineWidth = 1.8;
-          ctx.shadowColor = liveIsBull ? '#10b981' : '#ef4444';
-          ctx.shadowBlur = 6 + Math.sin(this.pulsePhase) * 3;
-          ctx.strokeRect(liveCx - candleWidth / 2 - 0.5, liveTop - 0.5, candleWidth + 1, liveH + 1);
-          ctx.restore();
-        }
-      }
-
-      // 4. LIVE TICK BEACON
-      const currentPrice = this.stock.ltp;
-      const liveY = Math.round(getY(currentPrice)) + 0.5;
-      const isLiveActive = (this.isMarketLive === true) || this.isSimMode;
-      const isTickUp = this.stock.lastTickDir === 'up';
-      const liveColor = isLiveActive ? (isTickUp ? '#10b981' : '#ef4444') : '#38bdf8';
-
-      // Laser Benchmark Line running across to right price scale
-      ctx.strokeStyle = isLiveActive ? liveColor : 'rgba(56, 189, 248, 0.75)';
-      ctx.lineWidth = isLiveActive ? 1.4 : 1.1;
-      ctx.setLineDash(isLiveActive ? [4, 2] : [5, 3]);
-      ctx.beginPath();
-      ctx.moveTo(lastCandleX > 0 ? lastCandleX : paddingLeft, liveY);
-      ctx.lineTo(w - paddingRight, liveY);
-      ctx.stroke();
-      ctx.setLineDash([]);
-
-      if (isLiveActive) {
-        const pulseSize = 4 + Math.sin(this.pulsePhase) * 3;
-        const pulseAlpha = 0.4 + Math.cos(this.pulsePhase) * 0.3;
-        
-        ctx.fillStyle = isTickUp ? `rgba(16, 185, 129, ${pulseAlpha})` : `rgba(239, 68, 68, ${pulseAlpha})`;
-        ctx.beginPath();
-        ctx.arc(lastCandleX, lastCandleY, pulseSize + 4, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = liveColor;
-        ctx.beginPath();
-        ctx.arc(lastCandleX, lastCandleY, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      // Horizontal Crosshair Line
-      if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= timeGutterTop) {
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
-        ctx.lineWidth = 1;
-        ctx.setLineDash([3, 3]);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, this.crosshair.y);
-        ctx.lineTo(w - paddingRight, this.crosshair.y);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(this.crosshair.x, paddingTop);
-        ctx.lineTo(this.crosshair.x, timeGutterTop);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-
-      ctx.restore(); // END CLIPPING
-
-      // Right Scale Live Price Badge
-      const liveTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, liveY));
-      if (isLiveActive) {
-        ctx.fillStyle = liveColor;
-        ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        const badgeText = `₹${livePrice.toFixed(1)} ${isTickUp ? '▲' : '▼'}`;
-        ctx.fillText(badgeText, w - paddingRight + 4, liveTagY + 3.5);
-      } else {
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.7)';
-        ctx.strokeRect(w - paddingRight + 2, liveTagY - 9, paddingRight - 4, 18);
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`₹${livePrice.toFixed(1)} OFFLINE`, w - paddingRight + 4, liveTagY + 3.5);
-      }
-
-      // Right Scale Hover Crosshair Badge with Add Alert (+) Button
-      if (this.crosshair.active && this.crosshair.y >= paddingTop && this.crosshair.y <= paddingTop + pricePlotHeight) {
-        const hoverPrice = getPriceFromY(this.crosshair.y);
-        const crosshairTagY = Math.max(paddingTop + 9, Math.min(paddingTop + pricePlotHeight - 9, this.crosshair.y));
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(w - paddingRight - 16, crosshairTagY - 9, paddingRight + 14, 18);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.6)';
-        ctx.lineWidth = 1;
-        ctx.strokeRect(w - paddingRight - 16, crosshairTagY - 9, paddingRight + 14, 18);
-
-        // Circular (+) badge as in TradingView
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
-        ctx.beginPath();
-        ctx.arc(w - paddingRight - 8, crosshairTagY, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#38bdf8';
-        ctx.font = 'bold 10px Inter, sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('+', w - paddingRight - 8, crosshairTagY + 3.5);
-
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = 'bold 9px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`₹${hoverPrice.toFixed(2)}`, w - paddingRight + 4, crosshairTagY + 3.5);
-      }
-
-      // Volumes & P3 Volume Bursts (Dynamic Threshold Multiplier from Slider)
-      const volSMA20 = this.cache.volSma20;
-      const burstThresholdPct = this.filterParams?.minBurstPct ?? 40;
-      const burstMultiplier = 1 + (burstThresholdPct / 100);
-
-      visibleCandles.forEach((c, idx) => {
-        const cx = getX(idx);
-        const isBullish = c.close >= c.open;
-        const gIdx = startGlobalIdx + idx;
-        const avgVol = (volSMA20 && volSMA20[gIdx]) || 1;
-        const isBurst = (c.volume >= avgVol * burstMultiplier && avgVol > 0);
-        const burstRatio = ((c.volume / avgVol) - 1) * 100;
-
-        const vy = getVolY(c.volume);
-        const vh = (volumeTop + volumeHeight) - vy;
-
-        ctx.fillStyle = (this.layers.p3_vol && isBurst) ? '#f59e0b' : (isBullish ? 'rgba(16, 185, 129, 0.45)' : 'rgba(239, 68, 68, 0.45)');
-        ctx.fillRect(cx - candleWidth / 2, vy, candleWidth, Math.max(1.5, vh));
-
-        if (this.layers.p3_vol && isBurst && (idx % 3 === 0 || idx === lastCandleIdx)) {
-          ctx.fillStyle = '#f59e0b';
-          ctx.font = 'bold 8.5px JetBrains Mono, monospace';
-          ctx.textAlign = 'center';
-          ctx.fillText(`+${Math.round(burstRatio)}%`, cx, vy - 3);
-        }
+    setMarketLiveState(isLive, isSim) {
+      this._isMarketLive = isLive;
+      // Visual cue: show live dot color on the last candle via price line
+    }
+
+    setExchangeMode(mode) { this._exchangeMode = mode; }
+    setFilterParams(params) { /* No-op: LW chart doesn't need filter params */ }
+    setMarketOpen(bool) { this._isMarketLive = bool; }
+
+    resetZoom() {
+      this._chart?.timeScale().resetTimeScale();
+      this._chart?.timeScale().scrollToRealTime();
+    }
+
+    resize() {
+      if (!this._chart || !this.container) return;
+      requestAnimationFrame(() => {
+        const { width, height } = this.container.getBoundingClientRect();
+        if (width > 10 && height > 10) this._chart.applyOptions({ width, height });
       });
+    }
 
-      // PROTOCOL 2: RSI PANEL (Dynamic Threshold from Slider)
-      const rsiGPUArr = this.cache.rsi;
-      if (this.layers.p2_rsi && rsiGPUArr) {
-        ctx.fillStyle = 'rgba(15, 23, 42, 0.75)';
-        ctx.fillRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-        ctx.strokeRect(paddingLeft, rsiTop, plotWidth, rsiHeight);
-
-        const minRsi = this.filterParams?.minRsi ?? 70;
-        const rsiThreshY = getRsiY(minRsi);
-        const rsi30Y = getRsiY(30);
-
-        ctx.fillStyle = 'rgba(245, 158, 11, 0.08)';
-        ctx.fillRect(paddingLeft, getRsiY(100), plotWidth, Math.max(2, rsiThreshY - getRsiY(100)));
-
-        ctx.strokeStyle = 'rgba(245, 158, 11, 0.8)';
-        ctx.lineWidth = 1.2;
-        ctx.setLineDash([3, 2]);
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, rsiThreshY);
-        ctx.lineTo(w - paddingRight, rsiThreshY);
-        ctx.stroke();
-
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
-        ctx.beginPath();
-        ctx.moveTo(paddingLeft, rsi30Y);
-        ctx.lineTo(w - paddingRight, rsi30Y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-
-        ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 9px JetBrains Mono, monospace';
-        ctx.textAlign = 'left';
-        ctx.fillText(`P2 Threshold: ${minRsi} RSI`, w - paddingRight + 4, rsiThreshY + 3);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.fillText('30 RSI', w - paddingRight + 4, rsi30Y + 3);
-
-        ctx.strokeStyle = '#f59e0b';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        let startedRsi = false;
-        for (let i = 0; i < visibleCount; i++) {
-          const gIdx = startGlobalIdx + i;
-          const rVal = rsiGPUArr[gIdx];
-          const x = getX(i), y = getRsiY(rVal);
-          if (!startedRsi) { ctx.moveTo(x, y); startedRsi = true; }
-          else ctx.lineTo(x, y);
-        }
-        ctx.stroke();
-
-        const curRsi = rsiGPUArr[rsiGPUArr.length - 1 - this.viewOffset] || 75;
-        ctx.fillStyle = '#f59e0b';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.fillText(`P2: RSI(14) Momentum: ${curRsi.toFixed(1)} [Overbought Zone > 70]`, paddingLeft + 6, rsiTop + 12);
-      }
-
-      // =========================================================================
-      // 4. TRADINGVIEW BOTTOM X-AXIS TIME SCALE GUTTER
-      // =========================================================================
-      ctx.fillStyle = '#060a14';
-      ctx.fillRect(0, timeGutterTop, w, paddingBottom);
-      ctx.strokeStyle = 'rgba(255, 255, 255, 0.08)';
-      ctx.beginPath();
-      ctx.moveTo(0, timeGutterTop);
-      ctx.lineTo(w, timeGutterTop);
-      ctx.stroke();
-
-      const timeStep = Math.max(1, Math.floor(visibleCount / 6));
-      ctx.fillStyle = '#64748b';
-      ctx.font = '9.5px JetBrains Mono, monospace';
-      ctx.textAlign = 'center';
-
-      for (let i = Math.floor(timeStep / 2); i < visibleCount; i += timeStep) {
-        const c = visibleCandles[i];
-        if (!c) continue;
-        const x = getX(i);
-        const label = (c.time && c.time !== 'Monthly' && c.time !== '15:30') ? c.time : c.date.split('-').slice(1).join('/');
-        ctx.fillText(label, x, timeGutterTop + 14);
-      }
-
-      // Dynamic Hover Time Badge on X-Axis
-      if (this.crosshair.active && this.crosshair.timeStr && this.crosshair.x >= paddingLeft && this.crosshair.x <= w - paddingRight) {
-        const tw = ctx.measureText(this.crosshair.timeStr).width + 12;
-        ctx.fillStyle = '#1e293b';
-        ctx.fillRect(this.crosshair.x - tw / 2, timeGutterTop + 2, tw, 18);
-        ctx.strokeStyle = '#38bdf8';
-        ctx.strokeRect(this.crosshair.x - tw / 2, timeGutterTop + 2, tw, 18);
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 9.5px JetBrains Mono, monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.crosshair.timeStr, this.crosshair.x, timeGutterTop + 14);
-      }
-
-      // Subtle Historical Range Position Track in Bottom Gutter
-      if (this.allCandles && this.allCandles.length > this.viewCount) {
-        const totalLen = this.allCandles.length;
-        const trackPlotW = w - paddingLeft - paddingRight;
-        const visRatio = Math.min(1, this.viewCount / totalLen);
-        const trackW = Math.max(24, trackPlotW * visRatio);
-        const maxOff = Math.max(1, totalLen - this.viewCount);
-        const scrollRatio = (totalLen - this.viewOffset - this.viewCount) / maxOff;
-        const trackX = paddingLeft + (trackPlotW - trackW) * Math.max(0, Math.min(1, scrollRatio));
-
-        ctx.fillStyle = 'rgba(56, 189, 248, 0.45)';
-        ctx.fillRect(trackX, h - 3, trackW, 2);
-      }
-
-      // Floating "Jump to Latest" (Back to Live) Button when scrolled into history
-      if (this.viewOffset > 3) {
-        const btnW = 126, btnH = 24;
-        const btnX = w - paddingRight - btnW - 12;
-        const btnY = timeGutterTop - btnH - 10;
-        this.jumpBtnRect = { x: btnX, y: btnY, w: btnW, h: btnH };
-
-        const isHovered = (this.crosshair.active &&
-          this.crosshair.x >= btnX && this.crosshair.x <= btnX + btnW &&
-          this.crosshair.y >= btnY && this.crosshair.y <= btnY + btnH);
-
-        ctx.fillStyle = isHovered ? '#38bdf8' : 'rgba(15, 23, 42, 0.88)';
-        ctx.fillRect(btnX, btnY, btnW, btnH);
-        ctx.strokeStyle = isHovered ? '#38bdf8' : 'rgba(56, 189, 248, 0.45)';
-        ctx.lineWidth = 1.2;
-        ctx.strokeRect(btnX, btnY, btnW, btnH);
-
-        ctx.fillStyle = isHovered ? '#050a15' : '#38bdf8';
-        ctx.font = 'bold 10px JetBrains Mono, monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('⮞ Jump to Live', btnX + btnW / 2, btnY + 16);
-      } else {
-        this.jumpBtnRect = null;
-      }
-
-      // =========================================================================
-      // 5. TOP HEADER LEGEND & CROSSHAIR HUD
-      // =========================================================================
-      ctx.fillStyle = 'rgba(12, 20, 36, 0.96)';
-      ctx.fillRect(paddingLeft, 3, w - paddingRight - paddingLeft, 20);
-      
-      const isNSE = this.exchangeMode === 'NSE';
-      const exchPrefix = isNSE ? `NSE: ${this.stock.symbol} (Series: ${this.stock.series || 'EQ'})` : `BSE: ${this.stock.bseCode} (${this.stock.symbol})`;
-      const indexStr = isNSE ? this.stock.indexCategory : this.stock.bseIndex;
-
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 11px JetBrains Mono, monospace';
-      ctx.textAlign = 'left';
-      ctx.fillText(`${exchPrefix} • ${indexStr} • (${this.interval}) ₹${livePrice.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, paddingLeft + 6, 17);
-
-      if (this.crosshair.active && this.crosshair.candle) {
-        const c = this.crosshair.candle;
-        const timeTag = (c.time && c.time !== 'Monthly' && c.time !== '15:30') ? `${c.date} ${c.time}` : c.date;
-        const tooltip = `${timeTag} | O: ₹${c.open} | H: ₹${c.high} | L: ₹${c.low} | C: ₹${c.close} | Vol: ${(c.volume / 100000).toFixed(2)}L`;
-        ctx.fillStyle = '#070f1e';
-        ctx.fillRect(paddingLeft + 4, 3, 440, 20);
-        ctx.strokeStyle = 'rgba(56, 189, 248, 0.4)';
-        ctx.strokeRect(paddingLeft + 4, 3, 440, 20);
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = '10px JetBrains Mono, monospace';
-        ctx.fillText(tooltip, paddingLeft + 8, 17);
-      }
+    destroy() {
+      if (this._chart) { this._chart.remove(); this._chart = null; }
     }
   }
 
-  /* ==========================================================================
-     6b. NATURAL LANGUAGE FILTER SEARCH ENGINE (NLP QUERY PARSER)
-     ========================================================================== */
-  const NLPFilterEngine = {
-    parse(query) {
-      if (!query || !query.trim()) return null;
-      const q = query.toLowerCase().trim();
-      const tags = [];
-      const filterFn = (stock) => {
-        let match = true;
 
-        // 1. Debt filters
-        if (q.includes('low debt') || q.includes('zero debt') || q.includes('no debt') || q.includes('debt free')) {
-          if (stock.debtToEquity > 0.25) match = false;
-          if (!tags.includes('Debt/Eq ≤ 0.25')) tags.push('Debt/Eq ≤ 0.25');
-        }
-
-        // 2. Volume Shocker / Bursts
-        if (q.includes('vol shocker') || q.includes('volume shocker') || q.includes('high volume') || q.includes('volume burst')) {
-          if (!stock.isVolumeShocker && (stock.volumeBurst?.burstPct || 0) < 30) match = false;
-          if (!tags.includes('Vol Shocker (>3x / Burst)')) tags.push('Vol Shocker (>3x / Burst)');
-        }
-
-        // 3. SEBI Insider / Promoter Buying
-        if (q.includes('promoter buying') || q.includes('insider buy') || q.includes('promoter buy') || q.includes('sebi pit')) {
-          if (!stock.hasPromoterBuy10L) match = false;
-          if (!tags.includes('SEBI Promoter Buy > ₹10L')) tags.push('SEBI Promoter Buy > ₹10L');
-        }
-
-        // 4. Quality Compounders (Section 1 & 21)
-        if (q.includes('compounder') || q.includes('quality compounder') || q.includes('compounders')) {
-          if (stock.roce < 25.0 || stock.debtToEquity > 0.25 || stock.cfoToPat < 0.9) match = false;
-          if (!tags.includes('Quality Compounder (ROCE ≥ 25%, Low Debt, High CFO)')) tags.push('Quality Compounder (ROCE ≥ 25%, Low Debt, High CFO)');
-        }
-
-        // 5. Multibagger Hunters (Section 21)
-        if (q.includes('multibagger') || q.includes('multibaggers')) {
-          if (stock.salesGrowthYoY < 25.0 || stock.eps3Y_CAGR < 30.0 || stock.moatScore < 8.0) match = false;
-          if (!tags.includes('Multibagger Hunter (Growth > 30%, Moat ≥ 8)')) tags.push('Multibagger Hunter (Growth > 30%, Moat ≥ 8)');
-        }
-
-        // 6. GARP / Growth at Reasonable Price
-        if (q.includes('garp') || q.includes('growth at reasonable price')) {
-          if (stock.pegRatio > 1.6 || stock.roce < 20.0) match = false;
-          if (!tags.includes('GARP (PEG ≤ 1.6, ROCE ≥ 20%)')) tags.push('GARP (PEG ≤ 1.6, ROCE ≥ 20%)');
-        }
-
-        // 7. Free Cash Flow Machines & CFO/PAT
-        if (q.includes('fcf') || q.includes('cash flow') || q.includes('fcf machine') || q.includes('cfo')) {
-          if (stock.cfoToPat < 0.95 || stock.fcfYield < 1.8) match = false;
-          if (!tags.includes('FCF Machine (CFO/PAT ≥ 0.95, FCF Yield ≥ 1.8%)')) tags.push('FCF Machine (CFO/PAT ≥ 0.95, FCF Yield ≥ 1.8%)');
-        }
-
-        // 8. Competitive Moat Score
-        if (q.includes('moat') || q.includes('high moat') || q.includes('pricing power')) {
-          if ((stock.moatScore || 0) < 8.8) match = false;
-          if (!tags.includes('High Moat (Score ≥ 8.8/10)')) tags.push('High Moat (Score ≥ 8.8/10)');
-        }
-
-        // 9. Narrow Range / NR7 / NR4 Breakouts
-        if (q.includes('nr7') || q.includes('nr4') || q.includes('narrow range') || q.includes('inside day')) {
-          if (!stock.isNR7 && !stock.isNR4 && !stock.isInsideDay) match = false;
-          if (!tags.includes('NR4/NR7 Contraction')) tags.push('NR4/NR7 Contraction');
-        }
-
-        // 10. Dynamic Momentum Rank (DMR) / Sector Leaders
-        if (q.includes('dmr') || q.includes('momentum leader') || q.includes('sector leader') || q.includes('outperform')) {
-          if ((stock.dmrDecile || 0) < 8) match = false;
-          if (!tags.includes('DMR Decile ≥ 8')) tags.push('DMR Decile ≥ 8');
-        }
-
-        // 11. High ROE / ROCE
-        if (q.includes('high roe') || q.includes('high return on equity')) {
-          if (stock.roe < 24.0) match = false;
-          if (!tags.includes('ROE ≥ 24%')) tags.push('ROE ≥ 24%');
-        }
-
-        // 12. VWAP Breakout
-        if (q.includes('vwap') || q.includes('vwap breakout')) {
-          if (!stock.isVwapBreakout && stock.ltp < stock.vwap) match = false;
-          if (!tags.includes('Price > VWAP (Deliv ≥ 60%)')) tags.push('Price > VWAP (Deliv ≥ 60%)');
-        }
-
-        // 13. Cup with Handle
-        if (q.includes('cup') || q.includes('cup and handle') || q.includes('cup with handle')) {
-          if (!stock.cupWithHandle?.isPattern) match = false;
-          if (!tags.includes('Cup & Handle Base')) tags.push('Cup & Handle Base');
-        }
-
-        // 14. 7-Week Base / Consolidation
-        if (q.includes('7w') || q.includes('7 week') || q.includes('consolidation')) {
-          if (!stock.consolidation7W?.isConsolidating) match = false;
-          if (!tags.includes('7W Base')) tags.push('7W Base');
-        }
-
-        // 15. High Delivery %
-        if (q.includes('delivery') || q.includes('delivery pct') || q.includes('institutional delivery')) {
-          if ((stock.deliveryPct || 0) < 65.0) match = false;
-          if (!tags.includes('Delivery % ≥ 65%')) tags.push('Delivery % ≥ 65%');
-        }
-
-        // 16. Smart Money / Accumulation
-        if (q.includes('smart money') || q.includes('smc') || q.includes('accumulation') || q.includes('order block')) {
-          if (!stock.smc?.zone?.includes('Accumulation') && !stock.smc?.zone?.includes('Demand')) match = false;
-          if (!tags.includes('SMC Demand Accumulation')) tags.push('SMC Demand Accumulation');
-        }
-
-        // 17. Sector match
-        const sectors = ['Defence', 'Retail', 'EMS', 'IT', 'Wires', 'Renewable', 'Financial'];
-        sectors.forEach(sec => {
-          if (q.includes(sec.toLowerCase())) {
-            if (stock.sector.toLowerCase() !== sec.toLowerCase()) match = false;
-            if (!tags.includes(`${sec} Sector`)) tags.push(`${sec} Sector`);
-          }
-        });
-
-        return match;
-      };
-
-      return { query, filterFn, tags: tags.length ? tags : [`Query: "${query}"`] };
-    }
-  };
-
-  /* ==========================================================================
-     6c. SECTOR PEER COMPARISON MATRIX ENGINE
-     ========================================================================== */
-  const PeerMatrixEngine = {
-    generateComparison(stock, allStocks) {
-      if (!stock) return null;
-      const peers = allStocks.filter(s => s.sector === stock.sector);
-      const medianOf = (fn) => {
-        const sorted = peers.map(fn).sort((a, b) => a - b);
-        const mid = Math.floor(sorted.length / 2);
-        return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
-      };
-      const percentile75 = (fn) => {
-        const sorted = peers.map(fn).sort((a, b) => a - b);
-        const idx = Math.min(sorted.length - 1, Math.floor(sorted.length * 0.75));
-        return sorted[idx];
-      };
-
-      const metrics = [
-        {
-          name: 'P/E (TTM)',
-          stockVal: `${stock.peRatio}x`,
-          medianVal: `${medianOf(s => s.peRatio).toFixed(1)}x`,
-          topVal: `${percentile75(s => s.peRatio).toFixed(1)}x`,
-          isBetter: stock.peRatio <= medianOf(s => s.peRatio) * 1.15,
-          standing: stock.peRatio <= medianOf(s => s.peRatio) ? '🟢 Attractive Valuation' : '🟡 Growth Premium'
-        },
-        {
-          name: 'ROE % (TTM)',
-          stockVal: `${stock.roe}%`,
-          medianVal: `${medianOf(s => s.roe).toFixed(1)}%`,
-          topVal: `${percentile75(s => s.roe).toFixed(1)}%`,
-          isBetter: stock.roe >= medianOf(s => s.roe),
-          standing: stock.roe >= medianOf(s => s.roe) ? '🟢 Top Quartile Profitability' : '⚪ Average'
-        },
-        {
-          name: 'ROCE % (Capital Efficiency)',
-          stockVal: `${stock.roce}%`,
-          medianVal: `${medianOf(s => s.roce).toFixed(1)}%`,
-          topVal: `${percentile75(s => s.roce).toFixed(1)}%`,
-          isBetter: stock.roce >= medianOf(s => s.roce),
-          standing: stock.roce >= medianOf(s => s.roce) ? '🟢 High Capital Efficiency' : '⚪ Standard'
-        },
-        {
-          name: 'Sales YoY Growth',
-          stockVal: `+${stock.salesGrowthYoY}%`,
-          medianVal: `+${medianOf(s => s.salesGrowthYoY).toFixed(1)}%`,
-          topVal: `+${percentile75(s => s.salesGrowthYoY).toFixed(1)}%`,
-          isBetter: stock.salesGrowthYoY >= medianOf(s => s.salesGrowthYoY),
-          standing: stock.salesGrowthYoY >= medianOf(s => s.salesGrowthYoY) ? '🟢 Sector Growth Leader' : '⚪ In-line'
-        },
-        {
-          name: 'EPS YoY Growth',
-          stockVal: `+${stock.epsGrowthYoY}%`,
-          medianVal: `+${medianOf(s => s.epsGrowthYoY).toFixed(1)}%`,
-          topVal: `+${percentile75(s => s.epsGrowthYoY).toFixed(1)}%`,
-          isBetter: stock.epsGrowthYoY >= medianOf(s => s.epsGrowthYoY),
-          standing: stock.epsGrowthYoY >= medianOf(s => s.epsGrowthYoY) ? '🟢 High Earnings Momentum' : '⚪ In-line'
-        },
-        {
-          name: '3-Year EPS CAGR',
-          stockVal: `+${stock.eps3Y_CAGR}%`,
-          medianVal: `+${medianOf(s => s.eps3Y_CAGR).toFixed(1)}%`,
-          topVal: `+${percentile75(s => s.eps3Y_CAGR).toFixed(1)}%`,
-          isBetter: stock.eps3Y_CAGR >= medianOf(s => s.eps3Y_CAGR),
-          standing: stock.eps3Y_CAGR >= medianOf(s => s.eps3Y_CAGR) ? '🟢 Multi-Year Compounding' : '⚪ In-line'
-        },
-        {
-          name: 'Debt to Equity',
-          stockVal: `${stock.debtToEquity}`,
-          medianVal: `${medianOf(s => s.debtToEquity).toFixed(2)}`,
-          topVal: `0.00`,
-          isBetter: stock.debtToEquity <= medianOf(s => s.debtToEquity),
-          standing: stock.debtToEquity <= 0.15 ? '🟢 Pristine Balance Sheet' : '⚪ Manageable'
-        },
-        {
-          name: 'Promoter Pledge %',
-          stockVal: `${stock.promoterPledgePct}%`,
-          medianVal: `0.0%`,
-          topVal: `0.0%`,
-          isBetter: stock.promoterPledgePct === 0,
-          standing: stock.promoterPledgePct === 0 ? '🟢 Zero Promoter Pledge' : '🟡 Low Pledge'
-        }
-      ];
-
-      const betterCount = metrics.filter(m => m.isBetter).length;
-      return {
-        sector: stock.sector,
-        peersCount: peers.length,
-        metrics,
-        betterCount,
-        totalMetrics: metrics.length,
-        scoreText: `${betterCount} / ${metrics.length}`
-      };
-    }
-  };
-
-  /* ==========================================================================
+    /* ==========================================================================
      7. MAIN APPLICATION CONTROLLER WITH 3.5s AUTO-REFRESH ENGINE
      ========================================================================== */
   class Application {
@@ -4221,7 +2899,7 @@
     init() {
       try {
         if (document.getElementById('mainCanvasContainer')) {
-          this.mainChart = new InteractiveGPUChart('mainCanvasContainer');
+          this.mainChart = new TradingViewLWChart('mainCanvasContainer');
         }
       } catch (e) {
         console.warn('mainCanvasContainer chart init error:', e);
@@ -4229,7 +2907,7 @@
 
       try {
         if (document.getElementById('modalCanvasContainer')) {
-          this.modalChart = new InteractiveGPUChart('modalCanvasContainer');
+          this.modalChart = new TradingViewLWChart('modalCanvasContainer');
         }
       } catch (e) {
         console.warn('modalCanvasContainer chart init error:', e);

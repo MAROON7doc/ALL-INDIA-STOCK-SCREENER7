@@ -1,1690 +1,1690 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
-  <meta name="theme-color" content="#050811">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <title>Universal Indian Stock Screener | High-Throughput Institutional Multi-Factor Screener</title>
-  <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
-    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono for Crisp Institutional Typography -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/styles.css">
-  <script defer src="js/screener.bundle.js"></script>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover">
+ <meta name="theme-color" content="#050811">
+ <meta name="mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-capable" content="yes">
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+ <title>Universal Indian Stock Screener | High-Throughput Institutional Multi-Factor Screener</title>
+ <meta name="description" content="Universal Indian Stock Screener: Real-Time Multi-Market Terminal covering NSE, BSE, MCX Commodities, GIFT Nifty, and Global Extended Hours with Interactive GPU Candlesticks, 10 Institutional CANSLIM Protocols, and 7 Investor Modes.">
+ <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono for Crisp Institutional Typography -->
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+ <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+ <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+ <link rel="stylesheet" href="css/styles.css">
+ <script defer src="js/screener.bundle.js"></script>
 </head>
 <body>
 
-  <!-- Top TradeOne Global Navigation Header (Angel One / Dhan TradeOne Pro Style) -->
-  <header class="tradeone-header">
-    <div class="tradeone-header-left">
-      <div class="tradeone-brand">
-        <div class="tradeone-brand-logo">🅰️</div>
-        <span style="font-weight:800; font-size:14px; letter-spacing:0.02em;">TradeOne</span>
-      </div>
-
-      <!-- Live NIFTY 50 Index Pill -->
-      <div class="tradeone-index-badge" id="tradeoneNiftyBadge">
-        <span class="tradeone-index-name">NIFTY</span>
-        <span class="tradeone-expiry-tag">EXPIRY</span>
-        <span class="tradeone-index-price" id="tradeoneNiftyLtp">24,243.50</span>
-        <span class="tradeone-index-chg down" id="tradeoneNiftyChg">▼ -44.15 (-0.18%)</span>
-      </div>
-
-      <!-- Live SENSEX Index Pill -->
-      <div class="tradeone-index-badge" id="tradeoneSensexBadge">
-        <span class="tradeone-index-name">SENSEX</span>
-        <span class="tradeone-index-price" id="tradeoneSensexLtp">77,498.92</span>
-        <span class="tradeone-index-chg down" id="tradeoneSensexChg">▼ -229.24 (-0.29%)</span>
-      </div>
-    </div>
-
-    <!-- Global Omnibar Search Input -->
-    <div class="tradeone-header-center">
-      <span class="tradeone-search-icon">🔍</span>
-      <input type="text" class="tradeone-search-input" id="globalTradeoneSearch" placeholder="Search for Anything [Ctrl + S]">
-    </div>
-
-    <!-- Stitch 5-Screen Super-View Switcher & Quick Controls -->
-    <div class="tradeone-header-right stitch-view-switcher">
-      <button class="stitch-nav-tab active" data-view="viewTradeoneWorkstation" id="tabViewTradeone">
-        <span>ðŸ…°ï¸</span> TradeOne
-      </button>
-      <button class="stitch-nav-tab" data-view="viewMarketHeatmap" id="tabViewHeatmap">
-        <span>ðŸ—ºï¸</span> Heatmap
-      </button>
-      <button class="stitch-nav-tab" data-view="viewFinDeskPortfolio" id="tabViewPortfolio">
-        <span>ðŸ’¼</span> Portfolio
-      </button>
-      <button class="stitch-nav-tab" data-view="viewSectorDeepDive" id="tabViewSectors">
-        <span>ðŸŒ</span> Sectors
-      </button>
-
-      <button class="btn btn-sm" id="btnToggleIntelRibbons" style="padding:2px 8px; font-size:10px; border-color:rgba(255,255,255,0.15); color:#94a3b8;" title="Toggle Extra News & Breadth Ribbons">
-        âš¡ Ribbons â–¾
-      </button>
-
-      <button class="btn btn-sm" id="btnTopOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold); padding:2px 8px; font-size:10px;" title="Connect Free Angel One SmartAPI">
-        ðŸ”’ SmartAPI
-      </button>
-
-      <a href="mobile.html" class="btn btn-sm" id="btnTopGoMobile" style="border-color:rgba(16, 185, 129, 0.4); color:var(--accent-green); text-decoration:none; padding:2px 8px; font-size:10px;" title="Android View">
-        ðŸ“± Mobile
-      </a>
-
-      <span class="live-pill" id="backendStatusPill" title="Backend Server Connectivity Status" style="background:rgba(16,185,129,0.15); border-color:#10b981; color:#34d399; font-size:10px; padding:2px 7px; display:inline-flex; align-items:center; gap:5px;">
-        <span class="live-dot" id="backendStatusDot" style="background:#10b981; width:6px; height:6px;"></span>
-        <span id="backendStatusText">BACKEND READY</span>
-      </span>
-
-      <div class="tradeone-avatar" title="User Account: GD" style="margin-left:4px;">GD</div>
-    </div>
-  </header>
-
-  <!-- Extra Market Intel & Screener Header (Collapsible to save 100% vertical screen space for the Live Chart) -->
-  <header class="app-header" id="collapsibleAppHeader" style="display:none;">
-    <!-- Live Market Ticker Tape -->
-    <div class="market-ticker-tape" id="marketTickerTape">
-      <div class="ticker-item">
-        <span class="ticker-name">NIFTY 50</span>
-        <span class="ticker-val" id="valNifty">24,835.10</span>
-        <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
-      </div>
-      <div class="ticker-item">
-        <span class="ticker-name">BSE SENSEX</span>
-        <span class="ticker-val" id="valSensex">81,380.40</span>
-        <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
-      </div>
-      <div class="ticker-item">
-        <span class="ticker-name">NIFTY BANK</span>
-        <span class="ticker-val">51,290.80</span>
-        <span class="ticker-chg pos">+215.10 (+0.42%)</span>
-      </div>
-      <div class="ticker-item">
-        <span class="ticker-name">NIFTY MIDCAP 100</span>
-        <span class="ticker-val">58,740.00</span>
-        <span class="ticker-chg pos">+680.50 (+1.17%)</span>
-      </div>
-      <div class="ticker-item">
-        <span class="ticker-name">INDIA VIX</span>
-        <span class="ticker-val">12.85</span>
-        <span class="ticker-chg neg">-0.45 (-3.38%)</span>
-      </div>
-      <div class="ticker-item" style="border-left: 1px solid var(--border-subtle); padding-left:12px;">
-        <span class="ticker-name" style="color:var(--accent-green);">FII:</span>
-        <span class="ticker-val" style="color:var(--accent-green);">+₹2,480 Cr</span>
-      </div>
-      <div class="ticker-item">
-        <span class="ticker-name" style="color:var(--accent-blue);">DII:</span>
-        <span class="ticker-val" style="color:var(--accent-blue);">+₹3,150 Cr</span>
-      </div>
-    </div>
-
-    <!-- Main Header -->
-    <div class="header-main">
-      <div class="brand-section">
-        <div class="brand-logo">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
-            <polyline points="16 7 22 7 22 13"></polyline>
-          </svg>
-        </div>
-        <div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <h1 class="brand-title">Universal Indian Stock Screener</h1>
-            <span class="market-pill market-open" id="marketStatusBadge" title="Multi-Market Live Feed Active (NSE/BSE, MCX, GIFT Nifty, Global Extended)">
-              <span class="market-dot"></span> <span id="marketStatusText">🟢 UNIVERSAL MARKET LIVE</span>
-            </span>
-            <span class="live-pill" id="livePillIndicator">
-              <span class="live-dot"></span> LIVE
-            </span>
-            <span class="gpu-badge" id="gpuStatusBadge">
-              <span class="gpu-dot"></span> GPU WebGL
-            </span>
-          </div>
-          <div class="brand-sub">Universal Indian Market Terminal • 10 Institutional CANSLIM Protocols • Multi-Asset Live Engine</div>
-        </div>
-      </div>
-
-      <div class="header-actions">
-        <!-- Live Feed Mode, Provider Source & Auto-Refresh Speed Controls -->
-        <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); flex-shrink:0;">
-          <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
-          <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (SmartAPI, Yahoo Finance Live, NSE Official, or Auto Multi-Provider Failover)">
-            <option value="auto" selected>🌐 Auto Multi-Provider (SmartAPI ➔ FMP ➔ Yahoo ➔ NSE)</option>
-            <option value="smartapi">🔒 Angel One SmartAPI (Official Live)</option>
-            <option value="fmp">📊 Financial Modeling Prep (FMP API)</option>
-            <option value="yfinance">📈 Yahoo Finance Live (.NS/.BO)</option>
-            <option value="nsebse">🏛️ NSE India Official Feed</option>
-          </select>
-          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
-          <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Control live multi-market feed synchronization">
-            <option value="auto" selected>🟢 Real Live Market Feed (Direct API Sync)</option>
-            <option value="nse_strict">⏱️ Cash Market Hours (09:15-15:30 IST)</option>
-            <option value="paused">⏸️ Freeze Feed (Real EOD Snapshot)</option>
-            <option value="simulation">🔬 Simulation Replay Mode (Testing)</option>
-          </select>
-          <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
-          <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">
-            <option value="1200">1.2s (Fast)</option>
-            <option value="1800" selected>1.8s (Live Stream)</option>
-            <option value="3500">3.5s (Steady)</option>
-          </select>
-          <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10.5px;">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-              <rect x="6" y="4" width="4" height="16"></rect>
-              <rect x="14" y="4" width="4" height="16"></rect>
-            </svg>
-            <span>Pause</span>
-          </button>
-        </div>
-
-        <button class="btn btn-sm" id="btnToggleMainChart" title="Toggle Live Chart Panel">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M3 3v18h18"></path>
-            <path d="M18 9l-5 5-4-4-6 6"></path>
-          </svg>
-          Live Chart
-        </button>
-
-        <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire with Direct Links">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
-            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
-            <circle cx="9" cy="9" r="1"></circle>
-            <path d="M7 13h6"></path>
-            <path d="M7 17h4"></path>
-          </svg>
-          News (<span id="newsCountBadge">8</span>)
-        </button>
-        <button class="btn btn-sm" id="btnOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Connect Free Angel One SmartAPI for Live Market Feeds & Orders">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-          SmartAPI <span class="smartapi-dot" id="smartApiDot"></span>
-        </button>
-
-        <a href="mobile.html" class="btn btn-sm" id="btnGoMobile" style="border-color:rgba(16, 185, 129, 0.4); color:var(--accent-green); text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Switch to Android Native Mobile View">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
-            <line x1="12" y1="18" x2="12.01" y2="18"></line>
-          </svg>
-          📱 Android View
-        </a>
-
-        <button class="btn btn-primary btn-sm" id="btnRunScan" title="Re-Run 10 CANSLIM Protocols Scan">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <polyline points="23 4 23 10 17 10"></polyline>
-            <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
-          </svg>
-          Re-Run Scan
-        </button>
-      </div>
-    </div>
-
-    <!-- Breaking News Ticker Ribbon with Clickable Direct Sources -->
-    <div class="breaking-news-ribbon" id="breakingNewsRibbon">
-      <span class="breaking-tag">LIVE WIRE</span>
-      <div class="breaking-content" id="breakingHeadline" title="Click to open full news wire">
-        Loading live Indian equity news & market intelligence...
-      </div>
-      <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Wire</button>
-    </div>
-
-    <!-- Live Market Breadth Strip -->
-    <div class="market-breadth-strip">
-      <div style="display:flex; align-items:center; gap:10px;">
-        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
-        <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono);">
-          <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">▲ 11 Advances</span>
-          <span style="color:var(--text-muted);">:</span>
-          <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">▼ 1 Declines</span>
-          <span class="val-pill" style="font-size:10px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (92%)</span>
-        </div>
-      </div>
-
-      <div class="sector-strip-group">
-        <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
-        <span class="sector-badge pos">EMS +3.92%</span>
-        <span class="sector-badge pos">Renewable +3.10%</span>
-        <span class="sector-badge pos">Defence +2.85%</span>
-        <span class="sector-badge pos">Fintech +2.60%</span>
-        <span class="sector-badge pos">Retail +2.45%</span>
-        <span class="sector-badge pos">Wires +1.80%</span>
-      </div>
-    </div>
-
-    <!-- Universal Investor Profiles Ribbon -->
-    <div class="investor-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#080e1a; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
-      <span class="investor-ribbon-label" style="font-size:10.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">INVESTOR PROFILES:</span>
-      <button class="investor-chip active" data-profile="all">All Profiles (12)</button>
-      <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">Quality Compounders</button>
-      <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales & EPS CAGR >30%, Low Debt">Multibagger Hunter</button>
-      <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG <= 1.5, ROCE > 20%)">GARP Growth</button>
-      <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield > 3.5%">Deep Value &amp; FCF</button>
-      <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">Dividend &amp; Cash</button>
-      <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score > 85, Multi-Quarter Alpha">Momentum Leaders</button>
-      <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">Special Situations</button>
-    </div>
-
-    <!-- Protocol Presets Ribbon -->
-    <div class="protocol-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#060a14; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
-      <div class="preset-group" style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap;">
-        <span class="preset-label" style="font-size:10.5px; font-weight:800; color:#f59e0b; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">CANSLIM PRESETS:</span>
-        <button class="preset-chip active" data-preset="all">All Stocks (12)</button>
-        <button class="preset-chip" data-preset="user_master">Master 10 Protocols</button>
-        <button class="preset-chip" data-preset="cup_handle">Cup with Handle</button>
-        <button class="preset-chip" data-preset="consolidation_7w">7-Week Bases</button>
-        <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume >3x 10D Average with High Delivery %">Volume Shockers</button>
-        <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">NR4/NR7 Squeeze</button>
-        <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > Rs. 10 Lakhs">SEBI Insider Buys</button>
-        <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">SMC Accumulation</button>
-        <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">DMR Sector Leaders</button>
-      </div>
-      <div id="topScanStatusBadge" class="val-pill" style="margin-left:auto; white-space:nowrap;">Live Scanner Active</div>
-    </div>
-  </header>
-  <!-- Mobile Filter Bar Drawer Trigger (Visible on Android & Mobile/Tablet Screens) -->
-  <div class="mobile-filter-bar" id="mobileFilterBar">
-    <button class="btn btn-sm" id="btnMobileFilterToggle" style="width:100%; justify-content:space-between; padding:8px 12px; font-weight:600; background:#080f20; border-color:var(--border-subtle);">
-      <span style="display:flex; align-items:center; gap:6px;">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-        </svg>
-        <span>⚙️ Filter Protocols & Rules (<strong id="mobileFilterBadge" style="color:var(--accent-blue);">6 Active</strong>)</span>
-      </span>
-      <span id="mobileFilterChevron" style="font-size:11px; color:var(--text-muted);">▼ Show Filters</span>
-    </button>
-  </div>
-
-  <!-- Main Container -->
-  <div class="app-container">
-
-    <!-- Main Content Area -->
-    <main class="content-area" style="padding:0;">
-      
-      <!-- 1. STITCH VIEW 1: HIGH-THROUGHPUT INSTITUTIONAL STOCK SCREENER HUB -->
-      <div class="stitch-view-content active" id="viewTradeoneWorkstation">
-        
-        <!-- Screener Hub Container -->
-        <div class="screener-hub-container">
-
-          <!-- Strategy Presets Bar -->
-          <div class="screener-preset-ribbon" id="screenerPresetRibbon">
-            <span class="preset-ribbon-label">STRATEGIES:</span>
-            <button class="preset-chip active" data-preset="all">All Universe (12)</button>
-            <button class="preset-chip" data-preset="canslim" title="CANSLIM High Growth with Sales/PAT CAGR > 20% and RS > 75">CANSLIM High Growth</button>
-            <button class="preset-chip" data-preset="compounder" title="High ROCE/ROE > 20%, Low Debt/Equity < 0.5, High Operating Margins">Quality Compounders</button>
-            <button class="preset-chip" data-preset="deep_value" title="Low P/E, High FCF Yield > 4%, Positive Free Cash Flow">Deep Value &amp; FCF</button>
-            <button class="preset-chip" data-preset="momentum" title="DMR Leaders, RS Rating > 80, Above 20/50/200 DMA">Momentum Breakouts</button>
-            <button class="preset-chip" data-preset="institutional" title="High Institutional Holding (FII + DII > 30%) with Promoter Buying">Institutional Stake</button>
-            <button class="preset-chip" data-preset="vol_shocker" title="Volume Burst > 50% above 20 DMA with NR7 Range Contraction">Volume Shockers &amp; NR7</button>
-            <button class="preset-chip" data-preset="multibagger" title="High 3Y Sales &amp; EPS Growth, Micro/Small-Cap, Clean Balance Sheet">Small-Cap Multibaggers</button>
-            <div id="scanStatusBadge" class="val-pill" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--accent-green);">Live Scanner Active</div>
-          </div>
-
-          <!-- Top Summary KPI Stat Cards -->
-          <div class="stats-grid">
-            <div class="stat-card">
-              <div class="stat-header">Matching Stocks</div>
-              <div class="stat-value" id="statMatchingCount">12</div>
-              <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-header">Quality Compounders</div>
-              <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">9</div>
-              <div class="stat-sub">Score &ge; 80 (ROCE &gt; 20%)</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-header">Momentum Breakouts</div>
-              <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">8</div>
-              <div class="stat-sub">Above 50 DMA + RS &gt; 75</div>
-            </div>
-            <div class="stat-card">
-              <div class="stat-header">Average RS Rating</div>
-              <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">86</div>
-              <div class="stat-sub">Outperforming NIFTY 50</div>
-            </div>
-          </div>
-
-          <!-- Institutional 6-Dimension Filter Hub -->
-          <div class="filter-hub-card">
-            
-            <!-- Dimension Tabs Header -->
-            <div class="filter-tabs-header">
-              <div class="filter-dimension-nav" id="filterDimensionNav">
-                <button type="button" class="dim-nav-btn active" data-dim="dim_valuation">Valuation Multiples</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_growth">Growth &amp; Runway</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_quality">Quality &amp; Profitability</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_solvency">Solvency &amp; Health</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_ownership">Ownership &amp; Flows</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_technical">Technical &amp; Momentum</button>
-              </div>
-
-              <div class="filter-header-actions">
-                <div class="match-logic-box">
-                  <span style="font-size:10.5px; color:var(--text-muted);">Logic:</span>
-                  <select id="selMatchLogic" class="filter-select-sm" title="Match condition mode">
-                    <option value="AND" selected>AND (Match All)</option>
-                    <option value="OR">OR (Match Any)</option>
-                  </select>
-                </div>
-                <button type="button" class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
-                <button type="button" class="btn btn-sm" id="btnResetProtocols" style="display:none;">Reset</button>
-              </div>
-            </div>
-
-            <!-- Dimension Sub-Panels -->
-            <div class="filter-dimension-body">
-              
-              <!-- 1. Valuation Dimension -->
-              <div class="dim-panel active" id="dim_valuation">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <label class="filter-card-label">Market Cap Category</label>
-                    <select id="selMarketCapCat" class="filter-select-full">
-                      <option value="ALL" selected>All Market Caps</option>
-                      <option value="LARGE">Large Cap (&gt; &#8377;50,000 Cr)</option>
-                      <option value="MID">Mid Cap (&#8377;15,000 - 50,000 Cr)</option>
-                      <option value="SMALL">Small Cap (&#8377;2,000 - 15,000 Cr)</option>
-                      <option value="MICRO">Micro Cap (&lt; &#8377;2,000 Cr)</option>
-                    </select>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Max P/E Ratio</label>
-                      <span class="filter-val-badge" id="pill_peRatio">&le; 200</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPe" min="10" max="200" step="5" value="200">
-                    <div class="slider-ticks"><span>10x</span><span>Value to Growth</span><span>200x</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Max PEG Ratio</label>
-                      <span class="filter-val-badge" id="pill_pegRatio">&le; 5.0</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPeg" min="0.5" max="5.0" step="0.2" value="5.0">
-                    <div class="slider-ticks"><span>0.5 (Undervalued)</span><span>Max PEG</span><span>5.0</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min FCF Yield %</label>
-                      <span class="filter-val-badge" id="pill_fcfYield">&ge; 0.0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minFcfYield" min="0" max="10" step="0.5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Free Cash Flow Yield</span><span>10%</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 2. Growth Dimension -->
-              <div class="dim-panel" id="dim_growth">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Sales YoY Growth</label>
-                      <span class="filter-val-badge" id="pill_salesGrowth">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="0" max="50" step="5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Quarterly Sales YoY</span><span>50%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min 3Y Sales CAGR</label>
-                      <span class="filter-val-badge" id="pill_sales3yCagr">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minSales3yCagr" min="0" max="40" step="2" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>3-Year Compounding</span><span>40%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Profit (PAT) YoY</label>
-                      <span class="filter-val-badge" id="pill_patGrowth">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPatGrowth" min="0" max="60" step="5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Quarterly Profit YoY</span><span>60%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min 3Y PAT CAGR</label>
-                      <span class="filter-val-badge" id="pill_pat3yCagr">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPat3yCagr" min="0" max="50" step="5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>3-Year Profit CAGR</span><span>50%</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 3. Quality & Profitability Dimension -->
-              <div class="dim-panel" id="dim_quality">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min ROCE %</label>
-                      <span class="filter-val-badge" id="pill_roce">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRoce" min="0" max="40" step="1" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Return on Capital</span><span>40%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min ROE %</label>
-                      <span class="filter-val-badge" id="pill_roe">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRoe" min="0" max="35" step="1" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Return on Equity</span><span>35%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Operating Margin (OPM)</label>
-                      <span class="filter-val-badge" id="pill_opm">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minOpm" min="0" max="35" step="1" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>EBITDA Margin</span><span>35%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Piotroski F-Score</label>
-                      <span class="filter-val-badge" id="pill_piotroski">&ge; 0 / 9</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPiotroski" min="0" max="9" step="1" value="0">
-                    <div class="slider-ticks"><span>0 (All)</span><span>Fundamental Health</span><span>9 (Pristine)</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 4. Solvency & Health Dimension -->
-              <div class="dim-panel" id="dim_solvency">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Max Debt-to-Equity</label>
-                      <span class="filter-val-badge" id="pill_debtEquity">&le; 5.0</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxDebtEquity" min="0.0" max="5.0" step="0.1" value="5.0">
-                    <div class="slider-ticks"><span>0.0 (Zero Debt)</span><span>Max Leverage</span><span>5.0</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Interest Coverage</label>
-                      <span class="filter-val-badge" id="pill_interestCov">&ge; 0.0x</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minInterestCov" min="0.0" max="15.0" step="0.5" value="0.0">
-                    <div class="slider-ticks"><span>0.0x</span><span>EBIT / Interest</span><span>15.0x</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Current Ratio</label>
-                      <span class="filter-val-badge" id="pill_currentRatio">&ge; 0.0x</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minCurrentRatio" min="0.0" max="3.0" step="0.1" value="0.0">
-                    <div class="slider-ticks"><span>0.0x</span><span>Liquidity Buffer</span><span>3.0x</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Stop Loss Risk Limit</label>
-                      <span class="filter-val-badge" id="pill_maxStopLoss">&le; 20.0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="20.0" step="0.5" value="20.0">
-                    <div class="slider-ticks"><span>3.0%</span><span>Max SL Drawdown</span><span>20.0%</span></div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 5. Ownership & Flows Dimension -->
-              <div class="dim-panel" id="dim_ownership">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Promoter Holding %</label>
-                      <span class="filter-val-badge" id="pill_promoterHold">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPromoter" min="0" max="75" step="5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Promoter Skin-in-Game</span><span>75%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Max Promoter Pledge %</label>
-                      <span class="filter-val-badge" id="pill_promoterPledge">&le; 100%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPledge" min="0" max="100" step="5" value="100">
-                    <div class="slider-ticks"><span>0% (Zero Pledge)</span><span>Max Pledge</span><span>100%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Institutional (FII+DII) %</label>
-                      <span class="filter-val-badge" id="pill_instHolding">&ge; 0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minInstHolding" min="0" max="50" step="5" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Smart Money Stake</span><span>50%</span></div>
-                  </div>
-
-                  <div class="filter-input-card" style="display:flex; flex-direction:column; justify-content:center;">
-                    <label class="switch-row" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
-                      <span style="font-size:11.5px; font-weight:600; color:var(--text-primary);">SEBI Insider Buying (&gt;&#8377;10L)</span>
-                      <label class="switch">
-                        <input type="checkbox" id="chk_insiderBuys">
-                        <span class="slider"></span>
-                      </label>
-                    </label>
-                    <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Filter stocks with recent promoter/director open market purchases.</div>
-                  </div>
-                </div>
-              </div>
-
-              <!-- 6. Technical & Signals Dimension -->
-              <div class="dim-panel" id="dim_technical">
-                <div class="filter-grid-4">
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Min Relative Strength (RS)</label>
-                      <span class="filter-val-badge" id="pill_minRs">&ge; 0</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRs" min="0" max="95" step="5" value="0">
-                    <div class="slider-ticks"><span>0</span><span>Mansfield RS vs NIFTY</span><span>95</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">RSI(14) Momentum Zone</label>
-                      <span class="filter-val-badge" id="pill_rsiLevel">RSI &ge; 0</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRsi" min="0" max="85" step="5" value="0">
-                    <div class="slider-ticks"><span>0 (All)</span><span>RSI Zone</span><span>85 (Bullish)</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">Volume Burst Spike %</label>
-                      <span class="filter-val-badge" id="pill_burstPct">&ge; +0%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="0" max="100" step="10" value="0">
-                    <div class="slider-ticks"><span>0%</span><span>Above 20-Day SMA</span><span>+100%</span></div>
-                  </div>
-
-                  <div class="filter-input-card">
-                    <div class="filter-card-header">
-                      <label class="filter-card-label">7-Week Base Tightness</label>
-                      <span class="filter-val-badge" id="pill_baseTightness">&le; 50%</span>
-                    </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="50" step="1" value="50">
-                    <div class="slider-ticks"><span>5% (Ultra Tight)</span><span>Max Volatility</span><span>50%</span></div>
-                  </div>
-                </div>
-
-                <!-- Technical Toggles Row -->
-                <div class="tech-toggles-row" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
-                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_dma50">
-                      <span class="slider"></span>
-                    </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 50 DMA</span>
-                  </label>
-
-                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_dma200">
-                      <span class="slider"></span>
-                    </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 200 DMA (Long-Term Bull)</span>
-                  </label>
-
-                  <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                    <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_p10">
-                      <span class="slider"></span>
-                    </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (&ge;4/6)</span>
-                  </label>
-                  <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="display:none;">
-                  <div id="val_mtfGreen" style="display:none;">4/6 Green</div>
-                </div>
-              </div>
-
-            </div>
-          </div>
-
-          <!-- Natural Language AI / NLP Filter Search Bar -->
-          <div class="nlp-search-container" id="nlpSearchContainer">
-            <div class="nlp-input-row">
-              <div class="nlp-icon">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-              </div>
-              <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter: e.g. 'high quality compounder with zero debt and promoter buying' or 'vol shocker with nr7'...">
-              <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">&#10005; Clear</button>
-            </div>
-            <div class="nlp-chips-row">
-              <span style="color:var(--text-muted); font-size:10px; font-weight:600;">QUICK PROMPTS:</span>
-              <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
-              <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
-              <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
-              <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker"</button>
-              <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
-              <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
-              <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
-            </div>
-          </div>
-
-          <!-- High-Throughput Interactive Screener Table Controls Bar -->
-          <div class="table-header-bar">
-            
-            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <!-- Omnibar Search -->
-              <div class="search-box-wrap">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-                <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
-              </div>
-
-              <!-- Sector Dropdown -->
-              <select id="selSector" class="filter-select-sm">
-                <option value="ALL">All Sectors</option>
-                <option value="Defence">Defence &amp; Aerospace</option>
-                <option value="Retail">Retail &amp; Consumer</option>
-                <option value="EMS">EMS &amp; Electronics</option>
-                <option value="IT">IT &amp; Software</option>
-                <option value="Wires">Wires &amp; Cables</option>
-                <option value="Renewable">Renewable Energy</option>
-                <option value="Financial">Financial Infrastructure</option>
-              </select>
-
-              <!-- Exchange Dropdown -->
-              <select id="selExchange" class="filter-select-sm">
-                <option value="ALL">All Exchanges (NSE &amp; BSE)</option>
-                <option value="NSE">NSE Only</option>
-                <option value="BSE">BSE Only</option>
-              </select>
-            </div>
-
-            <!-- Column View Switcher & Action Buttons -->
-            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
-              
-              <!-- Column View Category Switcher -->
-              <div class="column-view-group" id="columnViewGroup">
-                <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">View:</span>
-                <select id="selColumnView" class="filter-select-sm" title="Switch active column dataset">
-                  <option value="overview" selected>Overview &amp; Factor Scores</option>
-                  <option value="valuation">Valuation Multiples</option>
-                  <option value="growth">Growth &amp; Compounding</option>
-                  <option value="quality">Quality &amp; Profitability</option>
-                  <option value="solvency">Solvency &amp; Debt Health</option>
-                  <option value="ownership">Ownership &amp; Flows</option>
-                  <option value="technical">Technical &amp; Momentum</option>
-                </select>
-              </div>
-
-              <!-- Sort By Dropdown -->
-              <div style="display:flex; align-items:center; gap:4px;">
-                <span style="font-size:10.5px; color:var(--text-muted);">Sort:</span>
-                <select id="selSortBy" class="filter-select-sm">
-                  <option value="qualityScore" selected>Institutional Score (0-100)</option>
-                  <option value="roce">ROCE % (Highest First)</option>
-                  <option value="salesGrowthYoY">Sales YoY Growth %</option>
-                  <option value="epsGrowthYoY">EPS YoY Growth %</option>
-                  <option value="fcfYield">Free Cash Flow Yield %</option>
-                  <option value="pe">P/E Ratio (Lowest First)</option>
-                  <option value="rsScore">RS Score (Highest First)</option>
-                  <option value="volumeBurst">Volume Burst %</option>
-                  <option value="marketCapCr">Market Cap (&#8377; Cr)</option>
-                  <option value="ltp">Price (LTP)</option>
-                </select>
-              </div>
-
-              <button class="btn btn-sm" id="btnCopyTickers" title="Copy active filtered tickers">
-                Copy Tickers
-              </button>
-
-              <button class="btn btn-sm" id="btnExportCsv" title="Export full 33-point institutional CSV">
-                Export CSV
-              </button>
-            </div>
-
-          </div>
-
-          <!-- Master Results Table -->
-          <div class="table-container">
-            <table class="screener-table">
-              <thead id="screenerTableHead">
-                <!-- Dynamically populated based on active column view -->
-              </thead>
-              <tbody id="screenerTableBody">
-                <!-- Dynamically populated -->
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-
-      </div>
-
-      <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
-      <div class="stitch-view-content" id="viewMarketHeatmap">
-        <div class="heatmap-container">
-          
-          <div class="heatmap-header-bar">
-            <div class="heatmap-title-box">
-              <span style="font-size:18px;">🎛️</span>
-              <span class="heatmap-title">Market Heatmap</span>
-            </div>
-            
-            <div class="heatmap-toggles" id="heatmapIndexToggles">
-              <button class="heatmap-toggle-btn active" data-index="NIFTY 50">
-                <span>NIFTY 50</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-              <button class="heatmap-toggle-btn" data-index="NIFTY NEXT 50">
-                <span>NIFTY NEXT 50</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-              <button class="heatmap-toggle-btn" data-index="NIFTY BANK">
-                <span>NIFTY BANK</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-              <button class="heatmap-toggle-btn" data-index="NIFTY IT">
-                <span>NIFTY IT</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-              <button class="heatmap-toggle-btn" data-index="NIFTY AUTO">
-                <span>NIFTY AUTO</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-              <button class="heatmap-toggle-btn" data-index="NIFTY PHARMA">
-                <span>NIFTY PHARMA</span>
-                <span class="heatmap-toggle-switch"></span>
-              </button>
-            </div>
-          </div>
-
-          <div class="heatmap-main-layout">
-            
-            <!-- Treemap Matrix -->
-            <div class="heatmap-treemap-board">
-              <div class="heatmap-sectors-grid" id="heatmapSectorsGrid">
-                <!-- Dynamically populated sectors (Banking, IT, Energy, etc.) -->
-              </div>
-
-              <!-- Color Scale Gradient -->
-              <div class="heatmap-gradient-bar-container">
-                <div class="heatmap-gradient-track"></div>
-                <div class="heatmap-gradient-labels">
-                  <span>-5% Strong Loss</span>
-                  <span>0% Neutral</span>
-                  <span>+5% Strong Gain</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Top Gainers & Losers -->
-            <div class="heatmap-side-panels">
-              <div class="heatmap-rank-panel">
-                <div class="heatmap-rank-title" style="color:#34d399;">▲ Top Gainers</div>
-                <div id="heatmapTopGainersList">
-                  <!-- Dynamically populated Top Gainers -->
-                </div>
-              </div>
-
-              <div class="heatmap-rank-panel">
-                <div class="heatmap-rank-title" style="color:#f87171;">▼ Top Losers</div>
-                <div id="heatmapTopLosersList">
-                  <!-- Dynamically populated Top Losers -->
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-
-      <!-- 3. STITCH VIEW 3: FINDESK PORTFOLIO ANALYTICS (Screen 2) -->
-      <div class="stitch-view-content" id="viewFinDeskPortfolio">
-        <div class="findesk-container">
-          
-          <div style="display:flex; align-items:center; justify-content:space-between;">
-            <div style="font-size:16px; font-weight:800; color:#ffffff;">Portfolio Performance & Analytics</div>
-            <div style="font-size:12px; color:#38bdf8; font-weight:700;">FinDesk Terminal</div>
-          </div>
-
-          <!-- Metrics Row -->
-          <div class="findesk-metrics-row">
-            <div class="findesk-metric-card">
-              <span class="findesk-metric-label">Total Value</span>
-              <span class="findesk-metric-val">₹ 87,45,200</span>
-            </div>
-            <div class="findesk-metric-card">
-              <span class="findesk-metric-label">Today's P&L</span>
-              <span class="findesk-metric-val green">+ ₹ 32,500 (+0.37%)</span>
-            </div>
-            <div class="findesk-metric-card">
-              <span class="findesk-metric-label">Overall P&L</span>
-              <span class="findesk-metric-val green">+ ₹ 22,15,300 (+33.91%)</span>
-            </div>
-            <div class="findesk-metric-card">
-              <span class="findesk-metric-label">Buying Power</span>
-              <span class="findesk-metric-val blue">₹ 12,50,000</span>
-            </div>
-          </div>
-
-          <!-- Main Grid -->
-          <div class="findesk-main-grid">
-            
-            <!-- Performance Curve -->
-            <div class="findesk-chart-panel">
-              <div class="findesk-chart-header">
-                <span class="findesk-chart-title">Performance Curve</span>
-                <div class="findesk-timeframe-pills" id="findeskTfPills">
-                  <button class="findesk-tf-btn" data-ptf="1D">1D</button>
-                  <button class="findesk-tf-btn" data-ptf="1W">1W</button>
-                  <button class="findesk-tf-btn" data-ptf="1M">1M</button>
-                  <button class="findesk-tf-btn active" data-ptf="1Y">1Y</button>
-                  <button class="findesk-tf-btn" data-ptf="ALL">ALL</button>
-                </div>
-              </div>
-
-              <div class="findesk-perf-canvas-wrap">
-                <canvas id="findeskPerfCanvas" style="width:100%; height:100%;"></canvas>
-              </div>
-
-              <div class="findesk-perf-legend">
-                <span style="color:#38bdf8; font-weight:700;">● My Portfolio: +127.5%</span>
-                <span style="color:#94a3b8;">● NIFTY 50: +45.8%</span>
-              </div>
-            </div>
-
-            <!-- Asset Allocation & Risk -->
-            <div class="findesk-donut-panel">
-              <div class="findesk-chart-title">Asset Allocation</div>
-              <div class="findesk-donut-wrap">
-                <div style="width:110px; height:110px;">
-                  <canvas id="findeskDonutCanvas" width="110" height="110"></canvas>
-                </div>
-                <div class="findesk-donut-legend">
-                  <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#3b82f6;"></span> Finance (42%)</div>
-                  <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#06b6d4;"></span> Technology (28%)</div>
-                  <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#8b5cf6;"></span> Energy (15%)</div>
-                  <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#f59e0b;"></span> Healthcare (10%)</div>
-                  <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#64748b;"></span> Other (5%)</div>
-                </div>
-              </div>
-
-              <div style="font-size:11.5px; font-weight:700; color:#cbd5e1; margin-top:4px;">Risk Metrics</div>
-              <div class="findesk-risk-metrics-row">
-                <div class="findesk-risk-item">
-                  <div class="findesk-risk-label">Beta</div>
-                  <div class="findesk-risk-val" style="color:#38bdf8;">1.08</div>
-                </div>
-                <div class="findesk-risk-item">
-                  <div class="findesk-risk-label">Sharpe Ratio</div>
-                  <div class="findesk-risk-val" style="color:#34d399;">2.15</div>
-                </div>
-                <div class="findesk-risk-item">
-                  <div class="findesk-risk-label">Max Drawdown</div>
-                  <div class="findesk-risk-val" style="color:#f87171;">-8.45%</div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Recent Activity Timeline -->
-            <div class="findesk-activity-panel">
-              <div class="findesk-chart-title">Recent Activity</div>
-              <div class="findesk-timeline">
-                <div class="findesk-timeline-item">
-                  <div class="findesk-timeline-icon" style="background:rgba(16,185,129,0.2); color:#10b981;">⇄</div>
-                  <div>
-                    <div class="findesk-timeline-text"><strong>Trade:</strong> BUY 50 shares of INFY at ₹ 1,500</div>
-                    <div class="findesk-timeline-time">Today 10:30 AM</div>
-                  </div>
-                </div>
-                <div class="findesk-timeline-item">
-                  <div class="findesk-timeline-icon" style="background:rgba(56,189,248,0.2); color:#38bdf8;">💰</div>
-                  <div>
-                    <div class="findesk-timeline-text"><strong>Dividend:</strong> Received ₹ 2,500 from RELIANCE</div>
-                    <div class="findesk-timeline-time">Yesterday</div>
-                  </div>
-                </div>
-                <div class="findesk-timeline-item">
-                  <div class="findesk-timeline-icon" style="background:rgba(239,68,68,0.2); color:#ef4444;">⇄</div>
-                  <div>
-                    <div class="findesk-timeline-text"><strong>Trade:</strong> SELL 100 shares of TATAMOTORS at ₹ 650</div>
-                    <div class="findesk-timeline-time">2 days ago</div>
-                  </div>
-                </div>
-                <div class="findesk-timeline-item">
-                  <div class="findesk-timeline-icon" style="background:rgba(16,185,129,0.2); color:#10b981;">💳</div>
-                  <div>
-                    <div class="findesk-timeline-text"><strong>Deposit:</strong> Added ₹ 5,00,000 to account</div>
-                    <div class="findesk-timeline-time">Last week</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <!-- Holdings Table -->
-          <div class="findesk-holdings-panel">
-            <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:10px;">Holdings Table</div>
-            <table class="findesk-holdings-table">
-              <thead>
-                <tr>
-                  <th>Symbol</th>
-                  <th>Qty</th>
-                  <th>Avg Price</th>
-                  <th>LTP</th>
-                  <th>Current Value</th>
-                  <th>Unrealized P&L</th>
-                </tr>
-              </thead>
-              <tbody id="findeskHoldingsBody">
-                <!-- Dynamically populated portfolio holdings -->
-              </tbody>
-            </table>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- 5. STITCH VIEW 5: SECTOR ANALYSIS DEEP-DIVE (Screen 5) -->
-      <div class="stitch-view-content" id="viewSectorDeepDive">
-        <div class="sector-dive-container">
-          
-          <div class="sector-dive-header">Sector Analysis Deep-Dive</div>
-
-          <div class="sector-dive-layout">
-            
-            <!-- Left Sector Sidebar -->
-            <div class="sector-list-sidebar" id="sectorListSidebar">
-              <div class="sector-list-item active" data-sector="NIFTY 50">
-                <span>NIFTY 50</span>
-                <span style="color:#34d399; font-family:var(--font-mono);">+0.45% ↑</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY Bank">
-                <span>NIFTY Bank</span>
-                <span style="color:#34d399; font-family:var(--font-mono);">+1.2% ↑</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY IT">
-                <span>NIFTY IT</span>
-                <span style="color:#f87171; font-family:var(--font-mono);">-0.3% ↓</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY Auto">
-                <span>NIFTY Auto</span>
-                <span style="color:#34d399; font-family:var(--font-mono);">+0.8% ↑</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY Pharma">
-                <span>NIFTY Pharma</span>
-                <span style="color:#f87171; font-family:var(--font-mono);">-0.1% ↓</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY FMCG">
-                <span>NIFTY FMCG</span>
-                <span style="color:#34d399; font-family:var(--font-mono);">+0.2% ↑</span>
-              </div>
-              <div class="sector-list-item" data-sector="NIFTY Metal">
-                <span>NIFTY Metal</span>
-                <span style="color:#34d399; font-family:var(--font-mono);">+0.5% ↑</span>
-              </div>
-            </div>
-
-            <!-- Center: Sector Performance Scatter Quadrant Matrix -->
-            <div class="sector-matrix-panel">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-size:12.5px; font-weight:700; color:#ffffff;">Sector Performance Matrix (Relative Strength vs. Momentum)</span>
-                <div style="font-size:10px; font-family:var(--font-mono); color:#94a3b8;">
-                  <span style="color:#38bdf8;">● Outperforming</span> &nbsp;
-                  <span style="color:#ec4899;">● Underperforming</span>
-                </div>
-              </div>
-
-              <div class="sector-matrix-canvas-wrap">
-                <canvas id="sectorMatrixCanvas" style="width:100%; height:100%;"></canvas>
-              </div>
-
-              <!-- Sector Weightage Breakdown -->
-              <div class="sector-weightage-box">
-                <div style="font-weight:700; color:#ffffff; font-size:11px;" id="sectorWeightageTitle">Sector Weightage Breakdown (NIFTY Bank)</div>
-                <div class="sector-weightage-row"><span>HDFC Bank</span><span>(28.5% Contribution, +1.5% Change)</span></div>
-                <div class="sector-weightage-row"><span>ICICI Bank</span><span>(22.1% Contribution, +1.1% Change)</span></div>
-                <div class="sector-weightage-row"><span>Axis Bank</span><span>(12.3% Contribution, +0.9% Change)</span></div>
-                <div class="sector-weightage-row"><span>Kotak Mahindra Bank</span><span>(10.8% Contribution, +0.6% Change)</span></div>
-                <div class="sector-weightage-row"><span>SBI</span><span>(8.2% Contribution, +1.8% Change)</span></div>
-              </div>
-            </div>
-
-            <!-- Right: Sector Sentiment Speedometer Gauge & Top Movers -->
-            <div class="sector-sentiment-panel">
-              <div style="font-size:12.5px; font-weight:700; color:#ffffff;" id="sectorSentimentTitle">Sector Sentiment (NIFTY Bank)</div>
-
-              <div class="sentiment-gauge-wrap">
-                <canvas id="sectorGaugeCanvas" width="200" height="120"></canvas>
-              </div>
-
-              <div style="font-size:10.5px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:4px; padding:8px; background:rgba(15,23,42,0.8); border-radius:6px;">
-                <div style="color:#34d399;">● RSI: 62 (Bullish)</div>
-                <div style="color:#34d399;">● MA Crossover: Golden Cross (Bullish)</div>
-                <div style="color:#34d399;">● MACD: Positive Divergence (Bullish)</div>
-              </div>
-
-              <!-- Top Movers within Sector -->
-              <div style="font-size:11.5px; font-weight:700; color:#ffffff; margin-top:6px;">Top Movers within Sector</div>
-              <div id="sectorTopMoversList" style="font-size:10.5px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:6px;">
-                <div class="sector-weightage-row"><span style="font-weight:700;">AUBANK</span><span>₹750 <strong style="color:#34d399;">+3.2%</strong> (150% Vol)</span></div>
-                <div class="sector-weightage-row"><span style="font-weight:700;">INDUSINDBK</span><span>₹1,420 <strong style="color:#34d399;">+2.8%</strong> (120% Vol)</span></div>
-                <div class="sector-weightage-row"><span style="font-weight:700;">BANDHANBNK</span><span>₹210 <strong style="color:#34d399;">+2.5%</strong> (110% Vol)</span></div>
-                <div class="sector-weightage-row"><span style="font-weight:700;">IDFCFIRSTB</span><span>₹85 <strong style="color:#34d399;">+1.9%</strong> (95% Vol)</span></div>
-              </div>
-            </div>
-
-          </div>
-
-        </div>
-      </div>
-
-    </main>
-  </div>
-
-  <!-- Live Financial News Wire Side Drawer -->
-  <div class="news-drawer-overlay" id="newsDrawerOverlay">
-    <div class="news-drawer">
-      <div class="news-drawer-header">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-blue);">
-            <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
-            <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
-            <circle cx="9" cy="9" r="1"></circle>
-            <path d="M7 13h6"></path>
-            <path d="M7 17h4"></path>
-          </svg>
-          <div>
-            <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Live Financial News Wire</div>
-            <div style="font-size:10px; color:var(--text-muted);">Direct Links: Livemint • Economic Times • Moneycontrol • NSE Filings</div>
-          </div>
-        </div>
-        <button class="modal-close-btn" id="btnCloseNewsDrawer" aria-label="Close news drawer">&times;</button>
-      </div>
-
-      <div class="news-feed-list" id="newsFeedList">
-        <!-- Dynamically rendered real-time news cards with direct links -->
-      </div>
-    </div>
-  </div>
-
-  <!-- Detail Modal & Full Analysis Visualizer -->
-  <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
-    <div class="modal-container">
-      <div class="modal-header">
-        <div class="modal-title-group">
-          <div class="brand-logo" id="modalLogo">₹</div>
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <h2 id="modalStockSymbol" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
-              <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
-              <span class="val-pill" id="modalExchangeTag">NSE</span>
-            </div>
-            <div id="modalStockName" style="font-size:11.5px; color:var(--text-muted);">Trent Ltd (Westside & Zudio)</div>
-          </div>
-        </div>
-
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="text-align:right;">
-            <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">₹7,120.50</div>
-            <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
-          </div>
-          <button class="btn btn-sm" id="btnModalPopoutChart" style="color:var(--accent-green); border-color:rgba(16,185,129,0.4); padding:3px 8px; font-size:11px;" title="Open in Standalone Live Terminal Window">
-            ↗ Pop-Out Terminal
-          </button>
-          <button class="modal-close-btn" id="btnCloseModal" aria-label="Close stock detail modal">&times;</button>
-        </div>
-      </div>
-
-      <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
-      <div class="modal-tabs">
-        <div class="modal-tab active" data-tab="fundamental_radar">ðŸ“Š Factor Scores & Fundamentals</div>
-        <div class="modal-tab" data-tab="calculator">Risk & Sizing</div>
-        <div class="modal-tab" data-tab="thesis">ðŸ“œ Equity Thesis & Risks</div>
-        <div class="modal-tab" data-tab="moat_intel">ðŸ° Moat & Governance</div>
-        <div class="modal-tab" data-tab="sebi_intel">ðŸ›ï¸ SEBI Insider & Forensics</div>
-        <div class="modal-tab" data-tab="peer_matrix">ðŸ‘¥ Sector Peer Matrix</div>
-        <div class="modal-tab" data-tab="smc_dmr">âš¡ Smart Money & DMR</div>
-      </div>
-
-      <!-- Modal Body -->
-      <div class="modal-body">
-        
-        <!-- Tab 1: Modal Candlestick Chart -->
-        <!-- Tab 1: Institutional Factor Scores & Comprehensive Fundamental Radar -->
-        <div class="tab-content" id="tab_fundamental_radar">
-          <div class="radar-modal-layout">
-            
-            <!-- Overall Score & Factor Breakdown Cards -->
-            <div class="factor-summary-panel">
-              <div class="factor-overall-card">
-                <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Composite Score</div>
-                <div class="factor-overall-score" id="modalFactorOverall">92</div>
-                <div class="factor-grade-pill" id="modalFactorGrade">A+ Institutional Grade</div>
-                <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" id="modalFactorRisk">Pristine Balance Sheet â€¢ Low Risk</div>
-              </div>
-
-              <!-- 5-Factor Score Meters -->
-              <div class="factor-meters-grid">
-                <div class="factor-meter-card">
-                  <div class="factor-meter-header">
-                    <span>Quality & Profitability</span>
-                    <strong id="modalFactorQuality">95/100</strong>
-                  </div>
-                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorQuality" style="width:95%; background:#22c55e;"></div></div>
-                </div>
-
-                <div class="factor-meter-card">
-                  <div class="factor-meter-header">
-                    <span>Growth & Runway</span>
-                    <strong id="modalFactorGrowth">90/100</strong>
-                  </div>
-                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorGrowth" style="width:90%; background:#38bdf8;"></div></div>
-                </div>
-
-                <div class="factor-meter-card">
-                  <div class="factor-meter-header">
-                    <span>Financial Solvency</span>
-                    <strong id="modalFactorSolvency">98/100</strong>
-                  </div>
-                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorSolvency" style="width:98%; background:#10b981;"></div></div>
-                </div>
-
-                <div class="factor-meter-card">
-                  <div class="factor-meter-header">
-                    <span>Valuation Score</span>
-                    <strong id="modalFactorValuation">75/100</strong>
-                  </div>
-                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorValuation" style="width:75%; background:#f59e0b;"></div></div>
-                </div>
-
-                <div class="factor-meter-card">
-                  <div class="factor-meter-header">
-                    <span>Momentum & Technicals</span>
-                    <strong id="modalFactorMomentum">88/100</strong>
-                  </div>
-                  <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorMomentum" style="width:88%; background:#a855f7;"></div></div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Key Financial Matrix -->
-            <div class="modal-financial-grid">
-              <div class="fund-card">
-                <div class="fund-label">ROCE / ROE</div>
-                <div class="fund-val" id="modalRoceRoe" style="color:var(--accent-green);">28.5% / 24.1%</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">P/E & Sector P/E</div>
-                <div class="fund-val" id="modalPeRatios">48.2 (Sec: 54.0)</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Debt-to-Equity</div>
-                <div class="fund-val" id="modalDebtEquity" style="color:var(--accent-green);">0.08 (Zero-Debt)</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Piotroski F-Score</div>
-                <div class="fund-val" id="modalPiotroskiScore" style="color:var(--accent-blue);">8 / 9 (Pristine)</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Sales & PAT YoY</div>
-                <div class="fund-val" id="modalSalesPatYoY">+34.2% / +48.5%</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">3Y Sales / PAT CAGR</div>
-                <div class="fund-val" id="modalCagr3y">+28.4% / +36.2%</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Promoter / FII / DII</div>
-                <div class="fund-val" id="modalHoldingsBreakdown">52.4% / 24.1% / 14.8%</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">52-Week Range</div>
-                <div class="fund-val" id="modal52wRange">â‚¹3,950 - â‚¹7,450</div>
-              </div>
-            </div>
-
-            <!-- Screener Pass / Fail Checklist -->
-            <div class="screener-checklist-panel">
-              <div style="font-weight:700; font-size:12px; color:var(--text-primary); margin-bottom:8px;">Active Screener Criteria Checklist</div>
-              <div class="checklist-grid" id="modalChecklistGrid">
-                <!-- Dynamically populated checklist -->
-              </div>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- Tab 2: Risk Management & Position Sizing Calculator -->
-        <div class="tab-content" id="tab_calculator" style="display:none;">
-          <h3 style="font-size:13.5px; font-weight:600; margin-bottom:12px;">Risk Management & Exact Position Sizing</h3>
-          <div class="calc-grid">
-            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-              <div class="calc-input-group">
-                <label class="calc-label">Total Trading Capital (₹)</label>
-                <input type="number" class="calc-input" id="calcCapital" value="500000" step="50000">
-              </div>
-              <div class="calc-input-group">
-                <label class="calc-label">Max Risk Per Trade (%)</label>
-                <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25">
-              </div>
-              <div class="calc-input-group">
-                <label class="calc-label">Entry Price (₹)</label>
-                <input type="number" class="calc-input" id="calcEntryPrice" value="7120">
-              </div>
-              <div class="calc-input-group">
-                <label class="calc-label">Stop Loss Price (₹)</label>
-                <input type="number" class="calc-input" id="calcStopLossPrice" value="6620">
-              </div>
-            </div>
-
-            <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
-              <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">Sizing Execution Output</div>
-              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
-                <div class="fund-card">
-                  <div class="fund-label">Shares to Buy</div>
-                  <div class="fund-val" id="calcSharesOut" style="color:var(--accent-blue);">10 Qty</div>
-                </div>
-                <div class="fund-card">
-                  <div class="fund-label">Total Investment</div>
-                  <div class="fund-val" id="calcInvOut">₹71,200</div>
-                </div>
-                <div class="fund-card">
-                  <div class="fund-label">Max Risk Amount</div>
-                  <div class="fund-val" id="calcRiskAmountOut" style="color:var(--accent-red);">₹5,000</div>
-                </div>
-                <div class="fund-card">
-                  <div class="fund-label">Stop Loss %</div>
-                  <div class="fund-val" id="calcSlPctOut" style="color:var(--accent-red);">-7.02%</div>
-                </div>
-              </div>
-
-              <div style="margin-top:12px; padding:8px; background:#0a1120; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11px; font-family:var(--font-mono);">
-                <div style="color:var(--accent-green); margin-bottom:3px;">🎯 Target 1 (1:1 R/R): <span id="calcT1">₹7,620</span></div>
-                <div style="color:var(--accent-green); margin-bottom:3px;">🎯 Target 2 (1:2 R/R): <span id="calcT2">₹8,120</span></div>
-                <div style="color:var(--accent-green);">🎯 Target 3 (1:3 R/R): <span id="calcT3">₹8,620</span></div>
-              </div>
-
-              <!-- Real-time Position Sizing Health Alert -->
-              <div id="calcAlertBox" class="calc-alert ok">
-                <span>🛡️</span>
-                <span id="calcAlertMsg">Risk parameter within safe 1% capital allocation threshold.</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 3: Institutional Equity Research Thesis & Bear Case (Section 23 & 32) -->
-        <div class="tab-content" id="tab_thesis" style="display:none;">
-          <div class="thesis-container">
-            <div class="thesis-card">
-              <div class="thesis-header">
-                <span>💡 Investment Thesis & Growth Drivers</span>
-                <span class="val-pill" id="modalThesisProfile" style="background:rgba(56,189,248,0.15); color:var(--accent-blue); font-size:10px;">Quality Compounder</span>
-              </div>
-              <div class="thesis-body-text" id="modalThesisText">
-                <!-- Dynamically loaded institutional thesis -->
-              </div>
-              <div class="catalyst-box" id="modalCatalysts">
-                <!-- Catalysts watch -->
-              </div>
-              <div class="bear-case-box" id="modalBearCase">
-                <!-- Bear case risks -->
-              </div>
-            </div>
-
-            <!-- Financial Year & Cash Flow Quality Strip -->
-            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
-              <div class="fund-card">
-                <div class="fund-label">Reporting Period</div>
-                <div class="fund-val" id="modalReportingPeriod" style="font-size:12px; color:var(--text-primary);">FY26 (Audited)</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">CFO / PAT Conversion</div>
-                <div class="fund-val" id="modalCfoToPat" style="font-size:13px; color:var(--accent-green);">1.18x</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Free Cash Flow Yield</div>
-                <div class="fund-val" id="modalFcfYield" style="font-size:13px; color:var(--accent-blue);">2.4%</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">PEG Ratio</div>
-                <div class="fund-val" id="modalPegRatio" style="font-size:13px;">1.2</div>
-              </div>
-              <div class="fund-card">
-                <div class="fund-label">Working Capital Days</div>
-                <div class="fund-val" id="modalWcDays" style="font-size:13px;">18 Days</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: Moat & Corporate Governance Intelligence (Section 10 & 13) -->
-        <div class="tab-content" id="tab_moat_intel" style="display:none;">
-          <div class="sebi-intel-grid">
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>🏰 Competitive Advantage / Moat</span>
-                <span class="tag-moat" id="modalMoatBadge">Moat: 9.5 / 10</span>
-              </div>
-              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
-                Evaluates Pricing Power, Brand Elasticity, Switching Friction, Scale Economics, and Regulatory Moats.
-              </p>
-              <div id="modalMoatBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
-                <!-- Dynamic moat breakdown -->
-              </div>
-            </div>
-
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>⚖️ Management & Governance Score</span>
-                <span class="tag-quality" id="modalMgmtBadge">Gov: 9.8 / 10</span>
-              </div>
-              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
-                Evaluates Capital Allocation, Promoter Skin-in-the-game, Dilution History, and RPT transparency.
-              </p>
-              <div id="modalMgmtBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
-                <!-- Dynamic mgmt breakdown -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 5: SEBI PIT Insider Trading & Forensic Intelligence -->
-        <div class="tab-content" id="tab_sebi_intel" style="display:none;">
-          <div class="sebi-intel-grid">
-            <!-- SEBI Form C Insider Disclosures -->
-            <div class="intel-panel-card" style="grid-column: 1 / -1;">
-              <div class="intel-panel-title">
-                <span>🏛️ SEBI (PIT) Reg 7(2) Insider Trading Disclosures</span>
-                <span class="val-pill" id="modalInsiderBuyTag" style="font-size:10px; background:rgba(16,185,129,0.15); color:var(--accent-green);">Promoter Buy > ₹10L Flagged</span>
-              </div>
-              <div style="overflow-x:auto;">
-                <table class="insider-table" id="modalInsiderTable">
-                  <thead>
-                    <tr>
-                      <th>Date</th>
-                      <th>Insider / Entity</th>
-                      <th>Designation</th>
-                      <th>Action</th>
-                      <th>Shares</th>
-                      <th>Value (₹ Lakhs)</th>
-                      <th>Filing Reference</th>
-                    </tr>
-                  </thead>
-                  <tbody id="modalInsiderTableBody">
-                    <!-- Populated dynamically -->
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <!-- Forensic Audit & Pledge Tracker -->
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>🔍 Forensic & Governance Audit</span>
-                <span class="val-pill" id="modalForensicRiskPill" style="font-size:10px; color:var(--accent-green);">Pristine (94/100)</span>
-              </div>
-              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
-                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:var(--text-muted);">Promoter Pledge %:</span>
-                  <span id="modalPromoterPledge" style="font-family:var(--font-mono); font-weight:700; color:var(--accent-green);">0.0% (Zero Pledge)</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:var(--text-muted);">Pledge Change (QoQ):</span>
-                  <span id="modalPledgeChange" style="font-family:var(--font-mono); color:var(--accent-green);">-4.2% (De-pledged)</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
-                  <span style="color:var(--text-muted);">Statutory Auditor:</span>
-                  <span id="modalAuditorStatus" style="font-weight:600; color:var(--text-primary);">Clean (BSR & Co. LLP / Big-4)</span>
-                </div>
-                <div style="display:flex; justify-content:space-between; padding:6px 0;">
-                  <span style="color:var(--text-muted);">Auditor Resignation Flag:</span>
-                  <span id="modalAuditorResign" style="color:var(--accent-green); font-weight:600;">None (Pristine 5Y Tenure)</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Corporate Actions & Dividends -->
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>📅 Corporate Actions & Buyback Arb</span>
-                <span class="val-pill" style="font-size:10px; color:var(--accent-blue);">SEBI Compliant</span>
-              </div>
-              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalCorpActionsWrap">
-                <!-- Dynamically populated -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Tab 4: Sector Peer Comparison Matrix -->
-        <div class="tab-content" id="tab_peer_matrix" style="display:none;">
-          <div class="peer-score-box">
-            <div>
-              <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Sector Outperformance & Valuation Matrix</div>
-              <div style="font-size:11px; color:var(--text-muted);" id="modalPeerSectorLabel">Comparing against Retail & Consumer Sector Peers</div>
-            </div>
-            <div style="text-align:right;">
-              <div style="font-size:18px; font-weight:700; color:var(--accent-green); font-family:var(--font-mono);" id="modalPeerScore">7 / 8</div>
-              <div style="font-size:10px; font-weight:600; color:var(--text-muted);">Better Than Sector Median</div>
-            </div>
-          </div>
-          <div style="overflow-x:auto;">
-            <table class="peer-table">
-              <thead>
-                <tr>
-                  <th>Financial Metric</th>
-                  <th id="modalPeerStockCol" class="peer-highlight">Selected Stock</th>
-                  <th>Sector Median</th>
-                  <th>Top Quartile (75th)</th>
-                  <th>Relative Standing</th>
-                </tr>
-              </thead>
-              <tbody id="modalPeerTableBody">
-                <!-- Dynamically rendered -->
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Tab 5: Smart Money Concepts & DMR -->
-        <div class="tab-content" id="tab_smc_dmr" style="display:none;">
-          <div class="smc-grid">
-            <!-- Dynamic Momentum Rank (DMR) -->
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>📈 Dynamic Momentum Rank (DMR)</span>
-                <span class="tag-dmr-top" id="modalDmrBadge">Decile 10 (Sector Leader)</span>
-              </div>
-              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
-                Measures multi-timeframe relative return alpha (3M, 6M, 12M) vs sub-sector peer medians, eliminating broad market noise.
-              </p>
-              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalDmrBreakdown">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-            <!-- Smart Money Concepts & Volume Profile -->
-            <div class="intel-panel-card">
-              <div class="intel-panel-title">
-                <span>⚡ Smart Money Concepts (SMC)</span>
-                <span class="tag-smc" id="modalSmcZoneBadge">Demand Order Block</span>
-              </div>
-              <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
-                Identifies institutional accumulation footprints, Wyckoff springs, Point of Control (POC), and Value Area High/Low.
-              </p>
-              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalSmcBreakdown">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-    </div>
-  </div>
-
-  <!-- Angel One SmartAPI Configuration & Live Connect Modal -->
-  <div class="modal-overlay" id="smartApiModal" role="dialog" aria-modal="true" aria-label="SmartAPI Configuration">
-    <div class="modal-card" style="max-width: 680px;">
-      <div class="modal-header">
-        <div style="display:flex; align-items:center; gap:10px;">
-          <div class="brand-logo" style="background:#ea580c; border-color:#f97316; color:#ffffff;">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
-          </div>
-          <div>
-            <h3 style="font-size:16px; font-weight:700; color:var(--text-primary);">Angel One SmartAPI Integration</h3>
-            <div style="font-size:11px; color:var(--text-muted);">Free Institutional Real-Time Quotes, Historical OHLCV & WebSocket Stream</div>
-          </div>
-        </div>
-        <button class="modal-close-btn" id="btnCloseSmartApiModal" aria-label="Close SmartAPI configuration modal">×</button>
-      </div>
-
-      <div class="modal-body" style="padding:16px 20px;">
-        <div style="background:rgba(234, 88, 12, 0.1); border:1px solid rgba(234, 88, 12, 0.3); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:11.5px; line-height:1.6; color:#fdba74;">
-          <strong>⚡ Free SmartAPI Tier:</strong> Angel One provides 100% free API access for Indian Equities (NSE/BSE). You can generate your free API Key on the <a href="https://smartapi.angelbroking.com/" target="_blank" rel="noopener noreferrer" style="color:#fbbf24; text-decoration:underline; font-weight:600;">Angel One SmartAPI Developer Portal ↗</a>.
-        </div>
-
-        <div class="calc-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
-          <div class="calc-field">
-            <label class="calc-label" for="txtSmartApiKey">SmartAPI Key (App Key):</label>
-            <input type="password" class="calc-input" id="txtSmartApiKey" value="" autocomplete="off" placeholder="Enter your SmartAPI app key">
-          </div>
-          <div class="calc-field">
-            <label class="calc-label" for="txtSmartApiClientCode">Angel One Client Code (ID):</label>
-            <input type="text" class="calc-input" id="txtSmartApiClientCode" placeholder="e.g. S123456">
-          </div>
-          <div class="calc-field">
-            <label class="calc-label" for="txtSmartApiPassword">PIN / Password / MPIN:</label>
-            <input type="password" class="calc-input" id="txtSmartApiPassword" placeholder="••••••">
-          </div>
-          <div class="calc-field">
-            <label class="calc-label" for="txtSmartApiTotp">TOTP / 6-Digit Auth Code:</label>
-            <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
-          </div>
-        </div>
-
-        <div class="calc-field" style="margin-bottom:14px;">
-          <label class="calc-label" for="txtSmartApiJwt">Or Direct JWT Access Token (Optional):</label>
-          <input type="text" class="calc-input" id="txtSmartApiJwt" placeholder="Bearer eyJhbGciOiJIUzUxMi..." style="font-family:var(--font-mono); font-size:10.5px;">
-        </div>
-
-        <!-- SmartAPI Connection Status Box -->
-        <div id="smartApiStatusBox" style="background:#09101d; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
-          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-            <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Connection State:</span>
-            <span class="market-pill market-closed" id="smartApiStatusPill">🔴 Not Connected</span>
-          </div>
-          <div id="smartApiStatusLog" style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">
-            Ready. Enter your Angel One SmartAPI credentials to stream live institutional ticks directly from Angel One servers.
-          </div>
-        </div>
-
-        <!-- Preset Universe Mapped Tokens -->
-        <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">
-          Mapped SmartAPI Tokens (NSE Cash Equities):
-        </div>
-        <div style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--font-mono); font-size:10px; color:var(--text-secondary); background:#060a14; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); max-height:80px; overflow-y:auto;">
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">TRENT: 1964</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">DIXON: 4454</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BEL: 383</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">HAL: 2303</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">POLYCAB: 9590</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">SOLARINDS: 10666</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">KAYNES: 11351</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PERSISTENT: 18365</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">CDSL: 21174</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BDL: 2142</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PREMIERENE: 16782</span>
-          <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">ANGELONE: 20370</span>
-        </div>
-      </div>
-
-      <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
-        <a href="https://trade.angelone.in/" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="color:#ea580c; border-color:rgba(234, 88, 12, 0.4);">
-          🚀 Open Angel One Trade Terminal ↗
-        </a>
-        <div style="display:flex; gap:6px;">
-          <button class="btn btn-sm" id="btnTestSmartApi" title="Run instant live endpoint ping test">
-            🧪 Test Ping
-          </button>
-          <button class="btn btn-sm" id="btnDisconnectSmartApi">Disconnect</button>
-          <button class="btn btn-primary btn-sm" id="btnConnectSmartApi" style="background:#ea580c; border-color:#f97316;">
-            Connect & Authenticate
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Multi-Exchange Market Hours & Global Sessions Modal -->
-  <div class="modal-overlay" id="marketSessionsModal" role="dialog" aria-modal="true" aria-labelledby="modalSessionsTitle">
-    <div class="modal-card" style="max-width: 620px;">
-      <div class="modal-header">
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:18px;">🌐</span>
-          <h3 id="modalSessionsTitle" style="margin:0; font-size:15px; font-weight:700;">Global Financial Exchange Sessions & Live Status</h3>
-        </div>
-        <button class="modal-close-btn" id="btnCloseSessionsModal" aria-label="Close modal">✕</button>
-      </div>
-      <div class="modal-body" style="padding: 16px 20px;">
-        <p style="color:var(--text-secondary); font-size:12px; margin-bottom:14px;">
-          Real-time operational status across Indian domestic, commodity, and global international exchanges.
-        </p>
-        <div style="display:flex; flex-direction:column; gap:10px;" id="globalSessionsList">
-          <!-- Dynamically populated by JS Application.openSessionsModal() -->
-        </div>
-        <div style="margin-top:16px; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:var(--radius-sm); font-size:11.5px; color:var(--accent-blue); line-height:1.5;">
-          💡 <strong>Multi-Market Live Feed Active:</strong> Outside NSE/BSE cash hours (09:15–15:30 IST), Indian Commodity derivatives on MCX (open until 23:30 IST), US Markets (19:00–01:30 IST), and GIFT Nifty remain open. The screener provides continuous live multi-asset streaming.
-        </div>
-      </div>
-      <div class="modal-footer" style="display:flex; justify-content:flex-end;">
-        <button class="btn btn-primary btn-sm" id="btnCloseSessionsModal2">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- SEBI Regulatory Compliance Advisory Footer -->
-  <footer class="compliance-footer-bar">
-    <div style="display:flex; align-items:center; gap:8px;">
-      <span style="color:var(--accent-amber); font-weight:700;">⚠️ SEBI COMPLIANCE ADVISORY:</span>
-      <span>Live and historical equity quotes are ingested for personal quantitative research. Data complies with SEBI (PIT) Reg 2015 public disclosures and SEBI Circular CIR/MRD/DP/09/2012 for institutional execution.</span>
-    </div>
-    <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">
-      ISIN Unified • NSE/BSE Equity • Multi-Timeframe Engine
-    </div>
-  </footer>
-
-  <!-- Global Toast Notification -->
-  <div id="uiToast" role="status" aria-live="polite" aria-atomic="true">
-    <span id="uiToastIcon"></span>
-    <span id="uiToastMsg"></span>
-  </div>
+ <!-- Top TradeOne Global Navigation Header (Angel One / Dhan TradeOne Pro Style) -->
+ <header class="tradeone-header">
+ <div class="tradeone-header-left">
+ <div class="tradeone-brand">
+ <div class="tradeone-brand-logo"> </div>
+ <span style="font-weight:800; font-size:14px; letter-spacing:0.02em;">TradeOne</span>
+ </div>
+
+ <!-- Live NIFTY 50 Index Pill -->
+ <div class="tradeone-index-badge" id="tradeoneNiftyBadge">
+ <span class="tradeone-index-name">NIFTY</span>
+ <span class="tradeone-expiry-tag">EXPIRY</span>
+ <span class="tradeone-index-price" id="tradeoneNiftyLtp">24,243.50</span>
+ <span class="tradeone-index-chg down" id="tradeoneNiftyChg">v -44.15 (-0.18%)</span>
+ </div>
+
+ <!-- Live SENSEX Index Pill -->
+ <div class="tradeone-index-badge" id="tradeoneSensexBadge">
+ <span class="tradeone-index-name">SENSEX</span>
+ <span class="tradeone-index-price" id="tradeoneSensexLtp">77,498.92</span>
+ <span class="tradeone-index-chg down" id="tradeoneSensexChg">v -229.24 (-0.29%)</span>
+ </div>
+ </div>
+
+ <!-- Global Omnibar Search Input -->
+ <div class="tradeone-header-center">
+ <span class="tradeone-search-icon"> </span>
+ <input type="text" class="tradeone-search-input" id="globalTradeoneSearch" placeholder="Search for Anything [Ctrl + S]">
+ </div>
+
+ <!-- Stitch 5-Screen Super-View Switcher & Quick Controls -->
+ <div class="tradeone-header-right stitch-view-switcher">
+ <button class="stitch-nav-tab active" data-view="viewTradeoneWorkstation" id="tabViewTradeone">
+ <span> </span> TradeOne
+ </button>
+ <button class="stitch-nav-tab" data-view="viewMarketHeatmap" id="tabViewHeatmap">
+ <span> </span> Heatmap
+ </button>
+ <button class="stitch-nav-tab" data-view="viewFinDeskPortfolio" id="tabViewPortfolio">
+ <span> </span> Portfolio
+ </button>
+ <button class="stitch-nav-tab" data-view="viewSectorDeepDive" id="tabViewSectors">
+ <span> </span> Sectors
+ </button>
+
+ <button class="btn btn-sm" id="btnToggleIntelRibbons" style="padding:2px 8px; font-size:10px; border-color:rgba(255,255,255,0.15); color:#94a3b8;" title="Toggle Extra News & Breadth Ribbons">
+ Ribbons
+ </button>
+
+ <button class="btn btn-sm" id="btnTopOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold); padding:2px 8px; font-size:10px;" title="Connect Free Angel One SmartAPI">
+ SmartAPI
+ </button>
+
+ <a href="mobile.html" class="btn btn-sm" id="btnTopGoMobile" style="border-color:rgba(16, 185, 129, 0.4); color:var(--accent-green); text-decoration:none; padding:2px 8px; font-size:10px;" title="Android View">
+ Mobile
+ </a>
+
+ <span class="live-pill" id="backendStatusPill" title="Backend Server Connectivity Status" style="background:rgba(16,185,129,0.15); border-color:#10b981; color:#34d399; font-size:10px; padding:2px 7px; display:inline-flex; align-items:center; gap:5px;">
+ <span class="live-dot" id="backendStatusDot" style="background:#10b981; width:6px; height:6px;"></span>
+ <span id="backendStatusText">BACKEND READY</span>
+ </span>
+
+ <div class="tradeone-avatar" title="User Account: GD" style="margin-left:4px;">GD</div>
+ </div>
+ </header>
+
+ <!-- Extra Market Intel & Screener Header (Collapsible to save 100% vertical screen space for the Live Chart) -->
+ <header class="app-header" id="collapsibleAppHeader" style="display:none;">
+ <!-- Live Market Ticker Tape -->
+ <div class="market-ticker-tape" id="marketTickerTape">
+ <div class="ticker-item">
+ <span class="ticker-name">NIFTY 50</span>
+ <span class="ticker-val" id="valNifty">24,835.10</span>
+ <span class="ticker-chg pos" id="chgNifty">+142.50 (+0.58%)</span>
+ </div>
+ <div class="ticker-item">
+ <span class="ticker-name">BSE SENSEX</span>
+ <span class="ticker-val" id="valSensex">81,380.40</span>
+ <span class="ticker-chg pos" id="chgSensex">+410.20 (+0.51%)</span>
+ </div>
+ <div class="ticker-item">
+ <span class="ticker-name">NIFTY BANK</span>
+ <span class="ticker-val">51,290.80</span>
+ <span class="ticker-chg pos">+215.10 (+0.42%)</span>
+ </div>
+ <div class="ticker-item">
+ <span class="ticker-name">NIFTY MIDCAP 100</span>
+ <span class="ticker-val">58,740.00</span>
+ <span class="ticker-chg pos">+680.50 (+1.17%)</span>
+ </div>
+ <div class="ticker-item">
+ <span class="ticker-name">INDIA VIX</span>
+ <span class="ticker-val">12.85</span>
+ <span class="ticker-chg neg">-0.45 (-3.38%)</span>
+ </div>
+ <div class="ticker-item" style="border-left: 1px solid var(--border-subtle); padding-left:12px;">
+ <span class="ticker-name" style="color:var(--accent-green);">FII:</span>
+ <span class="ticker-val" style="color:var(--accent-green);">+&#8377;2,480 Cr</span>
+ </div>
+ <div class="ticker-item">
+ <span class="ticker-name" style="color:var(--accent-blue);">DII:</span>
+ <span class="ticker-val" style="color:var(--accent-blue);">+&#8377;3,150 Cr</span>
+ </div>
+ </div>
+
+ <!-- Main Header -->
+ <div class="header-main">
+ <div class="brand-section">
+ <div class="brand-logo">
+ <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+ <polyline points="22 7 13.5 15.5 8.5 10.5 2 17"></polyline>
+ <polyline points="16 7 22 7 22 13"></polyline>
+ </svg>
+ </div>
+ <div>
+ <div style="display:flex; align-items:center; gap:6px;">
+ <h1 class="brand-title">Universal Indian Stock Screener</h1>
+ <span class="market-pill market-open" id="marketStatusBadge" title="Multi-Market Live Feed Active (NSE/BSE, MCX, GIFT Nifty, Global Extended)">
+ <span class="market-dot"></span> <span id="marketStatusText"> UNIVERSAL MARKET LIVE</span>
+ </span>
+ <span class="live-pill" id="livePillIndicator">
+ <span class="live-dot"></span> LIVE
+ </span>
+ <span class="gpu-badge" id="gpuStatusBadge">
+ <span class="gpu-dot"></span> GPU WebGL
+ </span>
+ </div>
+ <div class="brand-sub">Universal Indian Market Terminal 10 Institutional CANSLIM Protocols Multi-Asset Live Engine</div>
+ </div>
+ </div>
+
+ <div class="header-actions">
+ <!-- Live Feed Mode, Provider Source & Auto-Refresh Speed Controls -->
+ <div style="display:flex; align-items:center; gap:4px; background:var(--bg-card); padding:3px 6px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); flex-shrink:0;">
+ <span style="font-size:10.5px; color:var(--text-muted);">Source:</span>
+ <select id="selDataProvider" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Select Live Market Data Engine (SmartAPI, Yahoo Finance Live, NSE Official, or Auto Multi-Provider Failover)">
+ <option value="auto" selected> Auto Multi-Provider (SmartAPI FMP Yahoo NSE)</option>
+ <option value="smartapi"> Angel One SmartAPI (Official Live)</option>
+ <option value="fmp"> Financial Modeling Prep (FMP API)</option>
+ <option value="yfinance"> Yahoo Finance Live (.NS/.BO)</option>
+ <option value="nsebse"> NSE India Official Feed</option>
+ </select>
+ <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Feed:</span>
+ <select id="selFeedMode" style="padding:2px 18px 2px 4px; font-size:10.5px;" title="Control live multi-market feed synchronization">
+ <option value="auto" selected> Real Live Market Feed (Direct API Sync)</option>
+ <option value="nse_strict"> Cash Market Hours (09:15-15:30 IST)</option>
+ <option value="paused"> Freeze Feed (Real EOD Snapshot)</option>
+ <option value="simulation"> Simulation Replay Mode (Testing)</option>
+ </select>
+ <span style="font-size:10.5px; color:var(--text-muted); margin-left:3px;">Speed:</span>
+ <select id="selStreamSpeed" style="padding:2px 18px 2px 4px; font-size:10.5px;">
+ <option value="1200">1.2s (Fast)</option>
+ <option value="1800" selected>1.8s (Live Stream)</option>
+ <option value="3500">3.5s (Steady)</option>
+ </select>
+ <button class="btn btn-sm" id="btnToggleLive" style="padding:2px 6px; font-size:10.5px;">
+ <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
+ <rect x="6" y="4" width="4" height="16"></rect>
+ <rect x="14" y="4" width="4" height="16"></rect>
+ </svg>
+ <span>Pause</span>
+ </button>
+ </div>
+
+ <button class="btn btn-sm" id="btnToggleMainChart" title="Toggle Live Chart Panel">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M3 3v18h18"></path>
+ <path d="M18 9l-5 5-4-4-6 6"></path>
+ </svg>
+ Live Chart
+ </button>
+
+ <button class="btn btn-sm" id="btnOpenNewsDrawer" title="Live Financial News Wire with Direct Links">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+ <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+ <circle cx="9" cy="9" r="1"></circle>
+ <path d="M7 13h6"></path>
+ <path d="M7 17h4"></path>
+ </svg>
+ News (<span id="newsCountBadge">8</span>)
+ </button>
+ <button class="btn btn-sm" id="btnOpenSmartApi" style="border-color:rgba(245, 158, 11, 0.4); color:var(--accent-gold);" title="Connect Free Angel One SmartAPI for Live Market Feeds & Orders">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+ <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+ </svg>
+ SmartAPI <span class="smartapi-dot" id="smartApiDot"></span>
+ </button>
+
+ <a href="mobile.html" class="btn btn-sm" id="btnGoMobile" style="border-color:rgba(16, 185, 129, 0.4); color:var(--accent-green); text-decoration:none; display:inline-flex; align-items:center; gap:4px;" title="Switch to Android Native Mobile View">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+ <line x1="12" y1="18" x2="12.01" y2="18"></line>
+ </svg>
+ Android View
+ </a>
+
+ <button class="btn btn-primary btn-sm" id="btnRunScan" title="Re-Run 10 CANSLIM Protocols Scan">
+ <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polyline points="23 4 23 10 17 10"></polyline>
+ <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+ </svg>
+ Re-Run Scan
+ </button>
+ </div>
+ </div>
+
+ <!-- Breaking News Ticker Ribbon with Clickable Direct Sources -->
+ <div class="breaking-news-ribbon" id="breakingNewsRibbon">
+ <span class="breaking-tag">LIVE WIRE</span>
+ <div class="breaking-content" id="breakingHeadline" title="Click to open full news wire">
+ Loading live Indian equity news & market intelligence...
+ </div>
+ <button class="btn btn-sm" id="btnReadMoreNews" style="padding:2px 7px; font-size:10px; margin-left:auto;">Read Wire</button>
+ </div>
+
+ <!-- Live Market Breadth Strip -->
+ <div class="market-breadth-strip">
+ <div style="display:flex; align-items:center; gap:10px;">
+ <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Market Breadth:</span>
+ <div style="display:flex; align-items:center; gap:6px; font-size:11px; font-family:var(--font-mono);">
+ <span style="color:var(--accent-green); font-weight:700;" id="breadthAdvances">^ 11 Advances</span>
+ <span style="color:var(--text-muted);">:</span>
+ <span style="color:var(--accent-red); font-weight:700;" id="breadthDeclines">v 1 Declines</span>
+ <span class="val-pill" style="font-size:10px; background:rgba(16, 185, 129, 0.15); color:var(--accent-green);" id="breadthSentiment">Strongly Bullish (92%)</span>
+ </div>
+ </div>
+
+ <div class="sector-strip-group">
+ <span style="font-size:10.5px; font-weight:600; color:var(--text-muted); text-transform:uppercase;">Sector Momentum:</span>
+ <span class="sector-badge pos">EMS +3.92%</span>
+ <span class="sector-badge pos">Renewable +3.10%</span>
+ <span class="sector-badge pos">Defence +2.85%</span>
+ <span class="sector-badge pos">Fintech +2.60%</span>
+ <span class="sector-badge pos">Retail +2.45%</span>
+ <span class="sector-badge pos">Wires +1.80%</span>
+ </div>
+ </div>
+
+ <!-- Universal Investor Profiles Ribbon -->
+ <div class="investor-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#080e1a; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
+ <span class="investor-ribbon-label" style="font-size:10.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">INVESTOR PROFILES:</span>
+ <button class="investor-chip active" data-profile="all">All Profiles (12)</button>
+ <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">Quality Compounders</button>
+ <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales & EPS CAGR >30%, Low Debt">Multibagger Hunter</button>
+ <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG <= 1.5, ROCE > 20%)">GARP Growth</button>
+ <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield > 3.5%">Deep Value &amp; FCF</button>
+ <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">Dividend &amp; Cash</button>
+ <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score > 85, Multi-Quarter Alpha">Momentum Leaders</button>
+ <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">Special Situations</button>
+ </div>
+
+ <!-- Protocol Presets Ribbon -->
+ <div class="protocol-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#060a14; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
+ <div class="preset-group" style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap;">
+ <span class="preset-label" style="font-size:10.5px; font-weight:800; color:#f59e0b; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">CANSLIM PRESETS:</span>
+ <button class="preset-chip active" data-preset="all">All Stocks (12)</button>
+ <button class="preset-chip" data-preset="user_master">Master 10 Protocols</button>
+ <button class="preset-chip" data-preset="cup_handle">Cup with Handle</button>
+ <button class="preset-chip" data-preset="consolidation_7w">7-Week Bases</button>
+ <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume >3x 10D Average with High Delivery %">Volume Shockers</button>
+ <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">NR4/NR7 Squeeze</button>
+ <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > Rs. 10 Lakhs">SEBI Insider Buys</button>
+ <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">SMC Accumulation</button>
+ <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">DMR Sector Leaders</button>
+ </div>
+ <div id="topScanStatusBadge" class="val-pill" style="margin-left:auto; white-space:nowrap;">Live Scanner Active</div>
+ </div>
+ </header>
+ <!-- Mobile Filter Bar Drawer Trigger (Visible on Android & Mobile/Tablet Screens) -->
+ <div class="mobile-filter-bar" id="mobileFilterBar">
+ <button class="btn btn-sm" id="btnMobileFilterToggle" style="width:100%; justify-content:space-between; padding:8px 12px; font-weight:600; background:#080f20; border-color:var(--border-subtle);">
+ <span style="display:flex; align-items:center; gap:6px;">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+ </svg>
+ <span> Filter Protocols & Rules (<strong id="mobileFilterBadge" style="color:var(--accent-blue);">6 Active</strong>)</span>
+ </span>
+ <span id="mobileFilterChevron" style="font-size:11px; color:var(--text-muted);">v Show Filters</span>
+ </button>
+ </div>
+
+ <!-- Main Container -->
+ <div class="app-container">
+
+ <!-- Main Content Area -->
+ <main class="content-area" style="padding:0;">
+ 
+ <!-- 1. STITCH VIEW 1: HIGH-THROUGHPUT INSTITUTIONAL STOCK SCREENER HUB -->
+ <div class="stitch-view-content active" id="viewTradeoneWorkstation">
+
+ <!-- Screener Hub Container -->
+ <div class="screener-hub-container">
+
+ <!-- Strategy Presets Bar -->
+ <div class="screener-preset-ribbon" id="screenerPresetRibbon">
+ <span class="preset-ribbon-label">STRATEGIES:</span>
+ <button class="preset-chip active" data-preset="all">All Universe (12)</button>
+ <button class="preset-chip" data-preset="canslim" title="CANSLIM High Growth with Sales/PAT CAGR > 20% and RS > 75">CANSLIM High Growth</button>
+ <button class="preset-chip" data-preset="compounder" title="High ROCE/ROE > 20%, Low Debt/Equity < 0.5, High Operating Margins">Quality Compounders</button>
+ <button class="preset-chip" data-preset="deep_value" title="Low P/E, High FCF Yield > 4%, Positive Free Cash Flow">Deep Value &amp; FCF</button>
+ <button class="preset-chip" data-preset="momentum" title="DMR Leaders, RS Rating > 80, Above 20/50/200 DMA">Momentum Breakouts</button>
+ <button class="preset-chip" data-preset="institutional" title="High Institutional Holding (FII + DII > 30%) with Promoter Buying">Institutional Stake</button>
+ <button class="preset-chip" data-preset="vol_shocker" title="Volume Burst > 50% above 20 DMA with NR7 Range Contraction">Volume Shockers &amp; NR7</button>
+ <button class="preset-chip" data-preset="multibagger" title="High 3Y Sales &amp; EPS Growth, Micro/Small-Cap, Clean Balance Sheet">Small-Cap Multibaggers</button>
+ <div id="scanStatusBadge" class="val-pill" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--accent-green);">Live Scanner Active</div>
+ </div>
+
+ <!-- Top Summary KPI Stat Cards -->
+ <div class="stats-grid">
+ <div class="stat-card">
+ <div class="stat-header">Matching Stocks</div>
+ <div class="stat-value" id="statMatchingCount">12</div>
+ <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
+ </div>
+ <div class="stat-card">
+ <div class="stat-header">Quality Compounders</div>
+ <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">9</div>
+ <div class="stat-sub">Score &ge; 80 (ROCE &gt; 20%)</div>
+ </div>
+ <div class="stat-card">
+ <div class="stat-header">Momentum Breakouts</div>
+ <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">8</div>
+ <div class="stat-sub">Above 50 DMA + RS &gt; 75</div>
+ </div>
+ <div class="stat-card">
+ <div class="stat-header">Average RS Rating</div>
+ <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">86</div>
+ <div class="stat-sub">Outperforming NIFTY 50</div>
+ </div>
+ </div>
+
+ <!-- Institutional 6-Dimension Filter Hub -->
+ <div class="filter-hub-card">
+
+ <!-- Dimension Tabs Header -->
+ <div class="filter-tabs-header">
+ <div class="filter-dimension-nav" id="filterDimensionNav">
+ <button type="button" class="dim-nav-btn active" data-dim="dim_valuation">Valuation Multiples</button>
+ <button type="button" class="dim-nav-btn" data-dim="dim_growth">Growth &amp; Runway</button>
+ <button type="button" class="dim-nav-btn" data-dim="dim_quality">Quality &amp; Profitability</button>
+ <button type="button" class="dim-nav-btn" data-dim="dim_solvency">Solvency &amp; Health</button>
+ <button type="button" class="dim-nav-btn" data-dim="dim_ownership">Ownership &amp; Flows</button>
+ <button type="button" class="dim-nav-btn" data-dim="dim_technical">Technical &amp; Momentum</button>
+ </div>
+
+ <div class="filter-header-actions">
+ <div class="match-logic-box">
+ <span style="font-size:10.5px; color:var(--text-muted);">Logic:</span>
+ <select id="selMatchLogic" class="filter-select-sm" title="Match condition mode">
+ <option value="AND" selected>AND (Match All)</option>
+ <option value="OR">OR (Match Any)</option>
+ </select>
+ </div>
+ <button type="button" class="btn btn-sm" id="btnResetFilters">Reset Filters</button>
+ <button type="button" class="btn btn-sm" id="btnResetProtocols" style="display:none;">Reset</button>
+ </div>
+ </div>
+
+ <!-- Dimension Sub-Panels -->
+ <div class="filter-dimension-body">
+
+ <!-- 1. Valuation Dimension -->
+ <div class="dim-panel active" id="dim_valuation">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <label class="filter-card-label">Market Cap Category</label>
+ <select id="selMarketCapCat" class="filter-select-full">
+ <option value="ALL" selected>All Market Caps</option>
+ <option value="LARGE">Large Cap (&gt; &#8377;50,000 Cr)</option>
+ <option value="MID">Mid Cap (&#8377;15,000 - 50,000 Cr)</option>
+ <option value="SMALL">Small Cap (&#8377;2,000 - 15,000 Cr)</option>
+ <option value="MICRO">Micro Cap (&lt; &#8377;2,000 Cr)</option>
+ </select>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Max P/E Ratio</label>
+ <span class="filter-val-badge" id="pill_peRatio">&le; 200</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxPe" min="10" max="200" step="5" value="200">
+ <div class="slider-ticks"><span>10x</span><span>Value to Growth</span><span>200x</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Max PEG Ratio</label>
+ <span class="filter-val-badge" id="pill_pegRatio">&le; 5.0</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxPeg" min="0.5" max="5.0" step="0.2" value="5.0">
+ <div class="slider-ticks"><span>0.5 (Undervalued)</span><span>Max PEG</span><span>5.0</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min FCF Yield %</label>
+ <span class="filter-val-badge" id="pill_fcfYield">&ge; 0.0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minFcfYield" min="0" max="10" step="0.5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Free Cash Flow Yield</span><span>10%</span></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- 2. Growth Dimension -->
+ <div class="dim-panel" id="dim_growth">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Sales YoY Growth</label>
+ <span class="filter-val-badge" id="pill_salesGrowth">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="0" max="50" step="5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Quarterly Sales YoY</span><span>50%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min 3Y Sales CAGR</label>
+ <span class="filter-val-badge" id="pill_sales3yCagr">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minSales3yCagr" min="0" max="40" step="2" value="0">
+ <div class="slider-ticks"><span>0%</span><span>3-Year Compounding</span><span>40%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Profit (PAT) YoY</label>
+ <span class="filter-val-badge" id="pill_patGrowth">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minPatGrowth" min="0" max="60" step="5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Quarterly Profit YoY</span><span>60%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min 3Y PAT CAGR</label>
+ <span class="filter-val-badge" id="pill_pat3yCagr">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minPat3yCagr" min="0" max="50" step="5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>3-Year Profit CAGR</span><span>50%</span></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- 3. Quality & Profitability Dimension -->
+ <div class="dim-panel" id="dim_quality">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min ROCE %</label>
+ <span class="filter-val-badge" id="pill_roce">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minRoce" min="0" max="40" step="1" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Return on Capital</span><span>40%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min ROE %</label>
+ <span class="filter-val-badge" id="pill_roe">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minRoe" min="0" max="35" step="1" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Return on Equity</span><span>35%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Operating Margin (OPM)</label>
+ <span class="filter-val-badge" id="pill_opm">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minOpm" min="0" max="35" step="1" value="0">
+ <div class="slider-ticks"><span>0%</span><span>EBITDA Margin</span><span>35%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Piotroski F-Score</label>
+ <span class="filter-val-badge" id="pill_piotroski">&ge; 0 / 9</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minPiotroski" min="0" max="9" step="1" value="0">
+ <div class="slider-ticks"><span>0 (All)</span><span>Fundamental Health</span><span>9 (Pristine)</span></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- 4. Solvency & Health Dimension -->
+ <div class="dim-panel" id="dim_solvency">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Max Debt-to-Equity</label>
+ <span class="filter-val-badge" id="pill_debtEquity">&le; 5.0</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxDebtEquity" min="0.0" max="5.0" step="0.1" value="5.0">
+ <div class="slider-ticks"><span>0.0 (Zero Debt)</span><span>Max Leverage</span><span>5.0</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Interest Coverage</label>
+ <span class="filter-val-badge" id="pill_interestCov">&ge; 0.0x</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minInterestCov" min="0.0" max="15.0" step="0.5" value="0.0">
+ <div class="slider-ticks"><span>0.0x</span><span>EBIT / Interest</span><span>15.0x</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Current Ratio</label>
+ <span class="filter-val-badge" id="pill_currentRatio">&ge; 0.0x</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minCurrentRatio" min="0.0" max="3.0" step="0.1" value="0.0">
+ <div class="slider-ticks"><span>0.0x</span><span>Liquidity Buffer</span><span>3.0x</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Stop Loss Risk Limit</label>
+ <span class="filter-val-badge" id="pill_maxStopLoss">&le; 20.0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="20.0" step="0.5" value="20.0">
+ <div class="slider-ticks"><span>3.0%</span><span>Max SL Drawdown</span><span>20.0%</span></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- 5. Ownership & Flows Dimension -->
+ <div class="dim-panel" id="dim_ownership">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Promoter Holding %</label>
+ <span class="filter-val-badge" id="pill_promoterHold">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minPromoter" min="0" max="75" step="5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Promoter Skin-in-Game</span><span>75%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Max Promoter Pledge %</label>
+ <span class="filter-val-badge" id="pill_promoterPledge">&le; 100%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxPledge" min="0" max="100" step="5" value="100">
+ <div class="slider-ticks"><span>0% (Zero Pledge)</span><span>Max Pledge</span><span>100%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Institutional (FII+DII) %</label>
+ <span class="filter-val-badge" id="pill_instHolding">&ge; 0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minInstHolding" min="0" max="50" step="5" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Smart Money Stake</span><span>50%</span></div>
+ </div>
+
+ <div class="filter-input-card" style="display:flex; flex-direction:column; justify-content:center;">
+ <label class="switch-row" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
+ <span style="font-size:11.5px; font-weight:600; color:var(--text-primary);">SEBI Insider Buying (&gt;&#8377;10L)</span>
+ <label class="switch">
+ <input type="checkbox" id="chk_insiderBuys">
+ <span class="slider"></span>
+ </label>
+ </label>
+ <div style="font-size:10px; color:var(--text-muted); margin-top:4px;">Filter stocks with recent promoter/director open market purchases.</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- 6. Technical & Signals Dimension -->
+ <div class="dim-panel" id="dim_technical">
+ <div class="filter-grid-4">
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Min Relative Strength (RS)</label>
+ <span class="filter-val-badge" id="pill_minRs">&ge; 0</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minRs" min="0" max="95" step="5" value="0">
+ <div class="slider-ticks"><span>0</span><span>Mansfield RS vs NIFTY</span><span>95</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">RSI(14) Momentum Zone</label>
+ <span class="filter-val-badge" id="pill_rsiLevel">RSI &ge; 0</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minRsi" min="0" max="85" step="5" value="0">
+ <div class="slider-ticks"><span>0 (All)</span><span>RSI Zone</span><span>85 (Bullish)</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">Volume Burst Spike %</label>
+ <span class="filter-val-badge" id="pill_burstPct">&ge; +0%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="0" max="100" step="10" value="0">
+ <div class="slider-ticks"><span>0%</span><span>Above 20-Day SMA</span><span>+100%</span></div>
+ </div>
+
+ <div class="filter-input-card">
+ <div class="filter-card-header">
+ <label class="filter-card-label">7-Week Base Tightness</label>
+ <span class="filter-val-badge" id="pill_baseTightness">&le; 50%</span>
+ </div>
+ <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="50" step="1" value="50">
+ <div class="slider-ticks"><span>5% (Ultra Tight)</span><span>Max Volatility</span><span>50%</span></div>
+ </div>
+ </div>
+
+ <!-- Technical Toggles Row -->
+ <div class="tech-toggles-row" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
+ <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+ <label class="switch" style="width:32px; height:18px;">
+ <input type="checkbox" id="chk_dma50">
+ <span class="slider"></span>
+ </label>
+ <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 50 DMA</span>
+ </label>
+
+ <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+ <label class="switch" style="width:32px; height:18px;">
+ <input type="checkbox" id="chk_dma200">
+ <span class="slider"></span>
+ </label>
+ <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 200 DMA (Long-Term Bull)</span>
+ </label>
+
+ <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+ <label class="switch" style="width:32px; height:18px;">
+ <input type="checkbox" id="chk_p10">
+ <span class="slider"></span>
+ </label>
+ <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (&ge;4/6)</span>
+ </label>
+ <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="display:none;">
+ <div id="val_mtfGreen" style="display:none;">4/6 Green</div>
+ </div>
+ </div>
+
+ </div>
+ </div>
+
+ <!-- Natural Language AI / NLP Filter Search Bar -->
+ <div class="nlp-search-container" id="nlpSearchContainer">
+ <div class="nlp-input-row">
+ <div class="nlp-icon">
+ <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+ </svg>
+ </div>
+ <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter: e.g. 'high quality compounder with zero debt and promoter buying' or 'vol shocker with nr7'...">
+ <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">&#10005; Clear</button>
+ </div>
+ <div class="nlp-chips-row">
+ <span style="color:var(--text-muted); font-size:10px; font-weight:600;">QUICK PROMPTS:</span>
+ <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
+ <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
+ <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
+ <button class="nlp-suggestion-chip" data-prompt="high volume shockers with vwap breakout">"volume shocker"</button>
+ <button class="nlp-suggestion-chip" data-prompt="promoter buying this quarter">"promoter buying"</button>
+ <button class="nlp-suggestion-chip" data-prompt="narrow range nr7 breakout">"nr7 breakout"</button>
+ <span id="nlpActiveTagWrap" style="display:none; margin-left:auto;"></span>
+ </div>
+ </div>
+
+ <!-- High-Throughput Interactive Screener Table Controls Bar -->
+ <div class="table-header-bar">
+
+ <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+ <!-- Omnibar Search -->
+ <div class="search-box-wrap">
+ <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--text-muted);">
+ <circle cx="11" cy="11" r="8"></circle>
+ <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+ </svg>
+ <input type="text" class="search-input" id="txtSearch" placeholder="Search Symbol, Name, Sector, ISIN...">
+ </div>
+
+ <!-- Sector Dropdown -->
+ <select id="selSector" class="filter-select-sm">
+ <option value="ALL">All Sectors</option>
+ <option value="Defence">Defence &amp; Aerospace</option>
+ <option value="Retail">Retail &amp; Consumer</option>
+ <option value="EMS">EMS &amp; Electronics</option>
+ <option value="IT">IT &amp; Software</option>
+ <option value="Wires">Wires &amp; Cables</option>
+ <option value="Renewable">Renewable Energy</option>
+ <option value="Financial">Financial Infrastructure</option>
+ </select>
+
+ <!-- Exchange Dropdown -->
+ <select id="selExchange" class="filter-select-sm">
+ <option value="ALL">All Exchanges (NSE &amp; BSE)</option>
+ <option value="NSE">NSE Only</option>
+ <option value="BSE">BSE Only</option>
+ </select>
+ </div>
+
+ <!-- Column View Switcher & Action Buttons -->
+ <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+
+ <!-- Column View Category Switcher -->
+ <div class="column-view-group" id="columnViewGroup">
+ <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">View:</span>
+ <select id="selColumnView" class="filter-select-sm" title="Switch active column dataset">
+ <option value="overview" selected>Overview &amp; Factor Scores</option>
+ <option value="valuation">Valuation Multiples</option>
+ <option value="growth">Growth &amp; Compounding</option>
+ <option value="quality">Quality &amp; Profitability</option>
+ <option value="solvency">Solvency &amp; Debt Health</option>
+ <option value="ownership">Ownership &amp; Flows</option>
+ <option value="technical">Technical &amp; Momentum</option>
+ </select>
+ </div>
+
+ <!-- Sort By Dropdown -->
+ <div style="display:flex; align-items:center; gap:4px;">
+ <span style="font-size:10.5px; color:var(--text-muted);">Sort:</span>
+ <select id="selSortBy" class="filter-select-sm">
+ <option value="qualityScore" selected>Institutional Score (0-100)</option>
+ <option value="roce">ROCE % (Highest First)</option>
+ <option value="salesGrowthYoY">Sales YoY Growth %</option>
+ <option value="epsGrowthYoY">EPS YoY Growth %</option>
+ <option value="fcfYield">Free Cash Flow Yield %</option>
+ <option value="pe">P/E Ratio (Lowest First)</option>
+ <option value="rsScore">RS Score (Highest First)</option>
+ <option value="volumeBurst">Volume Burst %</option>
+ <option value="marketCapCr">Market Cap (&#8377; Cr)</option>
+ <option value="ltp">Price (LTP)</option>
+ </select>
+ </div>
+
+ <button class="btn btn-sm" id="btnCopyTickers" title="Copy active filtered tickers">
+ Copy Tickers
+ </button>
+
+ <button class="btn btn-sm" id="btnExportCsv" title="Export full 33-point institutional CSV">
+ Export CSV
+ </button>
+ </div>
+
+ </div>
+
+ <!-- Master Results Table -->
+ <div class="table-container">
+ <table class="screener-table">
+ <thead id="screenerTableHead">
+ <!-- Dynamically populated based on active column view -->
+ </thead>
+ <tbody id="screenerTableBody">
+ <!-- Dynamically populated -->
+ </tbody>
+ </table>
+ </div>
+
+ </div>
+
+ </div>
+
+ <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
+ <div class="stitch-view-content" id="viewMarketHeatmap">
+ <div class="heatmap-container">
+ 
+ <div class="heatmap-header-bar">
+ <div class="heatmap-title-box">
+ <span style="font-size:18px;"> </span>
+ <span class="heatmap-title">Market Heatmap</span>
+ </div>
+ 
+ <div class="heatmap-toggles" id="heatmapIndexToggles">
+ <button class="heatmap-toggle-btn active" data-index="NIFTY 50">
+ <span>NIFTY 50</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ <button class="heatmap-toggle-btn" data-index="NIFTY NEXT 50">
+ <span>NIFTY NEXT 50</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ <button class="heatmap-toggle-btn" data-index="NIFTY BANK">
+ <span>NIFTY BANK</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ <button class="heatmap-toggle-btn" data-index="NIFTY IT">
+ <span>NIFTY IT</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ <button class="heatmap-toggle-btn" data-index="NIFTY AUTO">
+ <span>NIFTY AUTO</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ <button class="heatmap-toggle-btn" data-index="NIFTY PHARMA">
+ <span>NIFTY PHARMA</span>
+ <span class="heatmap-toggle-switch"></span>
+ </button>
+ </div>
+ </div>
+
+ <div class="heatmap-main-layout">
+ 
+ <!-- Treemap Matrix -->
+ <div class="heatmap-treemap-board">
+ <div class="heatmap-sectors-grid" id="heatmapSectorsGrid">
+ <!-- Dynamically populated sectors (Banking, IT, Energy, etc.) -->
+ </div>
+
+ <!-- Color Scale Gradient -->
+ <div class="heatmap-gradient-bar-container">
+ <div class="heatmap-gradient-track"></div>
+ <div class="heatmap-gradient-labels">
+ <span>-5% Strong Loss</span>
+ <span>0% Neutral</span>
+ <span>+5% Strong Gain</span>
+ </div>
+ </div>
+ </div>
+
+ <!-- Top Gainers & Losers -->
+ <div class="heatmap-side-panels">
+ <div class="heatmap-rank-panel">
+ <div class="heatmap-rank-title" style="color:#34d399;">^ Top Gainers</div>
+ <div id="heatmapTopGainersList">
+ <!-- Dynamically populated Top Gainers -->
+ </div>
+ </div>
+
+ <div class="heatmap-rank-panel">
+ <div class="heatmap-rank-title" style="color:#f87171;">v Top Losers</div>
+ <div id="heatmapTopLosersList">
+ <!-- Dynamically populated Top Losers -->
+ </div>
+ </div>
+ </div>
+
+ </div>
+
+ </div>
+ </div>
+
+ <!-- 3. STITCH VIEW 3: FINDESK PORTFOLIO ANALYTICS (Screen 2) -->
+ <div class="stitch-view-content" id="viewFinDeskPortfolio">
+ <div class="findesk-container">
+ 
+ <div style="display:flex; align-items:center; justify-content:space-between;">
+ <div style="font-size:16px; font-weight:800; color:#ffffff;">Portfolio Performance & Analytics</div>
+ <div style="font-size:12px; color:#38bdf8; font-weight:700;">FinDesk Terminal</div>
+ </div>
+
+ <!-- Metrics Row -->
+ <div class="findesk-metrics-row">
+ <div class="findesk-metric-card">
+ <span class="findesk-metric-label">Total Value</span>
+ <span class="findesk-metric-val">&#8377; 87,45,200</span>
+ </div>
+ <div class="findesk-metric-card">
+ <span class="findesk-metric-label">Today's P&L</span>
+ <span class="findesk-metric-val green">+ &#8377; 32,500 (+0.37%)</span>
+ </div>
+ <div class="findesk-metric-card">
+ <span class="findesk-metric-label">Overall P&L</span>
+ <span class="findesk-metric-val green">+ &#8377; 22,15,300 (+33.91%)</span>
+ </div>
+ <div class="findesk-metric-card">
+ <span class="findesk-metric-label">Buying Power</span>
+ <span class="findesk-metric-val blue">&#8377; 12,50,000</span>
+ </div>
+ </div>
+
+ <!-- Main Grid -->
+ <div class="findesk-main-grid">
+ 
+ <!-- Performance Curve -->
+ <div class="findesk-chart-panel">
+ <div class="findesk-chart-header">
+ <span class="findesk-chart-title">Performance Curve</span>
+ <div class="findesk-timeframe-pills" id="findeskTfPills">
+ <button class="findesk-tf-btn" data-ptf="1D">1D</button>
+ <button class="findesk-tf-btn" data-ptf="1W">1W</button>
+ <button class="findesk-tf-btn" data-ptf="1M">1M</button>
+ <button class="findesk-tf-btn active" data-ptf="1Y">1Y</button>
+ <button class="findesk-tf-btn" data-ptf="ALL">ALL</button>
+ </div>
+ </div>
+
+ <div class="findesk-perf-canvas-wrap">
+ <canvas id="findeskPerfCanvas" style="width:100%; height:100%;"></canvas>
+ </div>
+
+ <div class="findesk-perf-legend">
+ <span style="color:#38bdf8; font-weight:700;"> My Portfolio: +127.5%</span>
+ <span style="color:#94a3b8;"> NIFTY 50: +45.8%</span>
+ </div>
+ </div>
+
+ <!-- Asset Allocation & Risk -->
+ <div class="findesk-donut-panel">
+ <div class="findesk-chart-title">Asset Allocation</div>
+ <div class="findesk-donut-wrap">
+ <div style="width:110px; height:110px;">
+ <canvas id="findeskDonutCanvas" width="110" height="110"></canvas>
+ </div>
+ <div class="findesk-donut-legend">
+ <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#3b82f6;"></span> Finance (42%)</div>
+ <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#06b6d4;"></span> Technology (28%)</div>
+ <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#8b5cf6;"></span> Energy (15%)</div>
+ <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#f59e0b;"></span> Healthcare (10%)</div>
+ <div class="findesk-legend-item"><span class="findesk-legend-dot" style="background:#64748b;"></span> Other (5%)</div>
+ </div>
+ </div>
+
+ <div style="font-size:11.5px; font-weight:700; color:#cbd5e1; margin-top:4px;">Risk Metrics</div>
+ <div class="findesk-risk-metrics-row">
+ <div class="findesk-risk-item">
+ <div class="findesk-risk-label">Beta</div>
+ <div class="findesk-risk-val" style="color:#38bdf8;">1.08</div>
+ </div>
+ <div class="findesk-risk-item">
+ <div class="findesk-risk-label">Sharpe Ratio</div>
+ <div class="findesk-risk-val" style="color:#34d399;">2.15</div>
+ </div>
+ <div class="findesk-risk-item">
+ <div class="findesk-risk-label">Max Drawdown</div>
+ <div class="findesk-risk-val" style="color:#f87171;">-8.45%</div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Recent Activity Timeline -->
+ <div class="findesk-activity-panel">
+ <div class="findesk-chart-title">Recent Activity</div>
+ <div class="findesk-timeline">
+ <div class="findesk-timeline-item">
+ <div class="findesk-timeline-icon" style="background:rgba(16,185,129,0.2); color:#10b981;"> </div>
+ <div>
+ <div class="findesk-timeline-text"><strong>Trade:</strong> BUY 50 shares of INFY at &#8377; 1,500</div>
+ <div class="findesk-timeline-time">Today 10:30 AM</div>
+ </div>
+ </div>
+ <div class="findesk-timeline-item">
+ <div class="findesk-timeline-icon" style="background:rgba(56,189,248,0.2); color:#38bdf8;"> </div>
+ <div>
+ <div class="findesk-timeline-text"><strong>Dividend:</strong> Received &#8377; 2,500 from RELIANCE</div>
+ <div class="findesk-timeline-time">Yesterday</div>
+ </div>
+ </div>
+ <div class="findesk-timeline-item">
+ <div class="findesk-timeline-icon" style="background:rgba(239,68,68,0.2); color:#ef4444;"> </div>
+ <div>
+ <div class="findesk-timeline-text"><strong>Trade:</strong> SELL 100 shares of TATAMOTORS at &#8377; 650</div>
+ <div class="findesk-timeline-time">2 days ago</div>
+ </div>
+ </div>
+ <div class="findesk-timeline-item">
+ <div class="findesk-timeline-icon" style="background:rgba(16,185,129,0.2); color:#10b981;"> </div>
+ <div>
+ <div class="findesk-timeline-text"><strong>Deposit:</strong> Added &#8377; 5,00,000 to account</div>
+ <div class="findesk-timeline-time">Last week</div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ </div>
+
+ <!-- Holdings Table -->
+ <div class="findesk-holdings-panel">
+ <div style="font-size:13px; font-weight:700; color:#ffffff; margin-bottom:10px;">Holdings Table</div>
+ <table class="findesk-holdings-table">
+ <thead>
+ <tr>
+ <th>Symbol</th>
+ <th>Qty</th>
+ <th>Avg Price</th>
+ <th>LTP</th>
+ <th>Current Value</th>
+ <th>Unrealized P&L</th>
+ </tr>
+ </thead>
+ <tbody id="findeskHoldingsBody">
+ <!-- Dynamically populated portfolio holdings -->
+ </tbody>
+ </table>
+ </div>
+
+ </div>
+ </div>
+
+ <!-- 5. STITCH VIEW 5: SECTOR ANALYSIS DEEP-DIVE (Screen 5) -->
+ <div class="stitch-view-content" id="viewSectorDeepDive">
+ <div class="sector-dive-container">
+ 
+ <div class="sector-dive-header">Sector Analysis Deep-Dive</div>
+
+ <div class="sector-dive-layout">
+ 
+ <!-- Left Sector Sidebar -->
+ <div class="sector-list-sidebar" id="sectorListSidebar">
+ <div class="sector-list-item active" data-sector="NIFTY 50">
+ <span>NIFTY 50</span>
+ <span style="color:#34d399; font-family:var(--font-mono);">+0.45% ^</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY Bank">
+ <span>NIFTY Bank</span>
+ <span style="color:#34d399; font-family:var(--font-mono);">+1.2% ^</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY IT">
+ <span>NIFTY IT</span>
+ <span style="color:#f87171; font-family:var(--font-mono);">-0.3% v</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY Auto">
+ <span>NIFTY Auto</span>
+ <span style="color:#34d399; font-family:var(--font-mono);">+0.8% ^</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY Pharma">
+ <span>NIFTY Pharma</span>
+ <span style="color:#f87171; font-family:var(--font-mono);">-0.1% v</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY FMCG">
+ <span>NIFTY FMCG</span>
+ <span style="color:#34d399; font-family:var(--font-mono);">+0.2% ^</span>
+ </div>
+ <div class="sector-list-item" data-sector="NIFTY Metal">
+ <span>NIFTY Metal</span>
+ <span style="color:#34d399; font-family:var(--font-mono);">+0.5% ^</span>
+ </div>
+ </div>
+
+ <!-- Center: Sector Performance Scatter Quadrant Matrix -->
+ <div class="sector-matrix-panel">
+ <div style="display:flex; align-items:center; justify-content:space-between;">
+ <span style="font-size:12.5px; font-weight:700; color:#ffffff;">Sector Performance Matrix (Relative Strength vs. Momentum)</span>
+ <div style="font-size:10px; font-family:var(--font-mono); color:#94a3b8;">
+ <span style="color:#38bdf8;"> Outperforming</span> &nbsp;
+ <span style="color:#ec4899;"> Underperforming</span>
+ </div>
+ </div>
+
+ <div class="sector-matrix-canvas-wrap">
+ <canvas id="sectorMatrixCanvas" style="width:100%; height:100%;"></canvas>
+ </div>
+
+ <!-- Sector Weightage Breakdown -->
+ <div class="sector-weightage-box">
+ <div style="font-weight:700; color:#ffffff; font-size:11px;" id="sectorWeightageTitle">Sector Weightage Breakdown (NIFTY Bank)</div>
+ <div class="sector-weightage-row"><span>HDFC Bank</span><span>(28.5% Contribution, +1.5% Change)</span></div>
+ <div class="sector-weightage-row"><span>ICICI Bank</span><span>(22.1% Contribution, +1.1% Change)</span></div>
+ <div class="sector-weightage-row"><span>Axis Bank</span><span>(12.3% Contribution, +0.9% Change)</span></div>
+ <div class="sector-weightage-row"><span>Kotak Mahindra Bank</span><span>(10.8% Contribution, +0.6% Change)</span></div>
+ <div class="sector-weightage-row"><span>SBI</span><span>(8.2% Contribution, +1.8% Change)</span></div>
+ </div>
+ </div>
+
+ <!-- Right: Sector Sentiment Speedometer Gauge & Top Movers -->
+ <div class="sector-sentiment-panel">
+ <div style="font-size:12.5px; font-weight:700; color:#ffffff;" id="sectorSentimentTitle">Sector Sentiment (NIFTY Bank)</div>
+
+ <div class="sentiment-gauge-wrap">
+ <canvas id="sectorGaugeCanvas" width="200" height="120"></canvas>
+ </div>
+
+ <div style="font-size:10.5px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:4px; padding:8px; background:rgba(15,23,42,0.8); border-radius:6px;">
+ <div style="color:#34d399;"> RSI: 62 (Bullish)</div>
+ <div style="color:#34d399;"> MA Crossover: Golden Cross (Bullish)</div>
+ <div style="color:#34d399;"> MACD: Positive Divergence (Bullish)</div>
+ </div>
+
+ <!-- Top Movers within Sector -->
+ <div style="font-size:11.5px; font-weight:700; color:#ffffff; margin-top:6px;">Top Movers within Sector</div>
+ <div id="sectorTopMoversList" style="font-size:10.5px; font-family:var(--font-mono); display:flex; flex-direction:column; gap:6px;">
+ <div class="sector-weightage-row"><span style="font-weight:700;">AUBANK</span><span>&#8377;750 <strong style="color:#34d399;">+3.2%</strong> (150% Vol)</span></div>
+ <div class="sector-weightage-row"><span style="font-weight:700;">INDUSINDBK</span><span>&#8377;1,420 <strong style="color:#34d399;">+2.8%</strong> (120% Vol)</span></div>
+ <div class="sector-weightage-row"><span style="font-weight:700;">BANDHANBNK</span><span>&#8377;210 <strong style="color:#34d399;">+2.5%</strong> (110% Vol)</span></div>
+ <div class="sector-weightage-row"><span style="font-weight:700;">IDFCFIRSTB</span><span>&#8377;85 <strong style="color:#34d399;">+1.9%</strong> (95% Vol)</span></div>
+ </div>
+ </div>
+
+ </div>
+
+ </div>
+ </div>
+
+ </main>
+ </div>
+
+ <!-- Live Financial News Wire Side Drawer -->
+ <div class="news-drawer-overlay" id="newsDrawerOverlay">
+ <div class="news-drawer">
+ <div class="news-drawer-header">
+ <div style="display:flex; align-items:center; gap:8px;">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--accent-blue);">
+ <path d="M19 20H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v1"></path>
+ <path d="M18 14h4v7a1 1 0 0 1-1 1h-3"></path>
+ <circle cx="9" cy="9" r="1"></circle>
+ <path d="M7 13h6"></path>
+ <path d="M7 17h4"></path>
+ </svg>
+ <div>
+ <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Live Financial News Wire</div>
+ <div style="font-size:10px; color:var(--text-muted);">Direct Links: Livemint Economic Times Moneycontrol NSE Filings</div>
+ </div>
+ </div>
+ <button class="modal-close-btn" id="btnCloseNewsDrawer" aria-label="Close news drawer">&times;</button>
+ </div>
+
+ <div class="news-feed-list" id="newsFeedList">
+ <!-- Dynamically rendered real-time news cards with direct links -->
+ </div>
+ </div>
+ </div>
+
+ <!-- Detail Modal & Full Analysis Visualizer -->
+ <div class="modal-overlay" id="stockModal" role="dialog" aria-modal="true" aria-labelledby="modalStockSymbol">
+ <div class="modal-container">
+ <div class="modal-header">
+ <div class="modal-title-group">
+ <div class="brand-logo" id="modalLogo">&#8377;</div>
+ <div>
+ <div style="display:flex; align-items:center; gap:8px;">
+ <h2 id="modalStockSymbol" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">TRENT</h2>
+ <span class="tag tag-cwh" id="modalPatternTag">Cup & Handle</span>
+ <span class="val-pill" id="modalExchangeTag">NSE</span>
+ </div>
+ <div id="modalStockName" style="font-size:11.5px; color:var(--text-muted);">Trent Ltd (Westside & Zudio)</div>
+ </div>
+ </div>
+
+ <div style="display:flex; align-items:center; gap:12px;">
+ <div style="text-align:right;">
+ <div id="modalLTP" style="font-size:17px; font-weight:700; font-family:var(--font-mono);">&#8377;7,120.50</div>
+ <div id="modalDayChg" style="font-size:11px; font-weight:600; color:var(--accent-green);">+3.4%</div>
+ </div>
+ <button class="btn btn-sm" id="btnModalPopoutChart" style="color:var(--accent-green); border-color:rgba(16,185,129,0.4); padding:3px 8px; font-size:11px;" title="Open in Standalone Live Terminal Window">
+ Pop-Out Terminal
+ </button>
+ <button class="modal-close-btn" id="btnCloseModal" aria-label="Close stock detail modal">&times;</button>
+ </div>
+ </div>
+
+ <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
+ <div class="modal-tabs">
+ <div class="modal-tab active" data-tab="fundamental_radar"> Factor Scores & Fundamentals</div>
+ <div class="modal-tab" data-tab="calculator">Risk & Sizing</div>
+ <div class="modal-tab" data-tab="thesis"> Equity Thesis & Risks</div>
+ <div class="modal-tab" data-tab="moat_intel"> Moat & Governance</div>
+ <div class="modal-tab" data-tab="sebi_intel"> SEBI Insider & Forensics</div>
+ <div class="modal-tab" data-tab="peer_matrix"> Sector Peer Matrix</div>
+ <div class="modal-tab" data-tab="smc_dmr"> Smart Money & DMR</div>
+ </div>
+
+ <!-- Modal Body -->
+ <div class="modal-body">
+ 
+ <!-- Tab 1: Modal Candlestick Chart -->
+ <!-- Tab 1: Institutional Factor Scores & Comprehensive Fundamental Radar -->
+ <div class="tab-content" id="tab_fundamental_radar">
+ <div class="radar-modal-layout">
+
+ <!-- Overall Score & Factor Breakdown Cards -->
+ <div class="factor-summary-panel">
+ <div class="factor-overall-card">
+ <div style="font-size:11px; text-transform:uppercase; color:var(--text-muted); font-weight:700;">Composite Score</div>
+ <div class="factor-overall-score" id="modalFactorOverall">92</div>
+ <div class="factor-grade-pill" id="modalFactorGrade">A+ Institutional Grade</div>
+ <div style="font-size:10px; color:var(--text-muted); margin-top:4px;" id="modalFactorRisk">Pristine Balance Sheet Low Risk</div>
+ </div>
+
+ <!-- 5-Factor Score Meters -->
+ <div class="factor-meters-grid">
+ <div class="factor-meter-card">
+ <div class="factor-meter-header">
+ <span>Quality & Profitability</span>
+ <strong id="modalFactorQuality">95/100</strong>
+ </div>
+ <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorQuality" style="width:95%; background:#22c55e;"></div></div>
+ </div>
+
+ <div class="factor-meter-card">
+ <div class="factor-meter-header">
+ <span>Growth & Runway</span>
+ <strong id="modalFactorGrowth">90/100</strong>
+ </div>
+ <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorGrowth" style="width:90%; background:#38bdf8;"></div></div>
+ </div>
+
+ <div class="factor-meter-card">
+ <div class="factor-meter-header">
+ <span>Financial Solvency</span>
+ <strong id="modalFactorSolvency">98/100</strong>
+ </div>
+ <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorSolvency" style="width:98%; background:#10b981;"></div></div>
+ </div>
+
+ <div class="factor-meter-card">
+ <div class="factor-meter-header">
+ <span>Valuation Score</span>
+ <strong id="modalFactorValuation">75/100</strong>
+ </div>
+ <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorValuation" style="width:75%; background:#f59e0b;"></div></div>
+ </div>
+
+ <div class="factor-meter-card">
+ <div class="factor-meter-header">
+ <span>Momentum & Technicals</span>
+ <strong id="modalFactorMomentum">88/100</strong>
+ </div>
+ <div class="factor-progress-track"><div class="factor-progress-fill" id="fillFactorMomentum" style="width:88%; background:#a855f7;"></div></div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Key Financial Matrix -->
+ <div class="modal-financial-grid">
+ <div class="fund-card">
+ <div class="fund-label">ROCE / ROE</div>
+ <div class="fund-val" id="modalRoceRoe" style="color:var(--accent-green);">28.5% / 24.1%</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">P/E & Sector P/E</div>
+ <div class="fund-val" id="modalPeRatios">48.2 (Sec: 54.0)</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Debt-to-Equity</div>
+ <div class="fund-val" id="modalDebtEquity" style="color:var(--accent-green);">0.08 (Zero-Debt)</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Piotroski F-Score</div>
+ <div class="fund-val" id="modalPiotroskiScore" style="color:var(--accent-blue);">8 / 9 (Pristine)</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Sales & PAT YoY</div>
+ <div class="fund-val" id="modalSalesPatYoY">+34.2% / +48.5%</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">3Y Sales / PAT CAGR</div>
+ <div class="fund-val" id="modalCagr3y">+28.4% / +36.2%</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Promoter / FII / DII</div>
+ <div class="fund-val" id="modalHoldingsBreakdown">52.4% / 24.1% / 14.8%</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">52-Week Range</div>
+ <div class="fund-val" id="modal52wRange"> 3,950 - 7,450</div>
+ </div>
+ </div>
+
+ <!-- Screener Pass / Fail Checklist -->
+ <div class="screener-checklist-panel">
+ <div style="font-weight:700; font-size:12px; color:var(--text-primary); margin-bottom:8px;">Active Screener Criteria Checklist</div>
+ <div class="checklist-grid" id="modalChecklistGrid">
+ <!-- Dynamically populated checklist -->
+ </div>
+ </div>
+
+ </div>
+ </div>
+
+ <!-- Tab 2: Risk Management & Position Sizing Calculator -->
+ <div class="tab-content" id="tab_calculator" style="display:none;">
+ <h3 style="font-size:13.5px; font-weight:600; margin-bottom:12px;">Risk Management & Exact Position Sizing</h3>
+ <div class="calc-grid">
+ <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+ <div class="calc-input-group">
+ <label class="calc-label">Total Trading Capital (&#8377;)</label>
+ <input type="number" class="calc-input" id="calcCapital" value="500000" step="50000">
+ </div>
+ <div class="calc-input-group">
+ <label class="calc-label">Max Risk Per Trade (%)</label>
+ <input type="number" class="calc-input" id="calcRiskPct" value="1.0" step="0.25">
+ </div>
+ <div class="calc-input-group">
+ <label class="calc-label">Entry Price (&#8377;)</label>
+ <input type="number" class="calc-input" id="calcEntryPrice" value="7120">
+ </div>
+ <div class="calc-input-group">
+ <label class="calc-label">Stop Loss Price (&#8377;)</label>
+ <input type="number" class="calc-input" id="calcStopLossPrice" value="6620">
+ </div>
+ </div>
+
+ <div style="background:var(--bg-card); padding:14px; border-radius:var(--radius-md); border:1px solid var(--border-subtle);">
+ <div style="font-size:11.5px; color:var(--text-muted); margin-bottom:10px;">Sizing Execution Output</div>
+ <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+ <div class="fund-card">
+ <div class="fund-label">Shares to Buy</div>
+ <div class="fund-val" id="calcSharesOut" style="color:var(--accent-blue);">10 Qty</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Total Investment</div>
+ <div class="fund-val" id="calcInvOut">&#8377;71,200</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Max Risk Amount</div>
+ <div class="fund-val" id="calcRiskAmountOut" style="color:var(--accent-red);">&#8377;5,000</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Stop Loss %</div>
+ <div class="fund-val" id="calcSlPctOut" style="color:var(--accent-red);">-7.02%</div>
+ </div>
+ </div>
+
+ <div style="margin-top:12px; padding:8px; background:#0a1120; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); font-size:11px; font-family:var(--font-mono);">
+ <div style="color:var(--accent-green); margin-bottom:3px;"> Target 1 (1:1 R/R): <span id="calcT1">&#8377;7,620</span></div>
+ <div style="color:var(--accent-green); margin-bottom:3px;"> Target 2 (1:2 R/R): <span id="calcT2">&#8377;8,120</span></div>
+ <div style="color:var(--accent-green);"> Target 3 (1:3 R/R): <span id="calcT3">&#8377;8,620</span></div>
+ </div>
+
+ <!-- Real-time Position Sizing Health Alert -->
+ <div id="calcAlertBox" class="calc-alert ok">
+ <span> </span>
+ <span id="calcAlertMsg">Risk parameter within safe 1% capital allocation threshold.</span>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Tab 3: Institutional Equity Research Thesis & Bear Case (Section 23 & 32) -->
+ <div class="tab-content" id="tab_thesis" style="display:none;">
+ <div class="thesis-container">
+ <div class="thesis-card">
+ <div class="thesis-header">
+ <span> Investment Thesis & Growth Drivers</span>
+ <span class="val-pill" id="modalThesisProfile" style="background:rgba(56,189,248,0.15); color:var(--accent-blue); font-size:10px;">Quality Compounder</span>
+ </div>
+ <div class="thesis-body-text" id="modalThesisText">
+ <!-- Dynamically loaded institutional thesis -->
+ </div>
+ <div class="catalyst-box" id="modalCatalysts">
+ <!-- Catalysts watch -->
+ </div>
+ <div class="bear-case-box" id="modalBearCase">
+ <!-- Bear case risks -->
+ </div>
+ </div>
+
+ <!-- Financial Year & Cash Flow Quality Strip -->
+ <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px;">
+ <div class="fund-card">
+ <div class="fund-label">Reporting Period</div>
+ <div class="fund-val" id="modalReportingPeriod" style="font-size:12px; color:var(--text-primary);">FY26 (Audited)</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">CFO / PAT Conversion</div>
+ <div class="fund-val" id="modalCfoToPat" style="font-size:13px; color:var(--accent-green);">1.18x</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Free Cash Flow Yield</div>
+ <div class="fund-val" id="modalFcfYield" style="font-size:13px; color:var(--accent-blue);">2.4%</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">PEG Ratio</div>
+ <div class="fund-val" id="modalPegRatio" style="font-size:13px;">1.2</div>
+ </div>
+ <div class="fund-card">
+ <div class="fund-label">Working Capital Days</div>
+ <div class="fund-val" id="modalWcDays" style="font-size:13px;">18 Days</div>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Tab 4: Moat & Corporate Governance Intelligence (Section 10 & 13) -->
+ <div class="tab-content" id="tab_moat_intel" style="display:none;">
+ <div class="sebi-intel-grid">
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Competitive Advantage / Moat</span>
+ <span class="tag-moat" id="modalMoatBadge">Moat: 9.5 / 10</span>
+ </div>
+ <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+ Evaluates Pricing Power, Brand Elasticity, Switching Friction, Scale Economics, and Regulatory Moats.
+ </p>
+ <div id="modalMoatBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+ <!-- Dynamic moat breakdown -->
+ </div>
+ </div>
+
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Management & Governance Score</span>
+ <span class="tag-quality" id="modalMgmtBadge">Gov: 9.8 / 10</span>
+ </div>
+ <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+ Evaluates Capital Allocation, Promoter Skin-in-the-game, Dilution History, and RPT transparency.
+ </p>
+ <div id="modalMgmtBreakdown" style="font-size:11.5px; line-height:1.6; color:var(--text-secondary);">
+ <!-- Dynamic mgmt breakdown -->
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Tab 5: SEBI PIT Insider Trading & Forensic Intelligence -->
+ <div class="tab-content" id="tab_sebi_intel" style="display:none;">
+ <div class="sebi-intel-grid">
+ <!-- SEBI Form C Insider Disclosures -->
+ <div class="intel-panel-card" style="grid-column: 1 / -1;">
+ <div class="intel-panel-title">
+ <span> SEBI (PIT) Reg 7(2) Insider Trading Disclosures</span>
+ <span class="val-pill" id="modalInsiderBuyTag" style="font-size:10px; background:rgba(16,185,129,0.15); color:var(--accent-green);">Promoter Buy > &#8377;10L Flagged</span>
+ </div>
+ <div style="overflow-x:auto;">
+ <table class="insider-table" id="modalInsiderTable">
+ <thead>
+ <tr>
+ <th>Date</th>
+ <th>Insider / Entity</th>
+ <th>Designation</th>
+ <th>Action</th>
+ <th>Shares</th>
+ <th>Value (&#8377; Lakhs)</th>
+ <th>Filing Reference</th>
+ </tr>
+ </thead>
+ <tbody id="modalInsiderTableBody">
+ <!-- Populated dynamically -->
+ </tbody>
+ </table>
+ </div>
+ </div>
+
+ <!-- Forensic Audit & Pledge Tracker -->
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Forensic & Governance Audit</span>
+ <span class="val-pill" id="modalForensicRiskPill" style="font-size:10px; color:var(--accent-green);">Pristine (94/100)</span>
+ </div>
+ <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;">
+ <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+ <span style="color:var(--text-muted);">Promoter Pledge %:</span>
+ <span id="modalPromoterPledge" style="font-family:var(--font-mono); font-weight:700; color:var(--accent-green);">0.0% (Zero Pledge)</span>
+ </div>
+ <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+ <span style="color:var(--text-muted);">Pledge Change (QoQ):</span>
+ <span id="modalPledgeChange" style="font-family:var(--font-mono); color:var(--accent-green);">-4.2% (De-pledged)</span>
+ </div>
+ <div style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.05);">
+ <span style="color:var(--text-muted);">Statutory Auditor:</span>
+ <span id="modalAuditorStatus" style="font-weight:600; color:var(--text-primary);">Clean (BSR & Co. LLP / Big-4)</span>
+ </div>
+ <div style="display:flex; justify-content:space-between; padding:6px 0;">
+ <span style="color:var(--text-muted);">Auditor Resignation Flag:</span>
+ <span id="modalAuditorResign" style="color:var(--accent-green); font-weight:600;">None (Pristine 5Y Tenure)</span>
+ </div>
+ </div>
+ </div>
+
+ <!-- Corporate Actions & Dividends -->
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Corporate Actions & Buyback Arb</span>
+ <span class="val-pill" style="font-size:10px; color:var(--accent-blue);">SEBI Compliant</span>
+ </div>
+ <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalCorpActionsWrap">
+ <!-- Dynamically populated -->
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Tab 4: Sector Peer Comparison Matrix -->
+ <div class="tab-content" id="tab_peer_matrix" style="display:none;">
+ <div class="peer-score-box">
+ <div>
+ <div style="font-weight:700; font-size:13.5px; color:var(--text-primary);">Sector Outperformance & Valuation Matrix</div>
+ <div style="font-size:11px; color:var(--text-muted);" id="modalPeerSectorLabel">Comparing against Retail & Consumer Sector Peers</div>
+ </div>
+ <div style="text-align:right;">
+ <div style="font-size:18px; font-weight:700; color:var(--accent-green); font-family:var(--font-mono);" id="modalPeerScore">7 / 8</div>
+ <div style="font-size:10px; font-weight:600; color:var(--text-muted);">Better Than Sector Median</div>
+ </div>
+ </div>
+ <div style="overflow-x:auto;">
+ <table class="peer-table">
+ <thead>
+ <tr>
+ <th>Financial Metric</th>
+ <th id="modalPeerStockCol" class="peer-highlight">Selected Stock</th>
+ <th>Sector Median</th>
+ <th>Top Quartile (75th)</th>
+ <th>Relative Standing</th>
+ </tr>
+ </thead>
+ <tbody id="modalPeerTableBody">
+ <!-- Dynamically rendered -->
+ </tbody>
+ </table>
+ </div>
+ </div>
+
+ <!-- Tab 5: Smart Money Concepts & DMR -->
+ <div class="tab-content" id="tab_smc_dmr" style="display:none;">
+ <div class="smc-grid">
+ <!-- Dynamic Momentum Rank (DMR) -->
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Dynamic Momentum Rank (DMR)</span>
+ <span class="tag-dmr-top" id="modalDmrBadge">Decile 10 (Sector Leader)</span>
+ </div>
+ <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+ Measures multi-timeframe relative return alpha (3M, 6M, 12M) vs sub-sector peer medians, eliminating broad market noise.
+ </p>
+ <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalDmrBreakdown">
+ <!-- Populated dynamically -->
+ </div>
+ </div>
+
+ <!-- Smart Money Concepts & Volume Profile -->
+ <div class="intel-panel-card">
+ <div class="intel-panel-title">
+ <span> Smart Money Concepts (SMC)</span>
+ <span class="tag-smc" id="modalSmcZoneBadge">Demand Order Block</span>
+ </div>
+ <p style="font-size:11px; color:var(--text-muted); margin-bottom:12px;">
+ Identifies institutional accumulation footprints, Wyckoff springs, Point of Control (POC), and Value Area High/Low.
+ </p>
+ <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px;" id="modalSmcBreakdown">
+ <!-- Populated dynamically -->
+ </div>
+ </div>
+ </div>
+ </div>
+
+ </div>
+ </div>
+ </div>
+
+ <!-- Angel One SmartAPI Configuration & Live Connect Modal -->
+ <div class="modal-overlay" id="smartApiModal" role="dialog" aria-modal="true" aria-label="SmartAPI Configuration">
+ <div class="modal-card" style="max-width: 680px;">
+ <div class="modal-header">
+ <div style="display:flex; align-items:center; gap:10px;">
+ <div class="brand-logo" style="background:#ea580c; border-color:#f97316; color:#ffffff;">
+ <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+ <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+ </svg>
+ </div>
+ <div>
+ <h3 style="font-size:16px; font-weight:700; color:var(--text-primary);">Angel One SmartAPI Integration</h3>
+ <div style="font-size:11px; color:var(--text-muted);">Free Institutional Real-Time Quotes, Historical OHLCV & WebSocket Stream</div>
+ </div>
+ </div>
+ <button class="modal-close-btn" id="btnCloseSmartApiModal" aria-label="Close SmartAPI configuration modal"> </button>
+ </div>
+
+ <div class="modal-body" style="padding:16px 20px;">
+ <div style="background:rgba(234, 88, 12, 0.1); border:1px solid rgba(234, 88, 12, 0.3); border-radius:var(--radius-sm); padding:10px 14px; margin-bottom:16px; font-size:11.5px; line-height:1.6; color:#fdba74;">
+ <strong> Free SmartAPI Tier:</strong> Angel One provides 100% free API access for Indian Equities (NSE/BSE). You can generate your free API Key on the <a href="https://smartapi.angelbroking.com/" target="_blank" rel="noopener noreferrer" style="color:#fbbf24; text-decoration:underline; font-weight:600;">Angel One SmartAPI Developer Portal </a>.
+ </div>
+
+ <div class="calc-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
+ <div class="calc-field">
+ <label class="calc-label" for="txtSmartApiKey">SmartAPI Key (App Key):</label>
+ <input type="password" class="calc-input" id="txtSmartApiKey" value="" autocomplete="off" placeholder="Enter your SmartAPI app key">
+ </div>
+ <div class="calc-field">
+ <label class="calc-label" for="txtSmartApiClientCode">Angel One Client Code (ID):</label>
+ <input type="text" class="calc-input" id="txtSmartApiClientCode" placeholder="e.g. S123456">
+ </div>
+ <div class="calc-field">
+ <label class="calc-label" for="txtSmartApiPassword">PIN / Password / MPIN:</label>
+ <input type="password" class="calc-input" id="txtSmartApiPassword" placeholder=" ">
+ </div>
+ <div class="calc-field">
+ <label class="calc-label" for="txtSmartApiTotp">TOTP / 6-Digit Auth Code:</label>
+ <input type="text" class="calc-input" id="txtSmartApiTotp" placeholder="e.g. 123456" maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code">
+ </div>
+ </div>
+
+ <div class="calc-field" style="margin-bottom:14px;">
+ <label class="calc-label" for="txtSmartApiJwt">Or Direct JWT Access Token (Optional):</label>
+ <input type="text" class="calc-input" id="txtSmartApiJwt" placeholder="Bearer eyJhbGciOiJIUzUxMi..." style="font-family:var(--font-mono); font-size:10.5px;">
+ </div>
+
+ <!-- SmartAPI Connection Status Box -->
+ <div id="smartApiStatusBox" style="background:#09101d; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); padding:12px; margin-bottom:16px;">
+ <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+ <span style="font-size:11px; font-weight:600; color:var(--text-secondary);">Connection State:</span>
+ <span class="market-pill market-closed" id="smartApiStatusPill"> Not Connected</span>
+ </div>
+ <div id="smartApiStatusLog" style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-muted);">
+ Ready. Enter your Angel One SmartAPI credentials to stream live institutional ticks directly from Angel One servers.
+ </div>
+ </div>
+
+ <!-- Preset Universe Mapped Tokens -->
+ <div style="font-size:11px; font-weight:600; color:var(--text-muted); margin-bottom:6px; text-transform:uppercase;">
+ Mapped SmartAPI Tokens (NSE Cash Equities):
+ </div>
+ <div style="display:flex; flex-wrap:wrap; gap:6px; font-family:var(--font-mono); font-size:10px; color:var(--text-secondary); background:#060a14; padding:8px 10px; border-radius:var(--radius-sm); border:1px solid var(--border-subtle); max-height:80px; overflow-y:auto;">
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">TRENT: 1964</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">DIXON: 4454</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BEL: 383</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">HAL: 2303</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">POLYCAB: 9590</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">SOLARINDS: 10666</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">KAYNES: 11351</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PERSISTENT: 18365</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">CDSL: 21174</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">BDL: 2142</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">PREMIERENE: 16782</span>
+ <span style="padding:2px 5px; background:rgba(255,255,255,0.05); border-radius:3px;">ANGELONE: 20370</span>
+ </div>
+ </div>
+
+ <div class="modal-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+ <a href="https://trade.angelone.in/" target="_blank" rel="noopener noreferrer" class="btn btn-sm" style="color:#ea580c; border-color:rgba(234, 88, 12, 0.4);">
+ Open Angel One Trade Terminal 
+ </a>
+ <div style="display:flex; gap:6px;">
+ <button class="btn btn-sm" id="btnTestSmartApi" title="Run instant live endpoint ping test">
+ Test Ping
+ </button>
+ <button class="btn btn-sm" id="btnDisconnectSmartApi">Disconnect</button>
+ <button class="btn btn-primary btn-sm" id="btnConnectSmartApi" style="background:#ea580c; border-color:#f97316;">
+ Connect & Authenticate
+ </button>
+ </div>
+ </div>
+ </div>
+ </div>
+
+ <!-- Multi-Exchange Market Hours & Global Sessions Modal -->
+ <div class="modal-overlay" id="marketSessionsModal" role="dialog" aria-modal="true" aria-labelledby="modalSessionsTitle">
+ <div class="modal-card" style="max-width: 620px;">
+ <div class="modal-header">
+ <div style="display:flex; align-items:center; gap:8px;">
+ <span style="font-size:18px;"> </span>
+ <h3 id="modalSessionsTitle" style="margin:0; font-size:15px; font-weight:700;">Global Financial Exchange Sessions & Live Status</h3>
+ </div>
+ <button class="modal-close-btn" id="btnCloseSessionsModal" aria-label="Close modal"> </button>
+ </div>
+ <div class="modal-body" style="padding: 16px 20px;">
+ <p style="color:var(--text-secondary); font-size:12px; margin-bottom:14px;">
+ Real-time operational status across Indian domestic, commodity, and global international exchanges.
+ </p>
+ <div style="display:flex; flex-direction:column; gap:10px;" id="globalSessionsList">
+ <!-- Dynamically populated by JS Application.openSessionsModal() -->
+ </div>
+ <div style="margin-top:16px; padding:10px 14px; background:rgba(56, 189, 248, 0.08); border:1px solid rgba(56, 189, 248, 0.25); border-radius:var(--radius-sm); font-size:11.5px; color:var(--accent-blue); line-height:1.5;">
+ <strong>Multi-Market Live Feed Active:</strong> Outside NSE/BSE cash hours (09:15 15:30 IST), Indian Commodity derivatives on MCX (open until 23:30 IST), US Markets (19:00 01:30 IST), and GIFT Nifty remain open. The screener provides continuous live multi-asset streaming.
+ </div>
+ </div>
+ <div class="modal-footer" style="display:flex; justify-content:flex-end;">
+ <button class="btn btn-primary btn-sm" id="btnCloseSessionsModal2">Close</button>
+ </div>
+ </div>
+ </div>
+
+ <!-- SEBI Regulatory Compliance Advisory Footer -->
+ <footer class="compliance-footer-bar">
+ <div style="display:flex; align-items:center; gap:8px;">
+ <span style="color:var(--accent-amber); font-weight:700;"> SEBI COMPLIANCE ADVISORY:</span>
+ <span>Live and historical equity quotes are ingested for personal quantitative research. Data complies with SEBI (PIT) Reg 2015 public disclosures and SEBI Circular CIR/MRD/DP/09/2012 for institutional execution.</span>
+ </div>
+ <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--text-secondary);">
+ ISIN Unified NSE/BSE Equity Multi-Timeframe Engine
+ </div>
+ </footer>
+
+ <!-- Global Toast Notification -->
+ <div id="uiToast" role="status" aria-live="polite" aria-atomic="true">
+ <span id="uiToastIcon"></span>
+ <span id="uiToastMsg"></span>
+ </div>
 
 </body>
 </html>

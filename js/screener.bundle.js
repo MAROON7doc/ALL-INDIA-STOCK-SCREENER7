@@ -2249,6 +2249,16 @@
      - Institutional 33-Point Financial & Fundamental Factor Radar
      ========================================================================== */
 
+  /* ==========================================================================
+     6. HIGH-THROUGHPUT INSTITUTIONAL STOCK SCREENER APPLICATION ENGINE
+     - Multi-Factor Composite Scoring (Quality, Growth, Valuation, Solvency, Momentum)
+     - 6-Dimension High-Throughput Filtering (Sub-5ms Parallel Evaluation)
+     - Dynamic Multi-View Table Rendering (Overview, Valuation, Growth, Quality, Solvency, Ownership, Technicals)
+     - Interactive Column-Header Instant Sorting (Asc / Desc)
+     - Real-Time Live Market Feed Integration (NSE / BSE / NIFTY 50 / SENSEX)
+     - Institutional 33-Point Financial & Fundamental Factor Radar
+     ========================================================================== */
+
   class Application {
     constructor() {
       this.universe = getStockUniverse();
@@ -2273,6 +2283,7 @@
       this.activeDimension = 'dim_valuation';
       this.currentResults = [];
 
+      // RELAXED DEFAULT FILTERS ON STARTUP SO ALL STOCKS SHOW UP INSTANTLY
       this.filters = {
         searchTerm: '',
         exchange: 'ALL',
@@ -2283,43 +2294,43 @@
 
         // 1. Valuation
         marketCapCat: 'ALL',
-        maxPe: 120,
-        maxPeg: 3.5,
+        maxPe: 200,
+        maxPeg: 5.0,
         minFcfYield: 0,
 
         // 2. Growth
-        minSalesGrowth: 10,
-        minSales3yCagr: 12,
-        minPatGrowth: 15,
-        minPat3yCagr: 15,
+        minSalesGrowth: 0,
+        minSales3yCagr: 0,
+        minPatGrowth: 0,
+        minPat3yCagr: 0,
 
         // 3. Quality & Profitability
-        minRoce: 15,
-        minRoe: 12,
-        minOpm: 10,
-        minPiotroski: 6,
+        minRoce: 0,
+        minRoe: 0,
+        minOpm: 0,
+        minPiotroski: 0,
 
         // 4. Solvency & Health
-        maxDebtEquity: 1.0,
-        minInterestCov: 3.0,
-        minCurrentRatio: 1.2,
-        maxStopLossPct: 8.0,
+        maxDebtEquity: 5.0,
+        minInterestCov: 0.0,
+        minCurrentRatio: 0.0,
+        maxStopLossPct: 20.0,
 
         // 5. Ownership & Flows
-        minPromoter: 40,
-        maxPledge: 5.0,
-        minInstHolding: 15,
+        minPromoter: 0,
+        maxPledge: 100,
+        minInstHolding: 0,
         requireInsiderBuys: false,
 
         // 6. Technical & Signals
-        minRsScore: 70,
-        minRsi: 60,
-        minBurstPct: 30,
-        maxConsolidationRange: 20,
-        requireDma50: true,
-        requireDma200: true,
-        requireMtfGreen: true,
-        minMtfGreen: 4
+        minRsScore: 0,
+        minRsi: 0,
+        minBurstPct: 0,
+        maxConsolidationRange: 50,
+        requireDma50: false,
+        requireDma200: false,
+        requireMtfGreen: false,
+        minMtfGreen: 0
       };
 
       this.init();
@@ -2388,7 +2399,7 @@
         grade,
         riskClass
       };
-      s.qualityScore = overallScore; // for backward-compatible sorting
+      s.qualityScore = overallScore;
       return s.factorScores;
     }
 
@@ -2407,10 +2418,6 @@
 
     /* â”€â”€ High-Throughput Screener Engine â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
     runScan() {
-      const { isOpen } = this.getMarketStatus();
-      const isSim = this.feedMode === 'simulation';
-      const isLiveActive = (this.isLive && (isOpen || isSim));
-
       const {
         searchTerm, exchange, sector, sortBy, sortDir, matchLogic,
         marketCapCat, maxPe, maxPeg, minFcfYield,
@@ -2464,15 +2471,15 @@
         } else if (this.activePreset === 'compounder') {
           if (s.roce < 20 || s.roe < 16 || s.debtToEquity > 0.5) continue;
         } else if (this.activePreset === 'deep_value') {
-          if (s.pe > 35 || (s.fcfYield || 0) < 2.0) continue;
+          if (s.pe > 45 || (s.fcfYield || 0) < 1.5) continue;
         } else if (this.activePreset === 'momentum') {
           if (s.rsScore < 80 || s.ltp < s.dma50) continue;
         } else if (this.activePreset === 'institutional') {
-          if ((s.fiiHoldingPct + s.diiHoldingPct) < 25) continue;
+          if ((s.fiiHoldingPct + s.diiHoldingPct) < 20) continue;
         } else if (this.activePreset === 'vol_shocker') {
-          if (s.volumeBurstPct < 40) continue;
+          if (s.volumeBurstPct < 25) continue;
         } else if (this.activePreset === 'multibagger') {
-          if (s.marketCapCr > 35000 || s.salesGrowthYoY < 20 || s.debtToEquity > 0.6) continue;
+          if (s.marketCapCr > 40000 || s.salesGrowthYoY < 18 || s.debtToEquity > 0.6) continue;
         }
 
         // Dimension Criteria Evaluations
@@ -2536,7 +2543,7 @@
           matchCount++;
           if (s.factorScores.overallScore >= 80) qualityCount++;
           if (s.rsScore >= 80 && s.ltp > s.dma50) momentumCount++;
-          if (s.pe <= 40 && (s.fcfYield || 0) >= 2.0) deepValueCount++;
+          if (s.pe <= 45 && (s.fcfYield || 0) >= 1.5) deepValueCount++;
           totalRs += s.rsScore;
         }
       }
@@ -2580,78 +2587,78 @@
       // 1. Render Headers
       const headerConfigs = {
         overview: [
-          { key: 'symbol', label: 'Stock / ISIN' },
-          { key: 'ltp', label: 'Live LTP (â‚¹)' },
-          { key: 'dayChangePct', label: 'Day Chg %' },
-          { key: 'qualityScore', label: 'Composite Score' },
+          { key: 'symbol', label: 'STOCK / ISIN' },
+          { key: 'ltp', label: 'LIVE LTP (\u20B9)' },
+          { key: 'dayChangePct', label: 'DAY CHG %' },
+          { key: 'qualityScore', label: 'COMPOSITE SCORE' },
           { key: 'roce', label: 'ROCE %' },
-          { key: 'pe', label: 'P/E Ratio' },
-          { key: 'salesGrowthYoY', label: 'Sales YoY' },
-          { key: 'epsGrowthYoY', label: 'PAT YoY' },
-          { key: 'pattern', label: 'Pattern / Setup' },
-          { key: 'actions', label: 'Action' }
+          { key: 'pe', label: 'P/E RATIO' },
+          { key: 'salesGrowthYoY', label: 'SALES YOY' },
+          { key: 'epsGrowthYoY', label: 'PAT YOY' },
+          { key: 'pattern', label: 'PATTERN / SETUP' },
+          { key: 'actions', label: 'ACTION' }
         ],
         valuation: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
-          { key: 'marketCapCr', label: 'Market Cap (â‚¹ Cr)' },
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
+          { key: 'marketCapCr', label: 'MARKET CAP (\u20B9 CR)' },
           { key: 'pe', label: 'P/E' },
           { key: 'peg', label: 'PEG' },
-          { key: 'fcfYield', label: 'FCF Yield %' },
-          { key: 'dividendYield', label: 'Div Yield %' },
-          { key: 'sectorPe', label: 'Sector P/E' },
-          { key: 'actions', label: 'Action' }
+          { key: 'fcfYield', label: 'FCF YIELD %' },
+          { key: 'dividendYield', label: 'DIV YIELD %' },
+          { key: 'sectorPe', label: 'SECTOR P/E' },
+          { key: 'actions', label: 'ACTION' }
         ],
         growth: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
-          { key: 'salesGrowthYoY', label: 'Sales YoY %' },
-          { key: 'sales3Y_CAGR', label: '3Y Sales CAGR' },
-          { key: 'epsGrowthYoY', label: 'PAT YoY %' },
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
+          { key: 'salesGrowthYoY', label: 'SALES YOY %' },
+          { key: 'sales3Y_CAGR', label: '3Y SALES CAGR' },
+          { key: 'epsGrowthYoY', label: 'PAT YOY %' },
           { key: 'eps3Y_CAGR', label: '3Y PAT CAGR' },
-          { key: 'growthScore', label: 'Growth Score' },
-          { key: 'actions', label: 'Action' }
+          { key: 'growthScore', label: 'GROWTH SCORE' },
+          { key: 'actions', label: 'ACTION' }
         ],
         quality: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
           { key: 'roce', label: 'ROCE %' },
           { key: 'roe', label: 'ROE %' },
-          { key: 'opm', label: 'OPM Margin %' },
-          { key: 'piotroskiScore', label: 'Piotroski (0-9)' },
-          { key: 'qualityScore', label: 'Quality Score' },
-          { key: 'actions', label: 'Action' }
+          { key: 'opm', label: 'OPM MARGIN %' },
+          { key: 'piotroskiScore', label: 'PIOTROSKI (0-9)' },
+          { key: 'qualityScore', label: 'QUALITY SCORE' },
+          { key: 'actions', label: 'ACTION' }
         ],
         solvency: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
-          { key: 'debtToEquity', label: 'Debt / Equity' },
-          { key: 'interestCoverage', label: 'Interest Coverage' },
-          { key: 'currentRatio', label: 'Current Ratio' },
-          { key: 'stopLossPct', label: 'Stop Loss %' },
-          { key: 'solvencyScore', label: 'Solvency Score' },
-          { key: 'actions', label: 'Action' }
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
+          { key: 'debtToEquity', label: 'DEBT / EQUITY' },
+          { key: 'interestCoverage', label: 'INTEREST COVERAGE' },
+          { key: 'currentRatio', label: 'CURRENT RATIO' },
+          { key: 'stopLossPct', label: 'STOP LOSS %' },
+          { key: 'solvencyScore', label: 'SOLVENCY SCORE' },
+          { key: 'actions', label: 'ACTION' }
         ],
         ownership: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
-          { key: 'promoterHoldingPct', label: 'Promoter %' },
-          { key: 'promoterPledgePct', label: 'Pledge %' },
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
+          { key: 'promoterHoldingPct', label: 'PROMOTER %' },
+          { key: 'promoterPledgePct', label: 'PLEDGE %' },
           { key: 'fiiHoldingPct', label: 'FII %' },
           { key: 'diiHoldingPct', label: 'DII %' },
-          { key: 'recentInsiderBuying', label: 'Insider Buying' },
-          { key: 'actions', label: 'Action' }
+          { key: 'recentInsiderBuying', label: 'INSIDER BUYING' },
+          { key: 'actions', label: 'ACTION' }
         ],
         technical: [
-          { key: 'symbol', label: 'Stock' },
-          { key: 'ltp', label: 'Price (â‚¹)' },
-          { key: 'rsScore', label: 'RS Rating' },
+          { key: 'symbol', label: 'STOCK' },
+          { key: 'ltp', label: 'PRICE (\u20B9)' },
+          { key: 'rsScore', label: 'RS RATING' },
           { key: 'rsi', label: 'RSI (14)' },
-          { key: 'volumeBurstPct', label: 'Vol Burst %' },
+          { key: 'volumeBurstPct', label: 'VOL BURST %' },
           { key: 'dma50', label: '50 DMA' },
           { key: 'dma200', label: '200 DMA' },
-          { key: 'mtfBullishCount', label: 'MTF Green' },
-          { key: 'actions', label: 'Action' }
+          { key: 'mtfBullishCount', label: 'MTF GREEN' },
+          { key: 'actions', label: 'ACTION' }
         ]
       };
 
@@ -2659,7 +2666,7 @@
       let thHtml = '<tr>';
       for (const col of cols) {
         const isSorted = this.filters.sortBy === col.key;
-        const arrow = isSorted ? (this.filters.sortDir === 'asc' ? ' â–²' : ' â–¼') : '';
+        const arrow = isSorted ? (this.filters.sortDir === 'asc' ? ' \u25B2' : ' \u25BC') : '';
         const sortClass = isSorted ? 'style="color:#38bdf8;"' : '';
         thHtml += `<th data-sort="${col.key}" ${sortClass}>${col.label}${arrow}</th>`;
       }
@@ -2686,9 +2693,9 @@
         tbody.innerHTML = `
           <tr>
             <td colspan="${cols.length}" style="text-align:center; padding:36px; color:#94a3b8;">
-              <div style="font-size:28px; margin-bottom:8px;">ðŸ”</div>
+              <div style="font-size:24px; margin-bottom:8px;">[ SEARCH ]</div>
               <div style="font-size:14px; font-weight:700; color:#cbd5e1;">No stocks match the selected screener criteria.</div>
-              <div style="font-size:11px; margin-top:4px;">Try relaxing your filter thresholds or switching to "OR" match logic.</div>
+              <div style="font-size:11px; margin-top:4px;">Try relaxing your filter thresholds or switching to OR match logic.</div>
               <button class="btn btn-sm" id="btnEmptyReset" style="margin-top:12px; padding:4px 12px; background:rgba(56,189,248,0.15); border-color:#38bdf8; color:#38bdf8;">Reset All Filters</button>
             </td>
           </tr>
@@ -2716,13 +2723,13 @@
                   <div class="score-badge ${scoreClass}">${score}</div>
                   <div>
                     <div style="font-weight:800; font-family:var(--font-mono); font-size:12.5px; color:#ffffff;">${s.symbol}</div>
-                    <div style="font-size:10px; color:#64748b;">${s.name.substring(0, 18)} â€¢ ${s.sector}</div>
+                    <div style="font-size:10px; color:#64748b;">${s.name.substring(0, 18)} - ${s.sector}</div>
                   </div>
                 </div>
               </td>
             `;
           } else if (col.key === 'ltp') {
-            rowsHtml += `<td style="font-family:var(--font-mono); font-weight:700;">â‚¹${s.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>`;
+            rowsHtml += `<td style="font-family:var(--font-mono); font-weight:700;">\u20B9${s.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>`;
           } else if (col.key === 'dayChangePct') {
             rowsHtml += `<td style="font-family:var(--font-mono); font-weight:700; color:${chgClass};">${chgSign}${s.dayChangePct}%</td>`;
           } else if (col.key === 'qualityScore') {
@@ -2743,7 +2750,7 @@
           } else if (col.key === 'peg') {
             rowsHtml += `<td style="font-family:var(--font-mono);">${s.peg.toFixed(2)}</td>`;
           } else if (col.key === 'marketCapCr') {
-            rowsHtml += `<td style="font-family:var(--font-mono);">â‚¹${s.marketCapCr.toLocaleString('en-IN')} Cr</td>`;
+            rowsHtml += `<td style="font-family:var(--font-mono);">\u20B9${s.marketCapCr.toLocaleString('en-IN')} Cr</td>`;
           } else if (col.key === 'fcfYield') {
             rowsHtml += `<td style="font-family:var(--font-mono); color:#38bdf8;">${(s.fcfYield || 1.8).toFixed(1)}%</td>`;
           } else if (col.key === 'dividendYield') {
@@ -2794,9 +2801,9 @@
           } else if (col.key === 'volumeBurstPct') {
             rowsHtml += `<td style="font-family:var(--font-mono); color:#f59e0b;">+${s.volumeBurstPct}%</td>`;
           } else if (col.key === 'dma50') {
-            rowsHtml += `<td style="font-family:var(--font-mono);">â‚¹${s.dma50.toFixed(1)}</td>`;
+            rowsHtml += `<td style="font-family:var(--font-mono);">\u20B9${s.dma50.toFixed(1)}</td>`;
           } else if (col.key === 'dma200') {
-            rowsHtml += `<td style="font-family:var(--font-mono);">â‚¹${s.dma200.toFixed(1)}</td>`;
+            rowsHtml += `<td style="font-family:var(--font-mono);">\u20B9${s.dma200.toFixed(1)}</td>`;
           } else if (col.key === 'mtfBullishCount') {
             rowsHtml += `<td style="font-family:var(--font-mono); color:#22c55e;">${s.mtfBullishCount}/6 Green</td>`;
           } else if (col.key === 'pattern') {
@@ -2805,7 +2812,7 @@
             rowsHtml += `
               <td>
                 <button class="btn btn-sm btn-analyze" data-sym="${s.symbol}" style="padding:3px 8px; font-size:10.5px; background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8;">
-                  ðŸ“Š Analyze
+                  Analyze
                 </button>
               </td>
             `;
@@ -2835,7 +2842,7 @@
       document.getElementById('modalStockSymbol').textContent = stock.symbol;
       document.getElementById('modalStockName').textContent = stock.name;
       const ltpEl = document.getElementById('modalLTP');
-      if (ltpEl) ltpEl.textContent = `â‚¹${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
+      if (ltpEl) ltpEl.textContent = `\u20B9${stock.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`;
       const chgEl = document.getElementById('modalDayChg');
       if (chgEl) {
         chgEl.textContent = `${stock.dayChangePct > 0 ? '+' : ''}${stock.dayChangePct}%`;
@@ -2882,7 +2889,7 @@
       const holdEl = document.getElementById('modalHoldingsBreakdown');
       if (holdEl) holdEl.textContent = `${stock.promoterHoldingPct.toFixed(1)}% / ${stock.fiiHoldingPct.toFixed(1)}% / ${stock.diiHoldingPct.toFixed(1)}%`;
       const rangeEl = document.getElementById('modal52wRange');
-      if (rangeEl) rangeEl.textContent = `â‚¹${(stock.ltp * 0.72).toFixed(0)} - â‚¹${(stock.ltp * 1.15).toFixed(0)}`;
+      if (rangeEl) rangeEl.textContent = `\u20B9${(stock.ltp * 0.72).toFixed(0)} - \u20B9${(stock.ltp * 1.15).toFixed(0)}`;
 
       // Screener Pass/Fail Checklist
       const checkGrid = document.getElementById('modalChecklistGrid');
@@ -2890,7 +2897,7 @@
         const labels = {
           mcap: 'Market Cap Target',
           pe: 'P/E Valuation Threshold',
-          peg: 'PEG Ratio < 3.5',
+          peg: 'PEG Ratio <= 5.0',
           fcf: 'FCF Yield Buffer',
           sales: 'Sales Growth YoY',
           sales3y: '3Y Sales Compounding',
@@ -2899,7 +2906,7 @@
           roce: 'ROCE Profitability',
           roe: 'ROE Capital Efficiency',
           opm: 'Operating Margin Floor',
-          pio: 'Piotroski Score â‰¥ 6',
+          pio: 'Piotroski Score >= 6',
           de: 'Solvency (Debt/Equity)',
           intCov: 'Interest Coverage',
           currRatio: 'Current Ratio Buffer',
@@ -2921,7 +2928,7 @@
           const lbl = labels[k] || k;
           cHtml += `
             <div class="checklist-item ${pass ? 'pass' : 'fail'}">
-              <span>${pass ? 'âœ“' : 'âœ—'}</span>
+              <span>${pass ? '\u2713' : '\u2717'}</span>
               <span>${lbl}</span>
             </div>
           `;
@@ -2929,7 +2936,7 @@
         checkGrid.innerHTML = cHtml;
       }
 
-      // Populate other tabs (Thesis, Moat, SEBI, Peers, SMC, Calculator)
+      // Populate other tabs
       const thesisText = document.getElementById('modalThesisText');
       if (thesisText) thesisText.innerHTML = `<p>${stock.thesis || 'High-moat market leader with pristine balance sheet, strong institutional patronage, and sustained double-digit earnings growth runway.'}</p>`;
 
@@ -2970,18 +2977,18 @@
       const sharesEl = document.getElementById('calcSharesOut');
       if (sharesEl) sharesEl.textContent = `${sharesToBuy} Qty`;
       const invEl = document.getElementById('calcInvOut');
-      if (invEl) invEl.textContent = `â‚¹${totalInv.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+      if (invEl) invEl.textContent = `\u20B9${totalInv.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
       const riskEl = document.getElementById('calcRiskAmountOut');
-      if (riskEl) riskEl.textContent = `â‚¹${maxRiskAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
+      if (riskEl) riskEl.textContent = `\u20B9${maxRiskAmount.toLocaleString('en-IN', { maximumFractionDigits: 0 })}`;
       const slEl = document.getElementById('calcSlPctOut');
       if (slEl) slEl.textContent = `-${slPct.toFixed(2)}%`;
 
       const t1 = document.getElementById('calcT1');
-      if (t1) t1.textContent = `â‚¹${(entry + riskPerShare * 1.0).toFixed(2)}`;
+      if (t1) t1.textContent = `\u20B9${(entry + riskPerShare * 1.0).toFixed(2)}`;
       const t2 = document.getElementById('calcT2');
-      if (t2) t2.textContent = `â‚¹${(entry + riskPerShare * 2.0).toFixed(2)}`;
+      if (t2) t2.textContent = `\u20B9${(entry + riskPerShare * 2.0).toFixed(2)}`;
       const t3 = document.getElementById('calcT3');
-      if (t3) t3.textContent = `â‚¹${(entry + riskPerShare * 3.0).toFixed(2)}`;
+      if (t3) t3.textContent = `\u20B9${(entry + riskPerShare * 3.0).toFixed(2)}`;
     }
 
     /* â”€â”€ Reset All Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -2993,6 +3000,32 @@
       this.filters.sortBy = 'qualityScore';
       this.filters.sortDir = 'desc';
       this.filters.matchLogic = 'AND';
+      this.filters.maxPe = 200;
+      this.filters.maxPeg = 5.0;
+      this.filters.minFcfYield = 0;
+      this.filters.minSalesGrowth = 0;
+      this.filters.minSales3yCagr = 0;
+      this.filters.minPatGrowth = 0;
+      this.filters.minPat3yCagr = 0;
+      this.filters.minRoce = 0;
+      this.filters.minRoe = 0;
+      this.filters.minOpm = 0;
+      this.filters.minPiotroski = 0;
+      this.filters.maxDebtEquity = 5.0;
+      this.filters.minInterestCov = 0.0;
+      this.filters.minCurrentRatio = 0.0;
+      this.filters.maxStopLossPct = 20.0;
+      this.filters.minPromoter = 0;
+      this.filters.maxPledge = 100;
+      this.filters.minInstHolding = 0;
+      this.filters.requireInsiderBuys = false;
+      this.filters.minRsScore = 0;
+      this.filters.minRsi = 0;
+      this.filters.minBurstPct = 0;
+      this.filters.maxConsolidationRange = 50;
+      this.filters.requireDma50 = false;
+      this.filters.requireDma200 = false;
+      this.filters.requireMtfGreen = false;
       this.nlpFilter = null;
 
       // Reset DOM inputs
@@ -3014,7 +3047,7 @@
       });
 
       this.runScan();
-      this.showToast('All screener filters reset to Default Universal Universe.', 'info');
+      this.showToast('All screener filters reset to Universal Universe.', 'info');
     }
 
     /* â”€â”€ UI Event Bindings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
@@ -3092,28 +3125,28 @@
         });
       };
 
-      bindSlider('rng_maxPe', 'pill_peRatio', 'maxPe', 'â‰¤ ', 'x');
-      bindSlider('rng_maxPeg', 'pill_pegRatio', 'maxPeg', 'â‰¤ ', '');
-      bindSlider('rng_minFcfYield', 'pill_fcfYield', 'minFcfYield', 'â‰¥ ', '%');
-      bindSlider('rng_minSalesGrowth', 'pill_salesGrowth', 'minSalesGrowth', 'â‰¥ ', '%');
-      bindSlider('rng_minSales3yCagr', 'pill_sales3yCagr', 'minSales3yCagr', 'â‰¥ ', '%');
-      bindSlider('rng_minPatGrowth', 'pill_patGrowth', 'minPatGrowth', 'â‰¥ ', '%');
-      bindSlider('rng_minPat3yCagr', 'pill_pat3yCagr', 'minPat3yCagr', 'â‰¥ ', '%');
-      bindSlider('rng_minRoce', 'pill_roce', 'minRoce', 'â‰¥ ', '%');
-      bindSlider('rng_minRoe', 'pill_roe', 'minRoe', 'â‰¥ ', '%');
-      bindSlider('rng_minOpm', 'pill_opm', 'minOpm', 'â‰¥ ', '%');
-      bindSlider('rng_minPiotroski', 'pill_piotroski', 'minPiotroski', 'â‰¥ ', ' / 9');
-      bindSlider('rng_maxDebtEquity', 'pill_debtEquity', 'maxDebtEquity', 'â‰¤ ', '');
-      bindSlider('rng_minInterestCov', 'pill_interestCov', 'minInterestCov', 'â‰¥ ', 'x');
-      bindSlider('rng_minCurrentRatio', 'pill_currentRatio', 'minCurrentRatio', 'â‰¥ ', 'x');
-      bindSlider('rng_maxStopLossPct', 'pill_maxStopLoss', 'maxStopLossPct', 'â‰¤ ', '%');
-      bindSlider('rng_minPromoter', 'pill_promoterHold', 'minPromoter', 'â‰¥ ', '%');
-      bindSlider('rng_maxPledge', 'pill_promoterPledge', 'maxPledge', 'â‰¤ ', '%');
-      bindSlider('rng_minInstHolding', 'pill_instHolding', 'minInstHolding', 'â‰¥ ', '%');
-      bindSlider('rng_minRs', 'pill_minRs', 'minRsScore', 'â‰¥ ', '');
-      bindSlider('rng_minRsi', 'pill_rsiLevel', 'minRsi', 'RSI â‰¥ ', '');
-      bindSlider('rng_minBurstPct', 'pill_burstPct', 'minBurstPct', 'â‰¥ +', '%');
-      bindSlider('rng_maxConsolidationRange', 'pill_baseTightness', 'maxConsolidationRange', 'â‰¤ ', '%');
+      bindSlider('rng_maxPe', 'pill_peRatio', 'maxPe', '<= ', 'x');
+      bindSlider('rng_maxPeg', 'pill_pegRatio', 'maxPeg', '<= ', '');
+      bindSlider('rng_minFcfYield', 'pill_fcfYield', 'minFcfYield', '>= ', '%');
+      bindSlider('rng_minSalesGrowth', 'pill_salesGrowth', 'minSalesGrowth', '>= ', '%');
+      bindSlider('rng_minSales3yCagr', 'pill_sales3yCagr', 'minSales3yCagr', '>= ', '%');
+      bindSlider('rng_minPatGrowth', 'pill_patGrowth', 'minPatGrowth', '>= ', '%');
+      bindSlider('rng_minPat3yCagr', 'pill_pat3yCagr', 'minPat3yCagr', '>= ', '%');
+      bindSlider('rng_minRoce', 'pill_roce', 'minRoce', '>= ', '%');
+      bindSlider('rng_minRoe', 'pill_roe', 'minRoe', '>= ', '%');
+      bindSlider('rng_minOpm', 'pill_opm', 'minOpm', '>= ', '%');
+      bindSlider('rng_minPiotroski', 'pill_piotroski', 'minPiotroski', '>= ', ' / 9');
+      bindSlider('rng_maxDebtEquity', 'pill_debtEquity', 'maxDebtEquity', '<= ', '');
+      bindSlider('rng_minInterestCov', 'pill_interestCov', 'minInterestCov', '>= ', 'x');
+      bindSlider('rng_minCurrentRatio', 'pill_currentRatio', 'minCurrentRatio', '>= ', 'x');
+      bindSlider('rng_maxStopLossPct', 'pill_maxStopLoss', 'maxStopLossPct', '<= ', '%');
+      bindSlider('rng_minPromoter', 'pill_promoterHold', 'minPromoter', '>= ', '%');
+      bindSlider('rng_maxPledge', 'pill_promoterPledge', 'maxPledge', '<= ', '%');
+      bindSlider('rng_minInstHolding', 'pill_instHolding', 'minInstHolding', '>= ', '%');
+      bindSlider('rng_minRs', 'pill_minRs', 'minRsScore', '>= ', '');
+      bindSlider('rng_minRsi', 'pill_rsiLevel', 'minRsi', 'RSI >= ', '');
+      bindSlider('rng_minBurstPct', 'pill_burstPct', 'minBurstPct', '>= +', '%');
+      bindSlider('rng_maxConsolidationRange', 'pill_baseTightness', 'maxConsolidationRange', '<= ', '%');
 
       // Checkboxes
       document.getElementById('chk_insiderBuys')?.addEventListener('change', (e) => {
@@ -3142,12 +3175,14 @@
       document.getElementById('btnResetProtocols')?.addEventListener('click', () => this.resetFilters());
       document.getElementById('btnRunScan')?.addEventListener('click', () => {
         this.runScan();
-        this.showToast('âš¡ Screener scan re-evaluated across all institutional protocols.', 'success');
+        this.showToast('Screener scan re-evaluated across all institutional protocols.', 'success');
       });
 
       // Export CSV & Copy Tickers
       document.getElementById('btnExportCsv')?.addEventListener('click', () => this.exportCsv());
+      document.getElementById('btnTopExportCsv')?.addEventListener('click', () => this.exportCsv());
       document.getElementById('btnCopyTickers')?.addEventListener('click', () => this.copyTickers());
+      document.getElementById('btnTopCopyTickers')?.addEventListener('click', () => this.copyTickers());
 
       // 7. Modal Tabs
       document.querySelectorAll('.modal-tab').forEach(tab => {
@@ -3325,8 +3360,8 @@
       const msgEl = document.getElementById('uiToastMsg');
       if (!toast || !msgEl) return;
 
-      const icons = { success: 'âœ“', warn: 'âš ï¸', error: 'âœ•', info: 'â„¹ï¸' };
-      if (iconEl) iconEl.textContent = icons[type] || 'âœ“';
+      const icons = { success: '[OK]', warn: '[!]', error: '[X]', info: '[i]' };
+      if (iconEl) iconEl.textContent = icons[type] || '[OK]';
       msgEl.textContent = message;
       toast.className = `show toast-${type}`;
 
@@ -3352,7 +3387,6 @@
     }
 
     startLiveStream() {
-      // Sync NIFTY 50 and SENSEX live indices
       const updateIndices = async () => {
         try {
           const niftyQuote = await YahooFinanceWrapperService.fetchLiveQuote('^NSEI');
@@ -3361,8 +3395,8 @@
             if (ltpEl) ltpEl.textContent = niftyQuote.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
             const chgEl = document.getElementById('tradeoneNiftyChg');
             if (chgEl && niftyQuote.pChange !== undefined) {
-              const sign = niftyQuote.change >= 0 ? 'â–² +' : 'â–¼ ';
-              chgEl.textContent = `${sign}${niftyQuote.change.toFixed(2)} (${niftyQuote.pChange.toFixed(2)}%)`;
+              const sign = niftyQuote.change >= 0 ? '+ ' : '- ';
+              chgEl.textContent = `${sign}${Math.abs(niftyQuote.change).toFixed(2)} (${niftyQuote.pChange.toFixed(2)}%)`;
               chgEl.className = niftyQuote.pChange >= 0 ? 'tradeone-index-chg up' : 'tradeone-index-chg down';
             }
           }
@@ -3373,8 +3407,8 @@
             if (sLtpEl) sLtpEl.textContent = sensexQuote.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 });
             const sChgEl = document.getElementById('tradeoneSensexChg');
             if (sChgEl && sensexQuote.pChange !== undefined) {
-              const sSign = sensexQuote.change >= 0 ? 'â–² +' : 'â–¼ ';
-              sChgEl.textContent = `${sSign}${sensexQuote.change.toFixed(2)} (${sensexQuote.pChange.toFixed(2)}%)`;
+              const sSign = sensexQuote.change >= 0 ? '+ ' : '- ';
+              sChgEl.textContent = `${sSign}${Math.abs(sensexQuote.change).toFixed(2)} (${sensexQuote.pChange.toFixed(2)}%)`;
               sChgEl.className = sensexQuote.pChange >= 0 ? 'tradeone-index-chg up' : 'tradeone-index-chg down';
             }
           }

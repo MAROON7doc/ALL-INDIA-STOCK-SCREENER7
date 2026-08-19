@@ -311,38 +311,38 @@
 
           <!-- Strategy Presets Bar -->
           <div class="screener-preset-ribbon" id="screenerPresetRibbon">
-            <span class="preset-ribbon-label">âš¡ Strategies:</span>
-            <button class="preset-chip active" data-preset="all">ðŸŒŸ All Universe</button>
-            <button class="preset-chip" data-preset="canslim" title="CANSLIM High Growth with Sales/PAT CAGR > 20% and RS > 75">ðŸš€ CANSLIM High Growth</button>
-            <button class="preset-chip" data-preset="compounder" title="High ROCE/ROE > 20%, Low Debt/Equity < 0.5, High Operating Margins">ðŸ’Ž Quality Compounders</button>
-            <button class="preset-chip" data-preset="deep_value" title="Low P/E, High FCF Yield > 4%, Positive Free Cash Flow">ðŸ’° Deep Value & FCF</button>
-            <button class="preset-chip" data-preset="momentum" title="DMR Leaders, RS Rating > 80, Above 20/50/200 DMA">âš¡ Momentum Breakouts</button>
-            <button class="preset-chip" data-preset="institutional" title="High Institutional Holding (FII + DII > 30%) with Promoter Buying">ðŸ›ï¸ Institutional Accumulation</button>
-            <button class="preset-chip" data-preset="vol_shocker" title="Volume Burst > 50% above 20 DMA with NR7 Range Contraction">ðŸ“Š Volume Shockers & NR7</button>
-            <button class="preset-chip" data-preset="multibagger" title="High 3Y Sales & EPS Growth, Micro/Small-Cap, Clean Balance Sheet">ðŸŽ¯ Small-Cap Multibaggers</button>
-            <div id="scanStatusBadge" class="val-pill" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--accent-green);">ðŸŸ¢ Real-Time Scanner Active</div>
+            <span class="preset-ribbon-label">STRATEGIES:</span>
+            <button class="preset-chip active" data-preset="all">All Universe (12)</button>
+            <button class="preset-chip" data-preset="canslim" title="CANSLIM High Growth with Sales/PAT CAGR > 20% and RS > 75">CANSLIM High Growth</button>
+            <button class="preset-chip" data-preset="compounder" title="High ROCE/ROE > 20%, Low Debt/Equity < 0.5, High Operating Margins">Quality Compounders</button>
+            <button class="preset-chip" data-preset="deep_value" title="Low P/E, High FCF Yield > 4%, Positive Free Cash Flow">Deep Value &amp; FCF</button>
+            <button class="preset-chip" data-preset="momentum" title="DMR Leaders, RS Rating > 80, Above 20/50/200 DMA">Momentum Breakouts</button>
+            <button class="preset-chip" data-preset="institutional" title="High Institutional Holding (FII + DII > 30%) with Promoter Buying">Institutional Stake</button>
+            <button class="preset-chip" data-preset="vol_shocker" title="Volume Burst > 50% above 20 DMA with NR7 Range Contraction">Volume Shockers &amp; NR7</button>
+            <button class="preset-chip" data-preset="multibagger" title="High 3Y Sales &amp; EPS Growth, Micro/Small-Cap, Clean Balance Sheet">Small-Cap Multibaggers</button>
+            <div id="scanStatusBadge" class="val-pill" style="margin-left:auto; background:rgba(16,185,129,0.15); color:var(--accent-green);">Live Scanner Active</div>
           </div>
 
           <!-- Top Summary KPI Stat Cards -->
           <div class="stats-grid">
             <div class="stat-card">
               <div class="stat-header">Matching Stocks</div>
-              <div class="stat-value" id="statMatchingCount">0</div>
+              <div class="stat-value" id="statMatchingCount">12</div>
               <div class="stat-sub" id="statMatchingSub">Scanned universe: 12</div>
             </div>
             <div class="stat-card">
               <div class="stat-header">Quality Compounders</div>
-              <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">0</div>
-              <div class="stat-sub">Score â‰¥ 80 (ROCE > 20%)</div>
+              <div class="stat-value" id="statCupCount" style="color:var(--accent-amber);">9</div>
+              <div class="stat-sub">Score &ge; 80 (ROCE &gt; 20%)</div>
             </div>
             <div class="stat-card">
               <div class="stat-header">Momentum Breakouts</div>
-              <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">0</div>
-              <div class="stat-sub">Above 50 DMA + RS > 75</div>
+              <div class="stat-value" id="stat7wCount" style="color:var(--accent-blue);">8</div>
+              <div class="stat-sub">Above 50 DMA + RS &gt; 75</div>
             </div>
             <div class="stat-card">
               <div class="stat-header">Average RS Rating</div>
-              <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">0</div>
+              <div class="stat-value" id="statAvgRs" style="color:var(--accent-green);">86</div>
               <div class="stat-sub">Outperforming NIFTY 50</div>
             </div>
           </div>
@@ -353,12 +353,12 @@
             <!-- Dimension Tabs Header -->
             <div class="filter-tabs-header">
               <div class="filter-dimension-nav" id="filterDimensionNav">
-                <button type="button" class="dim-nav-btn active" data-dim="dim_valuation">ðŸª™ Valuation Multiples</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_growth">ðŸš€ Growth & Performance</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_quality">ðŸ’Ž Quality & Profitability</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_solvency">ðŸ›¡ï¸ Solvency & Health</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_ownership">ðŸ‘¥ Ownership & Flows</button>
-                <button type="button" class="dim-nav-btn" data-dim="dim_technical">ðŸ“ˆ Technical & Signals</button>
+                <button type="button" class="dim-nav-btn active" data-dim="dim_valuation">Valuation Multiples</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_growth">Growth &amp; Runway</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_quality">Quality &amp; Profitability</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_solvency">Solvency &amp; Health</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_ownership">Ownership &amp; Flows</button>
+                <button type="button" class="dim-nav-btn" data-dim="dim_technical">Technical &amp; Momentum</button>
               </div>
 
               <div class="filter-header-actions">
@@ -384,35 +384,35 @@
                     <label class="filter-card-label">Market Cap Category</label>
                     <select id="selMarketCapCat" class="filter-select-full">
                       <option value="ALL" selected>All Market Caps</option>
-                      <option value="LARGE">Large Cap (> â‚¹50,000 Cr)</option>
-                      <option value="MID">Mid Cap (â‚¹15,000 - 50,000 Cr)</option>
-                      <option value="SMALL">Small Cap (â‚¹2,000 - 15,000 Cr)</option>
-                      <option value="MICRO">Micro Cap (< â‚¹2,000 Cr)</option>
+                      <option value="LARGE">Large Cap (&gt; &#8377;50,000 Cr)</option>
+                      <option value="MID">Mid Cap (&#8377;15,000 - 50,000 Cr)</option>
+                      <option value="SMALL">Small Cap (&#8377;2,000 - 15,000 Cr)</option>
+                      <option value="MICRO">Micro Cap (&lt; &#8377;2,000 Cr)</option>
                     </select>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Max P/E Ratio</label>
-                      <span class="filter-val-badge" id="pill_peRatio">â‰¤ 120</span>
+                      <span class="filter-val-badge" id="pill_peRatio">&le; 200</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPe" min="10" max="150" step="5" value="120">
-                    <div class="slider-ticks"><span>10x</span><span>Value âž” Growth</span><span>150x</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxPe" min="10" max="200" step="5" value="200">
+                    <div class="slider-ticks"><span>10x</span><span>Value to Growth</span><span>200x</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Max PEG Ratio</label>
-                      <span class="filter-val-badge" id="pill_pegRatio">â‰¤ 3.5</span>
+                      <span class="filter-val-badge" id="pill_pegRatio">&le; 5.0</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPeg" min="0.5" max="5.0" step="0.2" value="3.5">
+                    <input type="range" class="stitch-range-slider" id="rng_maxPeg" min="0.5" max="5.0" step="0.2" value="5.0">
                     <div class="slider-ticks"><span>0.5 (Undervalued)</span><span>Max PEG</span><span>5.0</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min FCF Yield %</label>
-                      <span class="filter-val-badge" id="pill_fcfYield">â‰¥ 0.0%</span>
+                      <span class="filter-val-badge" id="pill_fcfYield">&ge; 0.0%</span>
                     </div>
                     <input type="range" class="stitch-range-slider" id="rng_minFcfYield" min="0" max="10" step="0.5" value="0">
                     <div class="slider-ticks"><span>0%</span><span>Free Cash Flow Yield</span><span>10%</span></div>
@@ -426,36 +426,36 @@
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Sales YoY Growth</label>
-                      <span class="filter-val-badge" id="pill_salesGrowth">â‰¥ 10%</span>
+                      <span class="filter-val-badge" id="pill_salesGrowth">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="0" max="50" step="5" value="10">
+                    <input type="range" class="stitch-range-slider" id="rng_minSalesGrowth" min="0" max="50" step="5" value="0">
                     <div class="slider-ticks"><span>0%</span><span>Quarterly Sales YoY</span><span>50%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min 3Y Sales CAGR</label>
-                      <span class="filter-val-badge" id="pill_sales3yCagr">â‰¥ 12%</span>
+                      <span class="filter-val-badge" id="pill_sales3yCagr">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minSales3yCagr" min="0" max="40" step="2" value="12">
+                    <input type="range" class="stitch-range-slider" id="rng_minSales3yCagr" min="0" max="40" step="2" value="0">
                     <div class="slider-ticks"><span>0%</span><span>3-Year Compounding</span><span>40%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Profit (PAT) YoY</label>
-                      <span class="filter-val-badge" id="pill_patGrowth">â‰¥ 15%</span>
+                      <span class="filter-val-badge" id="pill_patGrowth">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPatGrowth" min="0" max="60" step="5" value="15">
+                    <input type="range" class="stitch-range-slider" id="rng_minPatGrowth" min="0" max="60" step="5" value="0">
                     <div class="slider-ticks"><span>0%</span><span>Quarterly Profit YoY</span><span>60%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min 3Y PAT CAGR</label>
-                      <span class="filter-val-badge" id="pill_pat3yCagr">â‰¥ 15%</span>
+                      <span class="filter-val-badge" id="pill_pat3yCagr">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPat3yCagr" min="0" max="50" step="5" value="15">
+                    <input type="range" class="stitch-range-slider" id="rng_minPat3yCagr" min="0" max="50" step="5" value="0">
                     <div class="slider-ticks"><span>0%</span><span>3-Year Profit CAGR</span><span>50%</span></div>
                   </div>
                 </div>
@@ -467,37 +467,37 @@
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min ROCE %</label>
-                      <span class="filter-val-badge" id="pill_roce">â‰¥ 15%</span>
+                      <span class="filter-val-badge" id="pill_roce">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRoce" min="5" max="40" step="1" value="15">
-                    <div class="slider-ticks"><span>5%</span><span>Return on Capital</span><span>40%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRoce" min="0" max="40" step="1" value="0">
+                    <div class="slider-ticks"><span>0%</span><span>Return on Capital</span><span>40%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min ROE %</label>
-                      <span class="filter-val-badge" id="pill_roe">â‰¥ 12%</span>
+                      <span class="filter-val-badge" id="pill_roe">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRoe" min="5" max="35" step="1" value="12">
-                    <div class="slider-ticks"><span>5%</span><span>Return on Equity</span><span>35%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRoe" min="0" max="35" step="1" value="0">
+                    <div class="slider-ticks"><span>0%</span><span>Return on Equity</span><span>35%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Operating Margin (OPM)</label>
-                      <span class="filter-val-badge" id="pill_opm">â‰¥ 10%</span>
+                      <span class="filter-val-badge" id="pill_opm">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minOpm" min="0" max="35" step="1" value="10">
+                    <input type="range" class="stitch-range-slider" id="rng_minOpm" min="0" max="35" step="1" value="0">
                     <div class="slider-ticks"><span>0%</span><span>EBITDA Margin</span><span>35%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Piotroski F-Score</label>
-                      <span class="filter-val-badge" id="pill_piotroski">â‰¥ 6 / 9</span>
+                      <span class="filter-val-badge" id="pill_piotroski">&ge; 0 / 9</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPiotroski" min="3" max="9" step="1" value="6">
-                    <div class="slider-ticks"><span>3 (Weak)</span><span>Fundamental Health</span><span>9 (Pristine)</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPiotroski" min="0" max="9" step="1" value="0">
+                    <div class="slider-ticks"><span>0 (All)</span><span>Fundamental Health</span><span>9 (Pristine)</span></div>
                   </div>
                 </div>
               </div>
@@ -508,37 +508,37 @@
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Max Debt-to-Equity</label>
-                      <span class="filter-val-badge" id="pill_debtEquity">â‰¤ 1.0</span>
+                      <span class="filter-val-badge" id="pill_debtEquity">&le; 5.0</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxDebtEquity" min="0.0" max="2.5" step="0.1" value="1.0">
-                    <div class="slider-ticks"><span>0.0 (Zero Debt)</span><span>Max Leverage</span><span>2.5</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxDebtEquity" min="0.0" max="5.0" step="0.1" value="5.0">
+                    <div class="slider-ticks"><span>0.0 (Zero Debt)</span><span>Max Leverage</span><span>5.0</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Interest Coverage</label>
-                      <span class="filter-val-badge" id="pill_interestCov">â‰¥ 3.0x</span>
+                      <span class="filter-val-badge" id="pill_interestCov">&ge; 0.0x</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minInterestCov" min="1.0" max="15.0" step="0.5" value="3.0">
-                    <div class="slider-ticks"><span>1.0x</span><span>EBIT / Interest</span><span>15.0x</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minInterestCov" min="0.0" max="15.0" step="0.5" value="0.0">
+                    <div class="slider-ticks"><span>0.0x</span><span>EBIT / Interest</span><span>15.0x</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Current Ratio</label>
-                      <span class="filter-val-badge" id="pill_currentRatio">â‰¥ 1.2x</span>
+                      <span class="filter-val-badge" id="pill_currentRatio">&ge; 0.0x</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minCurrentRatio" min="0.8" max="3.0" step="0.1" value="1.2">
-                    <div class="slider-ticks"><span>0.8x</span><span>Liquidity Buffer</span><span>3.0x</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minCurrentRatio" min="0.0" max="3.0" step="0.1" value="0.0">
+                    <div class="slider-ticks"><span>0.0x</span><span>Liquidity Buffer</span><span>3.0x</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Stop Loss Risk Limit</label>
-                      <span class="filter-val-badge" id="pill_maxStopLoss">â‰¤ 8.0%</span>
+                      <span class="filter-val-badge" id="pill_maxStopLoss">&le; 20.0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
-                    <div class="slider-ticks"><span>3.0%</span><span>Max SL Drawdown</span><span>15.0%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="20.0" step="0.5" value="20.0">
+                    <div class="slider-ticks"><span>3.0%</span><span>Max SL Drawdown</span><span>20.0%</span></div>
                   </div>
                 </div>
               </div>
@@ -549,33 +549,33 @@
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Promoter Holding %</label>
-                      <span class="filter-val-badge" id="pill_promoterHold">â‰¥ 40%</span>
+                      <span class="filter-val-badge" id="pill_promoterHold">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minPromoter" min="20" max="75" step="5" value="40">
-                    <div class="slider-ticks"><span>20%</span><span>Promoter Skin-in-Game</span><span>75%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minPromoter" min="0" max="75" step="5" value="0">
+                    <div class="slider-ticks"><span>0%</span><span>Promoter Skin-in-Game</span><span>75%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Max Promoter Pledge %</label>
-                      <span class="filter-val-badge" id="pill_promoterPledge">â‰¤ 5.0%</span>
+                      <span class="filter-val-badge" id="pill_promoterPledge">&le; 100%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxPledge" min="0" max="25" step="1" value="5">
-                    <div class="slider-ticks"><span>0% (Zero Pledge)</span><span>Max Pledge</span><span>25%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxPledge" min="0" max="100" step="5" value="100">
+                    <div class="slider-ticks"><span>0% (Zero Pledge)</span><span>Max Pledge</span><span>100%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Institutional (FII+DII) %</label>
-                      <span class="filter-val-badge" id="pill_instHolding">â‰¥ 15%</span>
+                      <span class="filter-val-badge" id="pill_instHolding">&ge; 0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minInstHolding" min="0" max="50" step="5" value="15">
+                    <input type="range" class="stitch-range-slider" id="rng_minInstHolding" min="0" max="50" step="5" value="0">
                     <div class="slider-ticks"><span>0%</span><span>Smart Money Stake</span><span>50%</span></div>
                   </div>
 
                   <div class="filter-input-card" style="display:flex; flex-direction:column; justify-content:center;">
                     <label class="switch-row" style="cursor:pointer; display:flex; align-items:center; justify-content:space-between;">
-                      <span style="font-size:11.5px; font-weight:600; color:var(--text-primary);">SEBI Insider Buying (>â‚¹10L)</span>
+                      <span style="font-size:11.5px; font-weight:600; color:var(--text-primary);">SEBI Insider Buying (&gt;&#8377;10L)</span>
                       <label class="switch">
                         <input type="checkbox" id="chk_insiderBuys">
                         <span class="slider"></span>
@@ -592,37 +592,37 @@
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Min Relative Strength (RS)</label>
-                      <span class="filter-val-badge" id="pill_minRs">â‰¥ 70</span>
+                      <span class="filter-val-badge" id="pill_minRs">&ge; 0</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRs" min="30" max="95" step="5" value="70">
-                    <div class="slider-ticks"><span>30</span><span>Mansfield RS vs NIFTY</span><span>95</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRs" min="0" max="95" step="5" value="0">
+                    <div class="slider-ticks"><span>0</span><span>Mansfield RS vs NIFTY</span><span>95</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">RSI(14) Momentum Zone</label>
-                      <span class="filter-val-badge" id="pill_rsiLevel">RSI â‰¥ 60</span>
+                      <span class="filter-val-badge" id="pill_rsiLevel">RSI &ge; 0</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minRsi" min="40" max="85" step="5" value="60">
-                    <div class="slider-ticks"><span>40 (Oversold)</span><span>RSI Zone</span><span>85 (Bullish)</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_minRsi" min="0" max="85" step="5" value="0">
+                    <div class="slider-ticks"><span>0 (All)</span><span>RSI Zone</span><span>85 (Bullish)</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">Volume Burst Spike %</label>
-                      <span class="filter-val-badge" id="pill_burstPct">â‰¥ +30%</span>
+                      <span class="filter-val-badge" id="pill_burstPct">&ge; +0%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="0" max="100" step="10" value="30">
+                    <input type="range" class="stitch-range-slider" id="rng_minBurstPct" min="0" max="100" step="10" value="0">
                     <div class="slider-ticks"><span>0%</span><span>Above 20-Day SMA</span><span>+100%</span></div>
                   </div>
 
                   <div class="filter-input-card">
                     <div class="filter-card-header">
                       <label class="filter-card-label">7-Week Base Tightness</label>
-                      <span class="filter-val-badge" id="pill_baseTightness">â‰¤ 20%</span>
+                      <span class="filter-val-badge" id="pill_baseTightness">&le; 50%</span>
                     </div>
-                    <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="30" step="1" value="20">
-                    <div class="slider-ticks"><span>5% (Ultra Tight)</span><span>Max Volatility</span><span>30%</span></div>
+                    <input type="range" class="stitch-range-slider" id="rng_maxConsolidationRange" min="5" max="50" step="1" value="50">
+                    <div class="slider-ticks"><span>5% (Ultra Tight)</span><span>Max Volatility</span><span>50%</span></div>
                   </div>
                 </div>
 
@@ -630,26 +630,26 @@
                 <div class="tech-toggles-row" style="margin-top:10px; display:flex; gap:16px; flex-wrap:wrap; border-top:1px solid rgba(255,255,255,0.05); padding-top:10px;">
                   <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_dma50" checked>
+                      <input type="checkbox" id="chk_dma50">
                       <span class="slider"></span>
                     </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price > 50 DMA</span>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 50 DMA</span>
                   </label>
 
                   <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_dma200" checked>
+                      <input type="checkbox" id="chk_dma200">
                       <span class="slider"></span>
                     </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price > 200 DMA (Long-Term Bull)</span>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Price &gt; 200 DMA (Long-Term Bull)</span>
                   </label>
 
                   <label class="switch-row" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
                     <label class="switch" style="width:32px; height:18px;">
-                      <input type="checkbox" id="chk_p10" checked>
+                      <input type="checkbox" id="chk_p10">
                       <span class="slider"></span>
                     </label>
-                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (â‰¥4/6)</span>
+                    <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (&ge;4/6)</span>
                   </label>
                   <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="display:none;">
                   <div id="val_mtfGreen" style="display:none;">4/6 Green</div>
@@ -668,10 +668,10 @@
                 </svg>
               </div>
               <input type="text" class="nlp-input" id="txtNlpFilter" placeholder="Natural Language Filter: e.g. 'high quality compounder with zero debt and promoter buying' or 'vol shocker with nr7'...">
-              <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">âœ• Clear</button>
+              <button class="nlp-clear-btn" id="btnNlpClear" style="display:none;" title="Clear NLP filter">&#10005; Clear</button>
             </div>
             <div class="nlp-chips-row">
-              <span style="color:var(--text-muted); font-size:10px; font-weight:600;">âš¡ QUICK PROMPTS:</span>
+              <span style="color:var(--text-muted); font-size:10px; font-weight:600;">QUICK PROMPTS:</span>
               <button class="nlp-suggestion-chip" data-prompt="quality compounder with high roce and zero debt">"quality compounders"</button>
               <button class="nlp-suggestion-chip" data-prompt="multibagger with 3Y sales cagr > 30%">"multibaggers"</button>
               <button class="nlp-suggestion-chip" data-prompt="high fcf yield and positive operating cash flow">"fcf machine"</button>
@@ -698,18 +698,18 @@
               <!-- Sector Dropdown -->
               <select id="selSector" class="filter-select-sm">
                 <option value="ALL">All Sectors</option>
-                <option value="Defence">Defence & Aerospace</option>
-                <option value="Retail">Retail & Consumer</option>
-                <option value="EMS">EMS & Electronics</option>
-                <option value="IT">IT & Software</option>
-                <option value="Wires">Wires & Cables</option>
+                <option value="Defence">Defence &amp; Aerospace</option>
+                <option value="Retail">Retail &amp; Consumer</option>
+                <option value="EMS">EMS &amp; Electronics</option>
+                <option value="IT">IT &amp; Software</option>
+                <option value="Wires">Wires &amp; Cables</option>
                 <option value="Renewable">Renewable Energy</option>
                 <option value="Financial">Financial Infrastructure</option>
               </select>
 
               <!-- Exchange Dropdown -->
               <select id="selExchange" class="filter-select-sm">
-                <option value="ALL">All Exchanges (NSE & BSE)</option>
+                <option value="ALL">All Exchanges (NSE &amp; BSE)</option>
                 <option value="NSE">NSE Only</option>
                 <option value="BSE">BSE Only</option>
               </select>
@@ -722,13 +722,13 @@
               <div class="column-view-group" id="columnViewGroup">
                 <span style="font-size:10.5px; color:var(--text-muted); font-weight:600;">View:</span>
                 <select id="selColumnView" class="filter-select-sm" title="Switch active column dataset">
-                  <option value="overview" selected>ðŸ“Š Overview & Scores</option>
-                  <option value="valuation">ðŸª™ Valuation Multiples</option>
-                  <option value="growth">ðŸš€ Growth & Performance</option>
-                  <option value="quality">ðŸ’Ž Quality & Profitability</option>
-                  <option value="solvency">ðŸ›¡ï¸ Solvency & Health</option>
-                  <option value="ownership">ðŸ‘¥ Ownership & Flows</option>
-                  <option value="technical">ðŸ“ˆ Technical & Signals</option>
+                  <option value="overview" selected>Overview &amp; Factor Scores</option>
+                  <option value="valuation">Valuation Multiples</option>
+                  <option value="growth">Growth &amp; Compounding</option>
+                  <option value="quality">Quality &amp; Profitability</option>
+                  <option value="solvency">Solvency &amp; Debt Health</option>
+                  <option value="ownership">Ownership &amp; Flows</option>
+                  <option value="technical">Technical &amp; Momentum</option>
                 </select>
               </div>
 
@@ -744,17 +744,17 @@
                   <option value="pe">P/E Ratio (Lowest First)</option>
                   <option value="rsScore">RS Score (Highest First)</option>
                   <option value="volumeBurst">Volume Burst %</option>
-                  <option value="marketCapCr">Market Cap (â‚¹ Cr)</option>
+                  <option value="marketCapCr">Market Cap (&#8377; Cr)</option>
                   <option value="ltp">Price (LTP)</option>
                 </select>
               </div>
 
               <button class="btn btn-sm" id="btnCopyTickers" title="Copy active filtered tickers">
-                ðŸ“‹ Copy Tickers
+                Copy Tickers
               </button>
 
               <button class="btn btn-sm" id="btnExportCsv" title="Export full 33-point institutional CSV">
-                ðŸ“¥ Export CSV
+                Export CSV
               </button>
             </div>
 
@@ -776,7 +776,7 @@
 
       </div>
 
-            <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
+      <!-- 2. STITCH VIEW 2: TRADEVIEW INDIA MARKET HEATMAP (Screen 1) -->
       <div class="stitch-view-content" id="viewMarketHeatmap">
         <div class="heatmap-container">
           

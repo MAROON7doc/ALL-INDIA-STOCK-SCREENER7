@@ -15,6 +15,7 @@
  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
  <link rel="stylesheet" href="css/styles.css">
  <script defer src="js/screener.bundle.js"></script>
+  <script src="https://unpkg.com/lightweight-charts@4.2.0/dist/lightweight-charts.standalone.production.js"></script>
 </head>
 <body>
 
@@ -653,10 +654,16 @@
  <input type="checkbox" id="chk_p10">
  <span class="slider"></span>
  </label>
- <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment (&ge;4/6)</span>
+ <span style="font-size:11px; color:var(--text-primary); font-weight:600;">Multi-Timeframe Bullish Alignment</span>
+ <span class="val-pill" id="pill_mtfGreen" style="font-size:10px; margin-left:auto; display:none;">&ge; 4/6 Green</span>
  </label>
- <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="display:none;">
- <div id="val_mtfGreen" style="display:none;">4/6 Green</div>
+ <div id="wrap_mtfGreenSlider" style="display:none; margin-top:6px; padding:4px 8px; background:rgba(15,23,42,0.6); border-radius:6px;">
+ <div style="display:flex; justify-content:space-between; font-size:10px; color:var(--text-muted); margin-bottom:2px;">
+ <span>Minimum Bullish Frames:</span>
+ <span id="val_mtfGreen" style="font-weight:700; color:#38bdf8;">4/6 Green</span>
+ </div>
+ <input type="range" id="rng_mtfGreen" min="1" max="6" step="1" value="4" style="width:100%;">
+ </div>
  </div>
  </div>
 
@@ -1160,7 +1167,8 @@
 
  <!-- Modal Tabs (7 Comprehensive Analysis Horizons) -->
  <div class="modal-tabs">
- <div class="modal-tab active" data-tab="fundamental_radar"> Factor Scores & Fundamentals</div>
+         <div class="modal-tab active" data-tab="chart">Live Candlestick Chart</div>
+        <div class="modal-tab" data-tab="fundamental_radar">Factor Scores & Fundamentals</div>
  <div class="modal-tab" data-tab="calculator">Risk & Sizing</div>
  <div class="modal-tab" data-tab="thesis"> Equity Thesis & Risks</div>
  <div class="modal-tab" data-tab="moat_intel"> Moat & Governance</div>

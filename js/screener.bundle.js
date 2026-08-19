@@ -2591,40 +2591,40 @@
  if (s.marketCapCr > 40000 || s.salesGrowthYoY < 18 || s.debtToEquity > 0.6) continue;
  }
 
- // Dimension Criteria Evaluations
- const checks = {
- mcap: marketCapCat === 'ALL' ||
- (marketCapCat === 'LARGE' && s.marketCapCr >= 50000) ||
- (marketCapCat === 'MID' && s.marketCapCr >= 15000 && s.marketCapCr < 50000) ||
- (marketCapCat === 'SMALL' && s.marketCapCr >= 2000 && s.marketCapCr < 15000) ||
- (marketCapCat === 'MICRO' && s.marketCapCr < 2000),
- pe: s.pe <= maxPe,
- peg: s.peg <= maxPeg,
- fcf: (s.fcfYield || 0) >= minFcfYield,
- sales: s.salesGrowthYoY >= minSalesGrowth,
- sales3y: (s.sales3Y_CAGR || s.salesGrowthYoY) >= minSales3yCagr,
- pat: s.epsGrowthYoY >= minPatGrowth,
- pat3y: (s.eps3Y_CAGR || s.epsGrowthYoY) >= minPat3yCagr,
- roce: s.roce >= minRoce,
- roe: s.roe >= minRoe,
- opm: s.opm >= minOpm,
- pio: s.piotroskiScore >= minPiotroski,
- de: s.debtToEquity <= maxDebtEquity,
- intCov: s.interestCoverage >= minInterestCov,
- currRatio: s.currentRatio >= minCurrentRatio,
- stopLoss: s.stopLossPct <= maxStopLossPct,
- promoter: s.promoterHoldingPct >= minPromoter,
- pledge: s.promoterPledgePct <= maxPledge,
- inst: (s.fiiHoldingPct + s.diiHoldingPct) >= minInstHolding,
- insider: !requireInsiderBuys || s.recentInsiderBuying,
- rs: s.rsScore >= minRsScore,
- rsi: s.rsi >= minRsi,
- volBurst: s.volumeBurstPct >= minBurstPct,
- base: s.baseTightnessPct <= maxConsolidationRange,
- dma50: !requireDma50 || s.ltp >= s.dma50,
- dma200: !requireDma200 || s.ltp >= s.dma200,
- mtf: !requireMtfGreen || s.mtfBullishCount >= minMtfGreen
- };
+ // Dimension Criteria Evaluations with safe fallbacks
+    const checks = {
+      mcap: marketCapCat === 'ALL' ||
+        (marketCapCat === 'LARGE' && s.marketCapCr >= 50000) ||
+        (marketCapCat === 'MID' && s.marketCapCr >= 15000 && s.marketCapCr < 50000) ||
+        (marketCapCat === 'SMALL' && s.marketCapCr >= 2000 && s.marketCapCr < 15000) ||
+        (marketCapCat === 'MICRO' && s.marketCapCr < 2000),
+      pe: maxPe === undefined || maxPe >= 200 || s.pe <= maxPe,
+      peg: maxPeg === undefined || maxPeg >= 5.0 || s.peg <= maxPeg,
+      fcf: (s.fcfYield || 0) >= (minFcfYield || 0),
+      sales: (s.salesGrowthYoY || 0) >= (minSalesGrowth || 0),
+      sales3y: (s.sales3Y_CAGR || s.salesGrowthYoY || 0) >= (minSales3yCagr || 0),
+      pat: (s.epsGrowthYoY || 0) >= (minPatGrowth || 0),
+      pat3y: (s.eps3Y_CAGR || s.epsGrowthYoY || 0) >= (minPat3yCagr || 0),
+      roce: (s.roce || 0) >= (minRoce || 0),
+      roe: (s.roe || 0) >= (minRoe || 0),
+      opm: (s.opm || 0) >= (minOpm || 0),
+      pio: (s.piotroskiScore || 0) >= (minPiotroski || 0),
+      de: maxDebtEquity === undefined || (s.debtToEquity || 0) <= maxDebtEquity,
+      intCov: (s.interestCoverage || 99) >= (minInterestCov || 0),
+      currRatio: (s.currentRatio || 2) >= (minCurrentRatio || 0),
+      stopLoss: maxStopLossPct === undefined || (s.stopLossPct || 5) <= maxStopLossPct,
+      promoter: (s.promoterHoldingPct || 0) >= (minPromoter || 0),
+      pledge: (s.promoterPledgePct || 0) <= (maxPledge !== undefined ? maxPledge : 100),
+      inst: ((s.fiiHoldingPct || 0) + (s.diiHoldingPct || 0)) >= (minInstHolding || 0),
+      insider: !requireInsiderBuys || !!s.recentInsiderBuying,
+      rs: (s.rsScore || 0) >= (minRsScore || 0),
+      rsi: (s.rsi || 0) >= (minRsi || 0),
+      volBurst: (s.volumeBurstPct || 0) >= (minBurstPct || 0),
+      base: maxConsolidationRange === undefined || (s.baseTightnessPct || 0) <= maxConsolidationRange,
+      dma50: !requireDma50 || s.ltp >= (s.dma50 || 0),
+      dma200: !requireDma200 || s.ltp >= (s.dma200 || 0),
+      mtf: !requireMtfGreen || (s.mtfBullishCount || 5) >= (minMtfGreen || 0)
+    };
 
  const allCheckKeys = Object.keys(checks);
  const passedKeys = allCheckKeys.filter(k => checks[k]);

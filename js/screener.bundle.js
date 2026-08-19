@@ -2451,16 +2451,25 @@
         if (seen.has(key)) continue;
         seen.add(key);
 
+        const open = Number(c.open);
+        const close = Number(c.close);
+        const high = Number(c.high);
+        const low = Number(c.low);
+        if (![open, close, high, low].every(Number.isFinite) || open <= 0 || close <= 0) continue;
+        const normalizedHigh = Math.max(open, close, Number.isFinite(high) && high > 0 ? high : 0);
+        const normalizedLow = Math.min(open, close, Number.isFinite(low) && low > 0 ? low : open);
+        const volume = Number.isFinite(Number(c.volume)) && Number(c.volume) >= 0 ? Number(c.volume) : 0;
+
         if (this._chartType === 'candle' || this._chartType === 'bar') {
-          ohlcData.push({ time: t, open: c.open, high: c.high, low: c.low, close: c.close });
+          ohlcData.push({ time: t, open, high: normalizedHigh, low: normalizedLow, close });
         } else {
-          ohlcData.push({ time: t, value: c.close });
+          ohlcData.push({ time: t, value: close });
         }
 
-        const isUp = c.close >= c.open;
+        const isUp = close >= open;
         volData.push({
           time: t,
-          value: c.volume || 0,
+          value: volume,
           color: isUp ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)',
         });
       }
@@ -3023,6 +3032,41 @@
 
       document.getElementById('btnResetChartZoom')?.addEventListener('click', () => {
         this.mainChart?.resetZoom();
+      });
+
+      document.getElementById('btnChartSnapshot')?.addEventListener('click', () => {
+        const screenshot = this.mainChart?._chart?.takeScreenshot?.();
+        if (!screenshot) {
+          this.showToast('Chart snapshot is unavailable until the chart is loaded.', 'warn');
+          return;
+        }
+        const link = document.createElement('a');
+        link.download = `${this.activeMainStock?.symbol || 'chart'}-snapshot.png`;
+        link.href = screenshot.toDataURL('image/png');
+        link.click();
+        this.showToast('Chart snapshot downloaded.', 'success');
+      });
+
+      document.getElementById('btnChartAlert')?.addEventListener('click', () => {
+        const current = this.activeMainStock?.ltp || 0;
+        const entered = window.prompt(`Alert price for ${this.activeMainStock?.symbol || 'selected stock'}:`, current.toFixed(2));
+        const price = Number(entered);
+        if (!Number.isFinite(price) || price <= 0) return;
+        this.priceAlert = { symbol: this.activeMainStock?.symbol, price };
+        this.showToast(`Price alert set at ₹${price.toFixed(2)}.`, 'success');
+      });
+
+      document.getElementById('btnChartSettings')?.addEventListener('click', () => {
+        document.getElementById('btnToggleIndicatorsMenu')?.click();
+        this.showToast('Chart appearance controls opened.', 'info');
+      });
+
+      document.getElementById('btnUndoChart')?.addEventListener('click', () => {
+        this.showToast('Drawing undo is not available for the current chart layer.', 'info');
+      });
+
+      document.getElementById('btnRedoChart')?.addEventListener('click', () => {
+        this.showToast('Drawing redo is not available for the current chart layer.', 'info');
       });
 
       const maximizeBtn = document.getElementById('btnMaximizeChart');
@@ -5194,7 +5238,11 @@
                 quote = await YahooFinanceWrapperService.fetchLiveQuote(stock.symbol, stock.exchange, stock.bseCode);
               }
 
-              if (quote && quote.ltp > 0) {
+              const lastClose = stock.dailyCandles?.[stock.dailyCandles.length - 1]?.close || stock.ltp;
+              const livePrice = Number(quote?.ltp);
+              const priceRatio = lastClose > 0 ? livePrice / lastClose : 1;
+              const isPlausiblePrice = Number.isFinite(livePrice) && livePrice > 0 && priceRatio >= 0.5 && priceRatio <= 1.5;
+              if (quote && isPlausiblePrice) {
                 stock.ltp = quote.ltp;
                 stock.dayChangePct = quote.pChange || stock.dayChangePct;
                 if (quote.previousClose) stock.baseDayPrice = quote.previousClose;

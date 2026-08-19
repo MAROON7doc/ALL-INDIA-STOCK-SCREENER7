@@ -53,7 +53,7 @@ $chartDups = $chartIds | Group-Object | Where-Object { $_.Count -gt 1 }
 Assert-Check ($chartDups.Count -eq 0) "chart.html has zero duplicate element IDs" "Found: $($chartDups.Name -join ', ')"
 
 # 3. Canvas Context & Chart Initializers
-Assert-Check ($bundle -match 'class InteractiveGPUChart') "InteractiveGPUChart engine defined"
+Assert-Check ($bundle -match 'class TradingViewLWChart') "TradingView chart engine defined"
 Assert-Check ($bundle -match 'class Application') "Application main controller defined"
 Assert-Check ($bundle -match 'class GPUEngine') "GPUEngine WebGL acceleration active"
 

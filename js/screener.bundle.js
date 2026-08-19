@@ -2332,8 +2332,22 @@
     setLoading(isLoading, message = 'Loading institutional market series...') {
       this.isLoading = isLoading;
       this.loadingMessage = message;
-      if (isLoading) this.errorMessage = null;
-      this.render();
+      if (isLoading) {
+        this.errorMessage = null;
+        // Animate the spinner with a lightweight RAF loop (only while loading)
+        if (!this._spinnerRaf) {
+          const spin = () => {
+            if (!this.isLoading) { this._spinnerRaf = null; return; }
+            this.pulsePhase = (this.pulsePhase + 0.08) % (Math.PI * 2);
+            this.render();
+            this._spinnerRaf = requestAnimationFrame(spin);
+          };
+          this._spinnerRaf = requestAnimationFrame(spin);
+        }
+      } else {
+        this._spinnerRaf = null;
+        this.render();
+      }
     }
 
     setError(errorMessage) {
@@ -2779,16 +2793,18 @@
         if (this.isDragging) {
           const now = performance.now();
           const dt = Math.max(8, now - this.lastMouseTime);
-          const dx = e.clientX - this.lastMouseX;
+          const dx = e.clientX - this.lastMouseX; // incremental (for velocity only)
           const vel = (dx / dt) * 14;
           this.velocityX = this.velocityX * 0.35 + vel * 0.65;
           this.lastMouseX = e.clientX;
           this.lastMouseTime = now;
 
+          // FIX: use TOTAL delta from dragStartX, not just last-frame dx
+          const totalDx = e.clientX - this.dragStartX;
           const candleWidth = Math.max(2, plotWidth / this.viewCount);
-          const candleDelta = -dx / candleWidth;
+          const totalCandleDelta = -totalDx / candleWidth;
           const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
-          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + candleDelta));
+          this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.dragStartOffset + totalCandleDelta));
 
           const dy = e.clientY - this.dragStartY;
           const priceRange = 100;
@@ -2850,6 +2866,7 @@
       }, { passive: true });
 
       this.canvas.addEventListener('touchmove', (e) => {
+        e.preventDefault(); // Prevent page scroll during chart touch pan
         const paddingRight = 75, paddingLeft = 10;
         const plotWidth = this.width - paddingLeft - paddingRight;
 
@@ -2896,12 +2913,14 @@
         }
       }, { passive: true });
 
-      // KEYBOARD ARROW SCRUBBING & HOME/END JUMP
-      window.addEventListener('keydown', (e) => {
+      // KEYBOARD ARROW SCRUBBING — scoped to chart with mouse focus
+      this.canvas.addEventListener('mouseenter', () => { this._hasFocus = true; });
+      this.canvas.addEventListener('mouseleave', () => { this._hasFocus = false; });
+      this._keydownHandler = (e) => {
         if (['INPUT', 'SELECT', 'TEXTAREA'].includes(document.activeElement?.tagName)) return;
+        if (!this._hasFocus) return; // Only fire for the chart currently under the cursor
         const maxOffset = Math.max(0, this.allCandles.length - this.viewCount);
         const step = e.shiftKey ? 10 : 3;
-
         if (e.key === 'ArrowLeft') {
           this.viewOffset = Math.max(this.minOffset, Math.min(maxOffset, this.viewOffset + step));
           this.render();
@@ -2913,7 +2932,8 @@
         } else if (e.key === 'End') {
           this.glideToOffset(0);
         }
-      });
+      };
+      window.addEventListener('keydown', this._keydownHandler);
     }
 
     getVisibleCandles() {
@@ -4966,17 +4986,6 @@
           btn.classList.add('active');
           this.drawFinDeskPerfCurve(btn.dataset.ptf);
         });
-      });
-
-      // Scalper Terminal Actions
-      document.getElementById('btnScalperMktBuy')?.addEventListener('click', () => {
-        this.showToast('⚡ Instant Scalper Order: BUY 500 NIFTY 21,450 CE Executed @ MKT', 'success');
-      });
-      document.getElementById('btnScalperMktSell')?.addEventListener('click', () => {
-        this.showToast('⚡ Instant Scalper Order: SELL 500 NIFTY 21,450 CE Executed @ MKT', 'warn');
-      });
-      document.getElementById('btnCloseAllScalpPos')?.addEventListener('click', () => {
-        this.showToast('🛡️ All Open Scalper Positions Closed at Market Price.', 'info');
       });
 
       // Sector Deep-Dive List Selection

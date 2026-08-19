@@ -573,33 +573,11 @@
                   <button class="drawing-tool-btn" data-tool="clear" title="Clear All Drawings (🗑️)" style="color:var(--accent-red);">🗑️</button>
                 </aside>
 
-                <!-- Center Canvas & In-Chart Scalper Overlay Wrapper -->
+                <!-- Center Canvas & Master TradingView Lightweight Charts Container -->
                 <div class="tv-canvas-center-wrap">
                   
-                  <!-- In-Chart Instant Scalper Buy/Sell Overlay Bar -->
-                  <div class="scalper-order-overlay" id="scalperOrderOverlay">
-                    <div class="scalper-stock-badge">
-                      <span id="scalperSymbolText">BEL</span>
-                      <span class="val-pill" style="font-size:9px;" id="scalperSeriesText">5 • NSE</span>
-                      <span class="tradeone-expiry-tag" style="background:rgba(16,185,129,0.15); color:#10b981;">CAS</span>
-                    </div>
-                    <button class="btn-scalper-buy" id="btnScalperBuy">
-                      <span>BUY @</span> <span id="scalperBuyPrice">413.05</span>
-                    </button>
-                    <div style="display:flex; align-items:center; gap:3px;">
-                      <input type="number" class="scalper-qty-input" id="scalperOrderQty" value="1" min="1" max="10000" title="Order Quantity">
-                    </div>
-                    <button class="btn-scalper-sell" id="btnScalperSell">
-                      <span>SELL @</span> <span id="scalperSellPrice">413.00</span>
-                    </button>
-                    <div style="font-size:9.5px; color:var(--text-muted); font-family:var(--font-mono); margin-left:4px;" id="scalperVolText">
-                      Volume 50.642K
-                    </div>
-                  </div>
-
-                  <!-- Master GPU-Accelerated WebGL/2D Candlestick Canvas -->
+                  <!-- Master TradingView Candlestick & Volume Engine -->
                   <div class="chart-container-box" id="mainCanvasContainer">
-                    <!-- 60 FPS GPU WebGL Candlestick Engine -->
                   </div>
 
                 </div>

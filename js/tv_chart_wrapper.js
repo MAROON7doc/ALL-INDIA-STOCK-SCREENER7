@@ -1,5 +1,5 @@
   /* ==========================================================================
-     TRADINGVIEW LIGHTWEIGHT CHARTS WRAPPER
+     TRADINGVIEW LIGHTWEIGHT CHARTS WRAPPER (V2 - TIME-SCALE & DATE-RANGE ENHANCED)
      Replaces InteractiveGPUChart with TradingView's battle-tested chart engine.
      Public API is fully backward-compatible with all Application usages.
      ========================================================================== */
@@ -27,6 +27,7 @@
       this._layers = { ema: true, vwap: true, volume: true, protocols: true };
       this._isMarketLive = false;
       this._loadingEl = null;
+      this._currentScaleMode = 0; // 0 = Normal, 1 = Log, 2 = Percentage
 
       this._buildLoadingOverlay();
       this._initChart();
@@ -66,6 +67,7 @@
         return;
       }
       const { width, height } = this.container.getBoundingClientRect();
+      const isIntraday = ['1m', '5m', '15m', '1H', '4H'].includes(this.interval);
 
       this._chart = LightweightCharts.createChart(this.container, {
         width: Math.max(300, width),
@@ -82,21 +84,28 @@
         },
         crosshair: {
           mode: LightweightCharts.CrosshairMode.Normal,
-          vertLine: { color: 'rgba(148,163,184,0.5)', labelBackgroundColor: '#0f1729' },
-          horzLine: { color: 'rgba(148,163,184,0.5)', labelBackgroundColor: '#0f1729' },
+          vertLine: { color: 'rgba(148,163,184,0.45)', labelBackgroundColor: '#0f172a' },
+          horzLine: { color: 'rgba(148,163,184,0.45)', labelBackgroundColor: '#0f172a' },
         },
         rightPriceScale: {
-          borderColor: 'rgba(255,255,255,0.08)',
-          textColor: '#64748b',
-          scaleMargins: { top: 0.06, bottom: 0.25 },
+          borderColor: 'rgba(255,255,255,0.12)',
+          textColor: '#94a3b8',
+          scaleMargins: { top: 0.08, bottom: 0.22 },
+          autoScale: true,
+          alignLabels: true,
+          visible: true,
         },
         timeScale: {
-          borderColor: 'rgba(255,255,255,0.08)',
-          textColor: '#64748b',
-          timeVisible: true,
+          borderColor: 'rgba(255,255,255,0.12)',
+          textColor: '#94a3b8',
+          timeVisible: isIntraday,
           secondsVisible: false,
           fixLeftEdge: false,
           fixRightEdge: false,
+          rightOffset: 12,
+          barSpacing: isIntraday ? 6 : 9,
+          minBarSpacing: 2,
+          visible: true,
         },
         handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: false },
         handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
@@ -105,15 +114,41 @@
       this._buildSeries('candle');
     }
 
+    /* ── Internal: Update time scale options based on interval ───────── */
+    _updateTimeScaleOptions() {
+      if (!this._chart) return;
+      const isIntraday = ['1m', '5m', '15m', '1H', '4H'].includes(this.interval);
+      this._chart.applyOptions({
+        timeScale: {
+          timeVisible: isIntraday,
+          secondsVisible: false,
+          borderColor: 'rgba(255,255,255,0.12)',
+          textColor: '#94a3b8',
+          fixLeftEdge: false,
+          fixRightEdge: false,
+          rightOffset: 12,
+          barSpacing: isIntraday ? 6 : 9,
+          minBarSpacing: 2,
+          visible: true,
+        },
+        rightPriceScale: {
+          borderColor: 'rgba(255,255,255,0.12)',
+          textColor: '#94a3b8',
+          scaleMargins: { top: 0.08, bottom: 0.22 },
+          autoScale: true,
+          mode: this._currentScaleMode,
+          visible: true,
+        }
+      });
+    }
+
     /* ── Internal: Build/rebuild main series by type ─────────────────── */
     _buildSeries(type) {
-      // Remove existing series
       if (this._series) { try { this._chart.removeSeries(this._series); } catch(e) {} }
       if (this._volSeries) { try { this._chart.removeSeries(this._volSeries); } catch(e) {} }
       if (this._ema20Series) { try { this._chart.removeSeries(this._ema20Series); } catch(e) {} }
       if (this._ema50Series) { try { this._chart.removeSeries(this._ema50Series); } catch(e) {} }
 
-      // Main price series
       if (type === 'candle' || type === 'bar') {
         this._series = this._chart.addCandlestickSeries({
           upColor: '#22c55e',
@@ -139,16 +174,16 @@
         });
       }
 
-      // Volume histogram (separate pane via scaleMargins trick on priceScale)
+      // Volume histogram on bottom 20%
       this._volSeries = this._chart.addHistogramSeries({
         priceFormat: { type: 'volume' },
         priceScaleId: 'volume',
       });
       this._chart.priceScale('volume').applyOptions({
-        scaleMargins: { top: 0.78, bottom: 0 },
+        scaleMargins: { top: 0.80, bottom: 0 },
       });
 
-      // EMA overlay series
+      // EMA overlays
       this._ema20Series = this._chart.addLineSeries({
         color: '#f59e0b',
         lineWidth: 1.5,
@@ -168,22 +203,22 @@
       if (this.allCandles.length) this._applyData();
     }
 
-    /* ── Internal: Convert our candle format to LW unix timestamp ───── */
+    /* ── Internal: Convert candle to timestamp/date string ───────────── */
     _toTime(candle) {
-      // candle.date format: "DD-MM-YYYY" or "YYYY-MM-DD"
-      // candle.time format: "HH:MM" (optional)
+      const isIntraday = ['1m', '5m', '15m', '1H', '4H'].includes(this.interval);
       try {
         let dateStr = candle.date || '';
         if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
           const [d, m, y] = dateStr.split('-');
           dateStr = `${y}-${m}-${d}`;
         }
-        if (candle.time) {
-          return Math.floor(new Date(`${dateStr}T${candle.time}:00+05:30`).getTime() / 1000);
+        if (isIntraday) {
+          const timeStr = candle.time || '09:15';
+          return Math.floor(new Date(`${dateStr}T${timeStr}:00+05:30`).getTime() / 1000);
         }
-        return dateStr; // LW accepts 'YYYY-MM-DD' strings for daily
+        return dateStr;
       } catch(e) {
-        return candle.t || Math.floor(Date.now() / 1000);
+        return candle.date || '2025-01-01';
       }
     }
 
@@ -195,7 +230,8 @@
       let ema = candles.slice(0, period).reduce((s, c) => s + c.close, 0) / period;
       for (let i = period - 1; i < candles.length; i++) {
         if (i > period - 1) ema = candles[i].close * k + ema * (1 - k);
-        out.push({ time: this._toTime(candles[i]), value: parseFloat(ema.toFixed(2)) });
+        const t = this._toTime(candles[i]);
+        if (t) out.push({ time: t, value: parseFloat(ema.toFixed(2)) });
       }
       return out;
     }
@@ -203,34 +239,60 @@
     /* ── Internal: Apply current candle data to all series ─────────── */
     _applyData() {
       if (!this._series || !this.allCandles.length) return;
+      this._updateTimeScaleOptions();
 
       const candles = this.allCandles;
-      const isIntraday = ['1m','5m','15m','1H','4H'].includes(this.interval);
+      const isIntraday = ['1m', '5m', '15m', '1H', '4H'].includes(this.interval);
 
-      // Map to LW format (deduplicate by time)
+      // Map to LW format, filter valid numbers, and deduplicate
       const seen = new Set();
-      const ohlcData = [];
-      const volData = [];
+      const rawData = [];
 
       for (const c of candles) {
         const t = this._toTime(c);
+        if (!t) continue;
         const key = String(t);
         if (seen.has(key)) continue;
         seen.add(key);
 
-        if (this._chartType === 'candle' || this._chartType === 'bar') {
-          ohlcData.push({ time: t, open: c.open, high: c.high, low: c.low, close: c.close });
-        } else {
-          ohlcData.push({ time: t, value: c.close });
-        }
+        const open = Number(c.open);
+        const close = Number(c.close);
+        const high = Number(c.high);
+        const low = Number(c.low);
+        if (![open, close, high, low].every(Number.isFinite) || open <= 0 || close <= 0) continue;
+        const normalizedHigh = Math.max(open, close, Number.isFinite(high) && high > 0 ? high : 0);
+        const normalizedLow = Math.min(open, close, Number.isFinite(low) && low > 0 ? low : open);
+        const volume = Number.isFinite(Number(c.volume)) && Number(c.volume) >= 0 ? Number(c.volume) : 0;
 
-        const isUp = c.close >= c.open;
-        volData.push({
+        rawData.push({
           time: t,
-          value: c.volume || 0,
-          color: isUp ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)',
+          open,
+          high: normalizedHigh,
+          low: normalizedLow,
+          close,
+          volume,
+          isUp: close >= open
         });
       }
+
+      // STRICT CHRONOLOGICAL ASCENDING SORT REQUIRED BY TRADINGVIEW
+      rawData.sort((a, b) => {
+        if (typeof a.time === 'number' && typeof b.time === 'number') return a.time - b.time;
+        return String(a.time).localeCompare(String(b.time));
+      });
+
+      const ohlcData = rawData.map(d => {
+        if (this._chartType === 'candle' || this._chartType === 'bar') {
+          return { time: d.time, open: d.open, high: d.high, low: d.low, close: d.close };
+        }
+        return { time: d.time, value: d.close };
+      });
+
+      const volData = rawData.map(d => ({
+        time: d.time,
+        value: d.volume,
+        color: d.isUp ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)'
+      }));
 
       try {
         this._series.setData(ohlcData);
@@ -247,32 +309,28 @@
           if (this._ema50Series) this._ema50Series.setData([]);
         }
 
-        // Add VWAP as a price line if intraday
+        // VWAP price line on intraday
         this._clearPriceLines();
-        if (this._layers.vwap && isIntraday && ohlcData.length > 0) {
-          const last = this.allCandles[this.allCandles.length - 1];
-          const vwapApprox = last ? (last.high + last.low + last.close) / 3 : null;
-          if (vwapApprox) {
-            this._addPriceLine(vwapApprox, 'VWAP', '#f59e0b', 1);
+        if (this._layers.vwap && isIntraday && rawData.length > 0) {
+          const last = rawData[rawData.length - 1];
+          if (last) {
+            const vwap = (last.high + last.low + last.close) / 3;
+            this._addPriceLine(parseFloat(vwap.toFixed(2)), 'VWAP', '#f59e0b', 1);
           }
         }
 
-        // Protocol markers
         this._applyProtocolMarkers(candles, ohlcData);
-
-        // Scroll to latest
         this._chart.timeScale().scrollToRealTime();
       } catch(e) {
-        console.warn('TradingViewLWChart: setData error', e);
+        console.warn('TradingViewLWChart: applyData error', e);
       }
     }
 
-    /* ── Internal: Add protocol markers (CANSLIM signals) ───────────── */
+    /* ── Internal: Add protocol markers ──────────────────────────────── */
     _applyProtocolMarkers(candles, ohlcData) {
       if (!this._series || !this._layers.protocols || ohlcData.length < 10) return;
       const markers = [];
       const n = candles.length;
-      // Cup & Handle detection (simplified: new high after pullback)
       for (let i = 30; i < n - 1; i++) {
         const c = candles[i];
         const prev10High = Math.max(...candles.slice(i - 10, i).map(x => x.high));
@@ -280,12 +338,10 @@
           markers.push({ time: this._toTime(c), position: 'belowBar', color: '#22c55e', shape: 'arrowUp', text: 'B', size: 1 });
         }
       }
-      // Limit markers to latest 5 to avoid clutter
-      const recentMarkers = markers.slice(-5);
-      try { this._series.setMarkers(recentMarkers); } catch(e) {}
+      try { this._series.setMarkers(markers.slice(-5)); } catch(e) {}
     }
 
-    /* ── Internal: Price line helpers ────────────────────────────────── */
+    /* ── Internal: Price lines ───────────────────────────────────────── */
     _addPriceLine(price, title, color, lineWidth = 1) {
       if (!this._series) return null;
       const pl = this._series.createPriceLine({ price, color, lineWidth, lineStyle: 2, axisLabelVisible: true, title });
@@ -353,12 +409,48 @@
     setRange(range) {
       if (!this.stock) return;
       const rangeMap = {
-        '1D': '1m', '5D': '15m', '1M': '1D', '3M': '1D',
-        '6M': '1D', '1Y': '1D', 'ALL': '1W'
+        '1D': { interval: '1m', bars: 75 },
+        '5D': { interval: '5m', bars: 120 },
+        '1M': { interval: '1D', bars: 22 },
+        '3M': { interval: '1D', bars: 66 },
+        '6M': { interval: '1D', bars: 130 },
+        '1Y': { interval: '1D', bars: 250 },
+        '5Y': { interval: '1W', bars: 260 },
+        'ALL': { interval: '1M', bars: 0 }
       };
-      const newInterval = rangeMap[range] || '1D';
-      this.setInterval(newInterval);
-      this._chart?.timeScale().scrollToRealTime();
+
+      const conf = rangeMap[range] || { interval: '1D', bars: 66 };
+      if (this.interval !== conf.interval) {
+        this.interval = conf.interval;
+        this.refreshCandles();
+      }
+
+      if (this._chart) {
+        if (range === 'ALL' || conf.bars === 0) {
+          this._chart.timeScale().fitContent();
+        } else {
+          const total = this.allCandles.length;
+          const from = Math.max(0, total - conf.bars);
+          this._chart.timeScale().setVisibleLogicalRange({ from, to: total + 3 });
+        }
+      }
+
+      document.querySelectorAll('#tvRangeGroup .tv-bottom-range-btn').forEach(btn => {
+        if (btn.dataset.range === range) btn.classList.add('active');
+        else btn.classList.remove('active');
+      });
+    }
+
+    setPriceScaleMode(mode) {
+      if (!this._chart) return;
+      if (mode === 'percentage' || mode === 2) {
+        this._currentScaleMode = 2;
+      } else if (mode === 'logarithmic' || mode === 1) {
+        this._currentScaleMode = 1;
+      } else {
+        this._currentScaleMode = 0;
+      }
+      this._chart.priceScale().applyOptions({ mode: this._currentScaleMode, autoScale: true });
     }
 
     setStock(stock, interval, exchangeMode) {
@@ -373,8 +465,9 @@
       if (!this._series || !this.allCandles.length) return;
       try {
         const last = this.allCandles[this.allCandles.length - 1];
+        const isIntraday = ['1m', '5m', '15m', '1H', '4H'].includes(this.interval);
         const t = isNewCandle
-          ? Math.floor((date instanceof Date ? date : new Date()).getTime() / 1000)
+          ? (isIntraday ? Math.floor((date instanceof Date ? date : new Date()).getTime() / 1000) : (date instanceof Date ? date.toISOString().split('T')[0] : String(date)))
           : this._toTime(last);
 
         if (this._chartType === 'candle' || this._chartType === 'bar') {
@@ -389,6 +482,7 @@
         } else {
           this._series.update({ time: t, value: ltp });
         }
+
         if (this._volSeries && volume) {
           this._volSeries.update({
             time: t,
@@ -396,13 +490,13 @@
             color: ltp >= last.close ? 'rgba(34,197,94,0.45)' : 'rgba(239,68,68,0.45)',
           });
         }
-        // Keep last candle LTP in sync
+
         if (!isNewCandle && last) {
           last.close = ltp;
           last.high = Math.max(last.high, ltp);
           last.low  = Math.min(last.low, ltp);
         }
-      } catch(e) { /* ignore tick errors */ }
+      } catch(e) {}
     }
 
     setLayer(layerKey, active) {
@@ -420,16 +514,15 @@
 
     setMarketLiveState(isLive, isSim) {
       this._isMarketLive = isLive;
-      // Visual cue: show live dot color on the last candle via price line
     }
 
     setExchangeMode(mode) { this._exchangeMode = mode; }
-    setFilterParams(params) { /* No-op: LW chart doesn't need filter params */ }
+    setFilterParams(params) {}
     setMarketOpen(bool) { this._isMarketLive = bool; }
 
     resetZoom() {
       this._chart?.timeScale().resetTimeScale();
-      this._chart?.timeScale().scrollToRealTime();
+      this._chart?.timeScale().fitContent();
     }
 
     resize() {

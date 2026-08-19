@@ -1,3 +1,13 @@
+  /* â”€â”€ XSS Protection & HTML Sanitization Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
+  function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
 /**
  * Comprehensive NSE/BSE Quantitative Stock Screener - Master Universal Engine
  * Real-Time 3.5s Auto-Refresh Engine (Continuous Live Data Ingestion, Full-Universe
@@ -1119,223 +1129,247 @@
  }
  };
 
- /* === 4d. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE
- === */
- const AngelOneSmartApiService = {
- apiKey: '',
- clientCode: '',
- password: '',
- totp: '',
- jwtToken: '',
- feedToken: '',
- refreshToken: '',
- isConnected: false,
- tokens: {
- 'TRENT': { symbolToken: '1964', bseToken: '500251', exchange: 'NSE' },
- 'DIXON': { symbolToken: '4454', bseToken: '540699', exchange: 'NSE' },
- 'BEL': { symbolToken: '383', bseToken: '500049', exchange: 'NSE' },
- 'HAL': { symbolToken: '2303', bseToken: '541154', exchange: 'NSE' },
- 'POLYCAB': { symbolToken: '9590', bseToken: '542652', exchange: 'NSE' },
- 'SOLARINDS': { symbolToken: '10666', bseToken: '532725', exchange: 'NSE' },
- 'KAYNES': { symbolToken: '11351', bseToken: '543664', exchange: 'NSE' },
- 'PERSISTENT': { symbolToken: '18365', bseToken: '533179', exchange: 'NSE' },
- 'CDSL': { symbolToken: '21174', bseToken: '540515', exchange: 'NSE' },
- 'BDL': { symbolToken: '2142', bseToken: '541143', exchange: 'NSE' },
- 'PREMIERENE': { symbolToken: '16782', bseToken: '544238', exchange: 'NSE' },
- 'ANGELONE': { symbolToken: '20370', bseToken: '543235', exchange: 'NSE' }
- },
+   /* === 4d. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE === */
+  const AngelOneSmartApiService = {
+    apiKey: '',
+    clientCode: '',
+    password: '',
+    totp: '',
+    jwtToken: '',
+    feedToken: '',
+    refreshToken: '',
+    isConnected: false,
+    tokens: {
+      'TRENT': { symbolToken: '1964', bseToken: '500251', exchange: 'NSE' },
+      'DIXON': { symbolToken: '4454', bseToken: '540699', exchange: 'NSE' },
+      'BEL': { symbolToken: '383', bseToken: '500049', exchange: 'NSE' },
+      'HAL': { symbolToken: '2303', bseToken: '541154', exchange: 'NSE' },
+      'POLYCAB': { symbolToken: '9590', bseToken: '542652', exchange: 'NSE' },
+      'SOLARINDS': { symbolToken: '10666', bseToken: '532725', exchange: 'NSE' },
+      'KAYNES': { symbolToken: '11351', bseToken: '543664', exchange: 'NSE' },
+      'PERSISTENT': { symbolToken: '18365', bseToken: '533179', exchange: 'NSE' },
+      'CDSL': { symbolToken: '21174', bseToken: '540515', exchange: 'NSE' },
+      'BDL': { symbolToken: '2142', bseToken: '541143', exchange: 'NSE' },
+      'PREMIERENE': { symbolToken: '16782', bseToken: '544238', exchange: 'NSE' },
+      'ANGELONE': { symbolToken: '20370', bseToken: '543235', exchange: 'NSE' }
+    },
 
- loadStoredCredentials() {
- try {
- this.apiKey = localStorage.getItem('smartapi_apiKey') || '';
- this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
- this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
- this.feedToken = localStorage.getItem('smartapi_feedToken') || '';
- if (this.jwtToken) this.isConnected = true;
- } catch (e) {}
- },
+    loadStoredCredentials() {
+      try {
+        const expiry = parseInt(localStorage.getItem('smartapi_tokenExpiry') || '0', 10);
+        const isExpired = !expiry || Date.now() > expiry;
+        if (isExpired) {
+          this.clearCredentials();
+          return;
+        }
+        this.apiKey = localStorage.getItem('smartapi_apiKey') || '';
+        this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
+        this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
+        this.feedToken = localStorage.getItem('smartapi_feedToken') || '';
+        if (this.jwtToken) this.isConnected = true;
+      } catch (e) {}
+    },
 
- saveCredentials() {
- try {
- if (this.apiKey) localStorage.setItem('smartapi_apiKey', this.apiKey);
- if (this.clientCode) localStorage.setItem('smartapi_clientCode', this.clientCode);
- if (this.jwtToken) localStorage.setItem('smartapi_jwtToken', this.jwtToken);
- if (this.feedToken) localStorage.setItem('smartapi_feedToken', this.feedToken);
- } catch (e) {}
- },
+    saveCredentials() {
+      // Security Tradeoff Note: Storing JWT tokens in client-side localStorage allows session persistence across
+      // page reloads without a dedicated auth server, but exposes session tokens to potential local script access.
+      // To mitigate risk, tokens are strictly time-gated (12-hour expiry), cleared on logout/session expiry,
+      // and all dynamic DOM rendering is strictly sanitized against XSS.
+      try {
+        const expiryTime = Date.now() + (12 * 60 * 60 * 1000); // 12-hour session limit
+        if (this.apiKey) localStorage.setItem('smartapi_apiKey', this.apiKey);
+        if (this.clientCode) localStorage.setItem('smartapi_clientCode', this.clientCode);
+        if (this.jwtToken) localStorage.setItem('smartapi_jwtToken', this.jwtToken);
+        if (this.feedToken) localStorage.setItem('smartapi_feedToken', this.feedToken);
+        localStorage.setItem('smartapi_tokenExpiry', expiryTime.toString());
+      } catch (e) {}
+    },
 
- clearCredentials() {
- this.apiKey = '';
- this.clientCode = '';
- this.jwtToken = '';
- this.feedToken = '';
- this.isConnected = false;
- try {
- localStorage.removeItem('smartapi_apiKey');
- localStorage.removeItem('smartapi_clientCode');
- localStorage.removeItem('smartapi_jwtToken');
- localStorage.removeItem('smartapi_feedToken');
- } catch (e) {}
- },
+    clearCredentials() {
+      this.apiKey = '';
+      this.clientCode = '';
+      this.jwtToken = '';
+      this.feedToken = '';
+      this.refreshToken = '';
+      this.isConnected = false;
+      try {
+        localStorage.removeItem('smartapi_apiKey');
+        localStorage.removeItem('smartapi_clientCode');
+        localStorage.removeItem('smartapi_jwtToken');
+        localStorage.removeItem('smartapi_feedToken');
+        localStorage.removeItem('smartapi_tokenExpiry');
+      } catch (e) {}
+    },
 
- async executeRequest(endpoint, payload, method = 'POST') {
- const headers = {
- 'Content-Type': 'application/json',
- 'Accept': 'application/json',
- 'X-UserType': 'USER',
- 'X-SourceID': 'WEB',
- 'X-ClientLocalIP': '127.0.0.1',
- 'X-ClientPublicIP': '127.0.0.1',
- 'X-MACAddress': 'fe80::1'
- };
- if (this.apiKey) headers['X-PrivateKey'] = this.apiKey;
- if (this.jwtToken) headers['Authorization'] = `Bearer ${this.jwtToken}`;
+    async executeRequest(endpoint, payload, method = 'POST', allowProxy = true) {
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-UserType': 'USER',
+        'X-SourceID': 'WEB',
+        'X-ClientLocalIP': '127.0.0.1',
+        'X-ClientPublicIP': '127.0.0.1',
+        'X-MACAddress': 'fe80::1'
+      };
+      if (this.apiKey) headers['X-PrivateKey'] = this.apiKey;
+      if (this.jwtToken) headers['Authorization'] = `Bearer ${this.jwtToken}`;
 
- const options = {
- method,
- headers,
- body: payload ? JSON.stringify(payload) : undefined
- };
+      const options = {
+        method,
+        headers,
+        body: payload ? JSON.stringify(payload) : undefined
+      };
 
- // 1. Direct Request
- try {
- const controller = new AbortController();
- const tid = setTimeout(() => controller.abort(), 4500);
- const resp = await fetch(endpoint, { ...options, signal: controller.signal });
- clearTimeout(tid);
- if (resp.ok) {
- const data = await resp.json();
- return data;
- }
- } catch (err) {
- // Fall through to proxy
- }
+      // 1. Direct Request (Browser to Broker Endpoint)
+      try {
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 4500);
+        const resp = await fetch(endpoint, { ...options, signal: controller.signal });
+        clearTimeout(tid);
+        if (resp.ok) {
+          const data = await resp.json();
+          return data;
+        }
+      } catch (err) {
+        // Direct request failed (e.g. CORS restriction)
+      }
 
- // 2. CORS Proxy Fallback
- try {
- const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(endpoint)}`;
- const controller = new AbortController();
- const tid = setTimeout(() => controller.abort(), 4500);
- const resp = await fetch(proxyUrl, { ...options, signal: controller.signal });
- clearTimeout(tid);
- if (resp.ok) {
- const data = await resp.json();
- return data;
- }
- } catch (e) {}
+      // 2. CORS Proxy Fallback - STRICTLY FORBIDDEN FOR AUTH/CREDENTIAL REQUESTS
+      if (!allowProxy) {
+        return null;
+      }
 
- return null;
- },
+      // Only non-credential read-only market data queries (quotes/candles) may use CORS proxy
+      try {
+        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(endpoint)}`;
+        const controller = new AbortController();
+        const tid = setTimeout(() => controller.abort(), 4500);
+        const resp = await fetch(proxyUrl, { ...options, signal: controller.signal });
+        clearTimeout(tid);
+        if (resp.ok) {
+          const data = await resp.json();
+          return data;
+        }
+      } catch (e) {}
 
- async authenticate(apiKey, clientCode, password, totp, directJwt = '') {
- this.apiKey = apiKey ? apiKey.trim() : '';
- this.clientCode = clientCode ? clientCode.trim() : '';
- this.password = password ? password.trim() : '';
- this.totp = totp ? totp.trim() : '';
+      return null;
+    },
 
- if (directJwt && directJwt.trim()) {
- this.jwtToken = directJwt.trim().replace(/^Bearer\s+/i, '');
- this.isConnected = true;
- this.saveCredentials();
- return { success: true, message: 'Direct JWT Access Token verified and active for Angel One SmartAPI!' };
- }
+    async authenticate(apiKey, clientCode, password, totp, directJwt = '') {
+      this.apiKey = apiKey ? apiKey.trim() : '';
+      this.clientCode = clientCode ? clientCode.trim() : '';
+      this.password = password ? password.trim() : '';
+      this.totp = totp ? totp.trim() : '';
 
- if (!this.apiKey || !this.clientCode) {
- return { success: false, message: 'Please provide both SmartAPI Key and Angel One Client Code.' };
- }
+      if (directJwt && directJwt.trim()) {
+        this.jwtToken = directJwt.trim().replace(/^Bearer\s+/i, '');
+        this.isConnected = true;
+        this.saveCredentials();
+        return { success: true, message: 'Direct JWT Access Token verified and active for Angel One SmartAPI!' };
+      }
 
- const loginEndpoint = 'https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword';
- const payload = {
- clientcode: this.clientCode,
- password: this.password,
- totp: this.totp
- };
+      if (!this.apiKey || !this.clientCode) {
+        return { success: false, message: 'Please provide both SmartAPI Key and Angel One Client Code.' };
+      }
 
- const data = await this.executeRequest(loginEndpoint, payload, 'POST');
- if (data && data.status && data.data) {
- this.jwtToken = data.data.jwtToken;
- this.refreshToken = data.data.refreshToken;
- this.feedToken = data.data.feedToken;
- this.isConnected = true;
- this.saveCredentials();
- return { success: true, message: 'Angel One SmartAPI Session Connected successfully! Live institutional feed active.' };
- } else {
- return { success: false, message: (data && data.message) || 'Authentication failed. Please verify credentials or TOTP code.' };
- }
- },
+      if (!this.password) {
+        return { success: false, message: 'Please provide password / PIN or enter a direct JWT session token.' };
+      }
 
- async testConnection() {
- if (!this.isConnected || !this.jwtToken) {
- return { success: false, message: 'Not connected. Please authenticate or provide a valid JWT access token.' };
- }
+      const loginEndpoint = 'https://apiconnect.angelbroking.com/rest/auth/angelbroking/user/v1/loginByPassword';
+      const payload = {
+        clientcode: this.clientCode,
+        password: this.password,
+        totp: this.totp
+      };
 
- const t0 = performance.now();
- const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote/';
- const payload = {
- mode: 'LTP',
- exchangeTokens: {
- 'NSE': ['1964', '4454', '20370'] // TRENT, DIXON, ANGELONE
- }
- };
+      // NEVER ROUTE PASSWORDS / CREDENTIALS THROUGH CORS PROXIES
+      const data = await this.executeRequest(loginEndpoint, payload, 'POST', false);
+      if (data && data.status && data.data) {
+        this.jwtToken = data.data.jwtToken;
+        this.refreshToken = data.data.refreshToken;
+        this.feedToken = data.data.feedToken;
+        this.isConnected = true;
+        this.saveCredentials();
+        return { success: true, message: 'Angel One SmartAPI Session Connected successfully! Live institutional feed active.' };
+      } else {
+        return {
+          success: false,
+          message: 'Direct browser login with password is not securely possible due to browser CORS policies. To protect your broker credentials from third-party exposure, passwords are NEVER sent through public proxies. Please provide a direct SmartAPI JWT Session Token or authenticate through a private backend server.'
+        };
+      }
+    },
 
- const data = await this.executeRequest(endpoint, payload, 'POST');
- const latency = Math.round(performance.now() - t0);
+    async testConnection() {
+      if (!this.isConnected || !this.jwtToken) {
+        return { success: false, message: 'Not connected. Please authenticate or provide a valid JWT access token.' };
+      }
 
- if (data && data.status && data.data) {
- return {
- success: true,
- latency,
- message: `SmartAPI verified! Ping: ${latency}ms | Quotes returned for ${data.data.fetched?.length || 3} instruments.`
- };
- } else {
- return {
- success: true,
- latency: latency || 145,
- message: `SmartAPI Token active! Session verified with institutional endpoints.`
- };
- }
- },
+      const t0 = performance.now();
+      const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/market/v1/quote/';
+      const payload = {
+        mode: 'LTP',
+        exchangeTokens: {
+          'NSE': ['1964', '4454', '20370'] // TRENT, DIXON, ANGELONE
+        }
+      };
 
- async fetchHistoricalCandles(symbol, interval = 'ONE_DAY', fromDate = null, toDate = null) {
- if (!this.isConnected || !this.jwtToken) return null;
- const tokInfo = this.tokens[symbol];
- if (!tokInfo) return null;
+      const data = await this.executeRequest(endpoint, payload, 'POST', true);
+      const latency = Math.round(performance.now() - t0);
 
- const now = new Date();
- const toStr = toDate || now.toISOString().replace('T', ' ').substring(0, 16);
- const fromStr = fromDate || new Date(now.getTime() - (250 * 86400000)).toISOString().replace('T', ' ').substring(0, 16);
+      if (data && data.status && data.data) {
+        return {
+          success: true,
+          latency,
+          message: `SmartAPI verified! Ping: ${latency}ms | Quotes returned for ${data.data.fetched?.length || 3} instruments.`
+        };
+      } else {
+        return {
+          success: true,
+          latency: latency || 145,
+          message: `SmartAPI Token active! Session verified with institutional endpoints.`
+        };
+      }
+    },
 
- const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData';
- const payload = {
- exchange: tokInfo.exchange || 'NSE',
- symboltoken: tokInfo.symbolToken,
- interval: interval,
- fromdate: fromStr,
- todate: toStr
- };
+    async fetchHistoricalCandles(symbol, interval = 'ONE_DAY', fromDate = null, toDate = null) {
+      if (!this.isConnected || !this.jwtToken) return null;
+      const tokInfo = this.tokens[symbol];
+      if (!tokInfo) return null;
 
- const data = await this.executeRequest(endpoint, payload, 'POST');
- if (data && data.status && Array.isArray(data.data)) {
- return data.data.map(item => {
- const dt = new Date(item[0]);
- return {
- date: dt.toISOString().split('T')[0],
- time: dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
- open: parseFloat(item[1]),
- high: parseFloat(item[2]),
- low: parseFloat(item[3]),
- close: parseFloat(item[4]),
- volume: parseInt(item[5])
- };
- });
- }
- return null;
- }
- };
+      const now = new Date();
+      const toStr = toDate || now.toISOString().replace('T', ' ').substring(0, 16);
+      const fromStr = fromDate || new Date(now.getTime() - (250 * 86400000)).toISOString().replace('T', ' ').substring(0, 16);
 
- /* === 5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION
- === */
- const RAW_DATABASE = [
+      const endpoint = 'https://apiconnect.angelbroking.com/rest/secure/angelbroking/historical/v1/getCandleData';
+      const payload = {
+        exchange: tokInfo.exchange || 'NSE',
+        symboltoken: tokInfo.symbolToken,
+        interval: interval,
+        fromdate: fromStr,
+        todate: toStr
+      };
+
+      const data = await this.executeRequest(endpoint, payload, 'POST', true);
+      if (data && data.status && Array.isArray(data.data)) {
+        return data.data.map(item => {
+          const dt = new Date(item[0]);
+          return {
+            date: dt.toISOString().split('T')[0],
+            time: dt.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: false }),
+            open: parseFloat(item[1]),
+            high: parseFloat(item[2]),
+            low: parseFloat(item[3]),
+            close: parseFloat(item[4]),
+            volume: parseInt(item[5])
+          };
+        });
+      }
+      return null;
+    }
+  };
+
+  /* === 5. COMPREHENSIVE STOCK UNIVERSE WITH FULL VARIANT & INDEX CLASSIFICATION === */const RAW_DATABASE = [
  {
  symbol: 'TRENT',
  name: 'Trent Ltd (Westside & Zudio)',
@@ -2703,7 +2737,7 @@
  const chgClass = s.dayChangePct >= 0 ? 'var(--accent-green)' : 'var(--accent-red)';
  const chgSign = s.dayChangePct > 0 ? '+' : '';
 
- rowsHtml += `<tr data-symbol="${s.symbol}">`;
+ rowsHtml += `<tr data-symbol="${escapeHtml(s.symbol)}">`;
 
  for (const col of cols) {
  if (col.key === 'symbol') {
@@ -2712,8 +2746,8 @@
  <div style="display:flex; align-items:center; gap:8px;">
  <div class="score-badge ${scoreClass}">${score}</div>
  <div>
- <div style="font-weight:800; font-family:var(--font-mono); font-size:12.5px; color:#ffffff;">${s.symbol}</div>
- <div style="font-size:10px; color:#64748b;">${s.name.substring(0, 18)} - ${s.sector}</div>
+ <div style="font-weight:800; font-family:var(--font-mono); font-size:12.5px; color:#ffffff;">${escapeHtml(s.symbol)}</div>
+ <div style="font-size:10px; color:#64748b;">${escapeHtml(s.name.substring(0, 18))} - ${escapeHtml(s.sector)}</div>
  </div>
  </div>
  </td>
@@ -2797,11 +2831,11 @@
  } else if (col.key === 'mtfBullishCount') {
  rowsHtml += `<td style="font-family:var(--font-mono); color:#22c55e;">${s.mtfBullishCount}/6 Green</td>`;
  } else if (col.key === 'pattern') {
- rowsHtml += `<td><span class="tag tag-cwh" style="font-size:10px;">${s.pattern}</span></td>`;
+ rowsHtml += `<td><span class="tag tag-cwh" style="font-size:10px;">${escapeHtml(s.pattern)}</span></td>`;
  } else if (col.key === 'actions') {
  rowsHtml += `
  <td>
- <button class="btn btn-sm btn-analyze" data-sym="${s.symbol}" style="padding:3px 8px; font-size:10.5px; background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8;">
+ <button class="btn btn-sm btn-analyze" data-sym="${escapeHtml(s.symbol)}" style="padding:3px 8px; font-size:10.5px; background:rgba(56,189,248,0.12); border-color:#38bdf8; color:#38bdf8;">
  Analyze
  </button>
  </td>
@@ -2845,7 +2879,7 @@
  gridHtml += `
  <div class="heatmap-sector-cluster" style="background:#090e1a; border:1px solid rgba(255,255,255,0.08); border-radius:10px; padding:12px; display:flex; flex-direction:column; gap:8px;">
  <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); padding-bottom:6px;">
- <span style="font-weight:800; font-size:12px; color:#ffffff;">${secName}</span>
+ <span style="font-weight:800; font-size:12px; color:#ffffff;">${escapeHtml(secName)}</span>
  <span style="font-family:var(--font-mono); font-size:11px; font-weight:700; color:${chgClass};">${avgSign}${avgChg.toFixed(2)}%</span>
  </div>
  <div class="heatmap-tiles-cluster" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(110px, 1fr)); gap:6px;">
@@ -2865,8 +2899,8 @@
  const sign = s.dayChangePct > 0 ? '+' : '';
 
  gridHtml += `
- <div class="heatmap-tile" data-sym="${s.symbol}" style="background:${bg}; color:${textColor}; padding:10px 8px; border-radius:6px; text-align:center; cursor:pointer; transition:transform 0.15s ease;">
- <div class="heatmap-tile-sym" style="font-weight:800; font-size:12px;">${s.symbol}</div>
+ <div class="heatmap-tile" data-sym="${escapeHtml(s.symbol)}" style="background:${bg}; color:${textColor}; padding:10px 8px; border-radius:6px; text-align:center; cursor:pointer; transition:transform 0.15s ease;">
+ <div class="heatmap-tile-sym" style="font-weight:800; font-size:12px;">${escapeHtml(s.symbol)}</div>
  <div class="heatmap-tile-chg" style="font-family:var(--font-mono); font-size:11px; font-weight:700;">${sign}${s.dayChangePct}%</div>
  <div style="font-size:9.5px; opacity:0.85; font-family:var(--font-mono);">\u20B9${s.ltp.toFixed(0)}</div>
  </div>
@@ -2894,7 +2928,7 @@
  if (gainersEl) {
  gainersEl.innerHTML = sortedGainers.map(s => `
  <div class="heatmap-rank-row" style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; font-family:var(--font-mono);">
- <span style="font-weight:700; color:#ffffff;">${s.symbol}</span>
+ <span style="font-weight:700; color:#ffffff;">${escapeHtml(s.symbol)}</span>
  <span style="color:#34d399; font-weight:700;">+${s.dayChangePct}% (\u20B9${s.ltp.toFixed(1)})</span>
  </div>
  `).join('');
@@ -2904,7 +2938,7 @@
  if (losersEl) {
  losersEl.innerHTML = sortedLosers.map(s => `
  <div class="heatmap-rank-row" style="display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px solid rgba(255,255,255,0.04); font-size:11px; font-family:var(--font-mono);">
- <span style="font-weight:700; color:#ffffff;">${s.symbol}</span>
+ <span style="font-weight:700; color:#ffffff;">${escapeHtml(s.symbol)}</span>
  <span style="color:#f87171; font-weight:700;">${s.dayChangePct}% (\u20B9${s.ltp.toFixed(1)})</span>
  </div>
  `).join('');
@@ -2939,8 +2973,8 @@
  const sign = pnl >= 0 ? '+' : '';
 
  hHtml += `
- <tr data-sym="${h.symbol}" style="cursor:pointer; transition:background 0.15s ease;">
- <td style="font-weight:700; color:#ffffff;">${h.symbol}</td>
+ <tr data-sym="${escapeHtml(h.symbol)}" style="cursor:pointer; transition:background 0.15s ease;">
+ <td style="font-weight:700; color:#ffffff;">${escapeHtml(h.symbol)}</td>
  <td>${h.qty}</td>
  <td>\u20B9${h.avg.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
  <td style="font-weight:700;">\u20B9${s.ltp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
@@ -3790,7 +3824,7 @@
  s.roce, s.roe, s.opm, s.piotroskiScore, s.debtToEquity, s.interestCoverage,
  s.pe, s.peg, s.fcfYield || 1.5, s.salesGrowthYoY, s.epsGrowthYoY,
  s.promoterHoldingPct, s.promoterPledgePct, s.fiiHoldingPct, s.diiHoldingPct,
- s.rsScore, s.rsi, `"${s.pattern}"`
+ s.rsScore, s.rsi, `"${escapeHtml(s.pattern)}"`
  ]);
 
  const csv = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');

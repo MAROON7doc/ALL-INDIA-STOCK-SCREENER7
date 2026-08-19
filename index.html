@@ -253,37 +253,36 @@
       </div>
     </div>
 
-    <!-- Universal Investor Profiles Ribbon (Section 21) -->
-    <div class="investor-ribbon">
-      <span class="investor-ribbon-label">🎯 Investor Mode:</span>
-      <button class="investor-chip active" data-profile="all">🌐 All Profiles</button>
-      <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">🏛️ Quality Compounder</button>
-      <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales & EPS CAGR >30%, Low Debt">💎 Multibagger Hunter</button>
-      <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG ≤ 1.5, ROCE > 20%)">🚀 GARP / Growth</button>
-      <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield > 3.5%">📊 Deep Value</button>
-      <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">💰 Dividend & Cash</button>
-      <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score > 85, Multi-Quarter Alpha">⚡ Momentum (DMR)</button>
-      <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">🔄 Special Situations</button>
+    <!-- Universal Investor Profiles Ribbon -->
+    <div class="investor-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#080e1a; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
+      <span class="investor-ribbon-label" style="font-size:10.5px; font-weight:800; color:#38bdf8; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">INVESTOR PROFILES:</span>
+      <button class="investor-chip active" data-profile="all">All Profiles (12)</button>
+      <button class="investor-chip" data-profile="compounder" title="High ROCE/ROE, Zero/Low Debt, High FCF/PAT, Pristine Governance">Quality Compounders</button>
+      <button class="investor-chip" data-profile="multibagger" title="Scalable Runway, High 3Y Sales & EPS CAGR >30%, Low Debt">Multibagger Hunter</button>
+      <button class="investor-chip" data-profile="garp" title="High Growth at Reasonable Valuation (PEG <= 1.5, ROCE > 20%)">GARP Growth</button>
+      <button class="investor-chip" data-profile="deep_value" title="Low Valuation, Net Cash Balance Sheet, FCF Yield > 3.5%">Deep Value &amp; FCF</button>
+      <button class="investor-chip" data-profile="dividend" title="High FCF Yield, Sustainable Payout Ratio, Low Debt">Dividend &amp; Cash</button>
+      <button class="investor-chip" data-profile="momentum" title="DMR Top Decile 9-10, RS Score > 85, Multi-Quarter Alpha">Momentum Leaders</button>
+      <button class="investor-chip" data-profile="turnaround" title="Falling Debt, Improving Operating Cash Flow, Promoter Buying">Special Situations</button>
     </div>
 
     <!-- Protocol Presets Ribbon -->
-    <div class="protocol-ribbon">
-      <div class="preset-group">
-        <span class="preset-label">CANSLIM Presets:</span>
-        <button class="preset-chip active" data-preset="all">📋 View All (12)</button>
-        <button class="preset-chip" data-preset="user_master">🌟 User Master (10 Protocols)</button>
-        <button class="preset-chip" data-preset="cup_handle">☕ Cup with Handle</button>
-        <button class="preset-chip" data-preset="consolidation_7w">🧱 7-Week Bases</button>
-        <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume >3x 10D Average with High Delivery %">⚡ Vol Shockers</button>
-        <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">🎯 NR4/NR7 Squeeze</button>
-        <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > ₹10 Lakhs">🏛️ SEBI Insider Buys</button>
-        <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">💎 SMC Accumulation</button>
-        <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">📈 DMR Leaders</button>
+    <div class="protocol-ribbon" style="display:flex; align-items:center; gap:8px; padding:8px 12px; background:#060a14; border-top:1px solid rgba(255,255,255,0.06); overflow-x:auto;">
+      <div class="preset-group" style="display:flex; align-items:center; gap:6px; flex-wrap:nowrap;">
+        <span class="preset-label" style="font-size:10.5px; font-weight:800; color:#f59e0b; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">CANSLIM PRESETS:</span>
+        <button class="preset-chip active" data-preset="all">All Stocks (12)</button>
+        <button class="preset-chip" data-preset="user_master">Master 10 Protocols</button>
+        <button class="preset-chip" data-preset="cup_handle">Cup with Handle</button>
+        <button class="preset-chip" data-preset="consolidation_7w">7-Week Bases</button>
+        <button class="preset-chip" data-preset="vol_shocker" title="Intraday Volume >3x 10D Average with High Delivery %">Volume Shockers</button>
+        <button class="preset-chip" data-preset="nr_breakout" title="Narrow Range NR4 / NR7 Volatility Contraction Breakouts">NR4/NR7 Squeeze</button>
+        <button class="preset-chip" data-preset="sebi_insider" title="SEBI PIT Promoter/Director Buy Disclosures > Rs. 10 Lakhs">SEBI Insider Buys</button>
+        <button class="preset-chip" data-preset="smc_accum" title="Smart Money Demand Order Blocks & Wyckoff Springs">SMC Accumulation</button>
+        <button class="preset-chip" data-preset="dmr_leaders" title="Dynamic Momentum Rank Decile 9-10 Sector Outperformers">DMR Sector Leaders</button>
       </div>
-      <div id="topScanStatusBadge" class="val-pill">Live Scanner Active</div>
+      <div id="topScanStatusBadge" class="val-pill" style="margin-left:auto; white-space:nowrap;">Live Scanner Active</div>
     </div>
   </header>
-
   <!-- Mobile Filter Bar Drawer Trigger (Visible on Android & Mobile/Tablet Screens) -->
   <div class="mobile-filter-bar" id="mobileFilterBar">
     <button class="btn btn-sm" id="btnMobileFilterToggle" style="width:100%; justify-content:space-between; padding:8px 12px; font-weight:600; background:#080f20; border-color:var(--border-subtle);">

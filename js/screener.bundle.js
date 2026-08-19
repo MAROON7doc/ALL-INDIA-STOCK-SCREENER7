@@ -3643,6 +3643,70 @@
         });
       });
 
+      // 12. Ribbons Toggle Button (Collapsible App Header)
+      const toggleRibbonsBtn = document.getElementById('btnToggleIntelRibbons');
+      const collapsibleHeader = document.getElementById('collapsibleAppHeader');
+      if (toggleRibbonsBtn && collapsibleHeader) {
+        toggleRibbonsBtn.addEventListener('click', () => {
+          const isHidden = collapsibleHeader.style.display === 'none' || !collapsibleHeader.style.display;
+          if (isHidden) {
+            collapsibleHeader.style.display = 'flex';
+            collapsibleHeader.style.flexDirection = 'column';
+            toggleRibbonsBtn.textContent = 'âš¡ Ribbons â–´';
+            toggleRibbonsBtn.style.color = '#38bdf8';
+            toggleRibbonsBtn.style.borderColor = '#38bdf8';
+            toggleRibbonsBtn.style.background = 'rgba(56, 189, 248, 0.14)';
+          } else {
+            collapsibleHeader.style.display = 'none';
+            toggleRibbonsBtn.textContent = 'âš¡ Ribbons â–¾';
+            toggleRibbonsBtn.style.color = '#94a3b8';
+            toggleRibbonsBtn.style.borderColor = 'rgba(255, 255, 255, 0.15)';
+            toggleRibbonsBtn.style.background = 'transparent';
+          }
+        });
+      }
+
+      // 13. Investor Profiles Chips (inside collapsible header)
+      document.querySelectorAll('.investor-ribbon .investor-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.investor-ribbon .investor-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          const prof = chip.dataset.profile;
+          if (prof === 'all') this.resetFilters();
+          else if (prof === 'compounder') { this.activePreset = 'compounder'; this.runScan(); }
+          else if (prof === 'multibagger') { this.activePreset = 'multibagger'; this.runScan(); }
+          else if (prof === 'deep_value') { this.activePreset = 'deep_value'; this.runScan(); }
+          else if (prof === 'momentum') { this.activePreset = 'momentum'; this.runScan(); }
+          else if (prof === 'garp') { this.filters.maxPeg = 1.5; this.filters.minRoce = 20; this.runScan(); }
+          else if (prof === 'dividend') { this.filters.minFcfYield = 2.0; this.filters.maxDebtEquity = 0.5; this.runScan(); }
+          else if (prof === 'turnaround') { this.filters.requireInsiderBuys = true; this.runScan(); }
+          this.showToast(`Investor Profile Active: ${chip.textContent.trim()}`, 'success');
+        });
+      });
+
+      // 14. CANSLIM Protocol Chips (inside collapsible header)
+      document.querySelectorAll('.protocol-ribbon .preset-chip').forEach(chip => {
+        chip.addEventListener('click', () => {
+          document.querySelectorAll('.protocol-ribbon .preset-chip').forEach(c => c.classList.remove('active'));
+          chip.classList.add('active');
+          const pre = chip.dataset.preset;
+          if (pre === 'all') this.resetFilters();
+          else if (pre === 'vol_shocker') { this.activePreset = 'vol_shocker'; this.runScan(); }
+          else if (pre === 'sebi_insider') { this.filters.requireInsiderBuys = true; this.runScan(); }
+          else if (pre === 'dmr_leaders') { this.activePreset = 'momentum'; this.runScan(); }
+          else { this.runScan(); }
+          this.showToast(`Protocol Active: ${chip.textContent.trim()}`, 'success');
+        });
+      });
+
+      // 15. Breaking News Ribbon Click
+      document.getElementById('btnReadMoreNews')?.addEventListener('click', () => {
+        document.getElementById('newsDrawerOverlay')?.classList.add('active');
+      });
+      document.getElementById('breakingHeadline')?.addEventListener('click', () => {
+        document.getElementById('newsDrawerOverlay')?.classList.add('active');
+      });
+
       // News Drawer
       document.getElementById('btnOpenNewsDrawer')?.addEventListener('click', () => {
         document.getElementById('newsDrawerOverlay')?.classList.add('active');

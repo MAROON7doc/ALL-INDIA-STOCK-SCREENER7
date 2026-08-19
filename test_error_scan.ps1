@@ -28,7 +28,6 @@ function Assert-Check([bool]$cond, [string]$name, [string]$detail = "") {
 $bundle = Get-Content $bundlePath -Raw
 $indexHtml = Get-Content $indexPath -Raw
 $chartHtml = Get-Content $chartPath -Raw
-$css = Get-Content $cssPath -Raw
 
 # 1. Delimiter & Structure Check
 $openBrace = ([regex]::Matches($bundle, '\{')).Count
@@ -65,6 +64,10 @@ Assert-Check ($bundle -match 'catch\s*\(e\)') "Catch blocks safeguard all async 
 Assert-Check ($indexHtml -match 'id="selDataProvider"') "index.html data provider selector wired"
 Assert-Check ($chartHtml -match 'id="selDataProvider"') "chart.html data provider selector wired"
 Assert-Check ($indexHtml -match 'id="btnOpenSmartApi"') "SmartAPI configuration modal trigger wired"
+Assert-Check ((Get-Content $cssPath -Raw) -match '\.tv-tab-item') "Chart navigation tab styles defined"
+Assert-Check ((Get-Content $cssPath -Raw) -match '\.calc-input') "Credential input styles defined"
+Assert-Check ($bundle -notmatch 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ') "No hard-coded API credential in bundle"
+Assert-Check ($indexHtml -notmatch 'value="lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ"') "No hard-coded API credential in HTML"
 
 Write-Host "=================================================" -ForegroundColor Cyan
 Write-Host " SCAN COMPLETE: $passCount / $($passCount + $failCount) CHECKS PASSED" -ForegroundColor $(if ($failCount -eq 0) { "Green" } else { "Red" })

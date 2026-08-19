@@ -7,6 +7,7 @@ $baseDir = "C:\Users\ASUS TUFF\.gemini\antigravity\scratch\BSE-NSE-STOCK-screene
 $jsPath = Join-Path $baseDir "js\screener.bundle.js"
 $htmlPath = Join-Path $baseDir "index.html"
 $chartHtmlPath = Join-Path $baseDir "chart.html"
+$mobileHtmlPath = Join-Path $baseDir "mobile.html"
 $cssPath = Join-Path $baseDir "css\styles.css"
 
 $errorsFound = 0
@@ -57,6 +58,7 @@ if ($openBraces -eq $closeBraces -and $openParens -eq $closeParens -and $openBra
 Write-Host "`n[TEST 3] Verifying DOM ID Bindings in JavaScript vs HTML..." -ForegroundColor Yellow
 $htmlContent = [System.IO.File]::ReadAllText($htmlPath)
 $chartHtmlContent = [System.IO.File]::ReadAllText($chartHtmlPath)
+$mobileHtmlContent = [System.IO.File]::ReadAllText($mobileHtmlPath)
 
 # Extract all document.getElementById('...') calls
 $idMatches = [regex]::Matches($jsContent, "getElementById\(['""]([^'""]+)['""]\)")
@@ -68,7 +70,9 @@ $unmatchedIds = @()
 foreach ($id in $uniqueIds) {
     $foundInIndex = $htmlContent -match "id=['""]$id['""]"
     $foundInChart = $chartHtmlContent -match "id=['""]$id['""]"
-    if (-not $foundInIndex -and -not $foundInChart) {
+    $foundInMobile = $mobileHtmlContent -match "id=['""]$id['""]"
+    $isRuntimeGenerated = $id -in @('tv-spin-style', 'btnEmptyViewAll')
+    if (-not $foundInIndex -and -not $foundInChart -and -not $foundInMobile -and -not $isRuntimeGenerated) {
         $unmatchedIds += $id
     }
 }

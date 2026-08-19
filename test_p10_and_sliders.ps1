@@ -46,19 +46,19 @@ Assert-Check "styles.css contains .mtf-chip.red class" ($stylesCss.Contains('.mt
 # 4. screener.bundle.js checks
 Assert-Check "bundle.js generates intraday4H" ($bundleJs.Contains('intraday4H = resampleSeries(intraday1H, 4)'))
 Assert-Check "bundle.js calculates mtfStatus for 5m, 15m, 1H, 4H, 1D, 1W" ($bundleJs.Contains("'4H': checkGreen(intraday4H)"))
-Assert-Check "bundle.js InteractiveGPUChart has p10_mtf layer" ($bundleJs.Contains('p10_mtf: true'))
-Assert-Check "bundle.js InteractiveGPUChart has setFilterParams method" ($bundleJs.Contains('setFilterParams(params)'))
-Assert-Check "bundle.js InteractiveGPUChart responds to minRsi dynamically" ($bundleJs.Contains('this.filterParams?.minRsi ?? 70'))
-Assert-Check "bundle.js InteractiveGPUChart responds to minBurstPct dynamically" ($bundleJs.Contains('this.filterParams?.minBurstPct ?? 40'))
-Assert-Check "bundle.js InteractiveGPUChart responds to maxStopLossPct dynamically" ($bundleJs.Contains('this.filterParams?.maxStopLossPct'))
-Assert-Check "bundle.js InteractiveGPUChart renders P10 MTF Trend HUD" ($bundleJs.Contains('P10 MTF Trend'))
+Assert-Check "bundle.js TradingView chart supports protocol overlays" ($bundleJs.Contains('_layers = { ema: true, vwap: true, volume: true, protocols: true }'))
+Assert-Check "bundle.js TradingView chart has setFilterParams method" ($bundleJs.Contains('setFilterParams(params)'))
+Assert-Check "bundle.js Application responds to minRsi dynamically" ($bundleJs.Contains('this.filters.minRsi'))
+Assert-Check "bundle.js Application responds to minBurstPct dynamically" ($bundleJs.Contains('this.filters.minBurstPct'))
+Assert-Check "bundle.js Application responds to maxStopLossPct dynamically" ($bundleJs.Contains('this.filters.maxStopLossPct'))
+Assert-Check "bundle.js Application renders P10 MTF trend data" ($bundleJs.Contains('P10: MTF 6/6 Green'))
 Assert-Check "bundle.js Application filters has requireMtfAllGreen & minMtfGreen" ($bundleJs.Contains('requireMtfAllGreen: true, minMtfGreen: 6'))
 Assert-Check "bundle.js bindRng passes filters to setFilterParams on both charts" ($bundleJs.Contains('this.mainChart.setFilterParams(this.filters)'))
 Assert-Check "bundle.js bindChk passes filters to setFilterParams on both charts" ($bundleJs.Contains('this.modalChart.setFilterParams(this.filters)'))
 Assert-Check "bundle.js bindUI binds rng_mtfGreen and chk_p10" ($bundleJs.Contains("bindRng('rng_mtfGreen'") -and $bundleJs.Contains("bindChk('chk_p10'"))
 Assert-Check "bundle.js runScan checks p10_mtf match" ($bundleJs.Contains('p10_mtf: ((stock.mtfGreenCount || 0) >= (this.filters.minMtfGreen || 6))'))
 Assert-Check "bundle.js renderTable outputs /10 match score" ($bundleJs.Contains('${stock.matchCount}/10'))
-Assert-Check "bundle.js startLiveStream synchronizes intraday4H and updates mtfStatus" ($bundleJs.Contains('syncCandle(stock.intraday4H, 12)') -and $bundleJs.Contains('stock.mtfGreenCount = Object.values(stock.mtfStatus)'))
+Assert-Check "bundle.js syncLiveRealtimeData updates intraday4H and MTF status" ($bundleJs.Contains("targetInterval === '4H'") -and $bundleJs.Contains('const mtfGreenCount = Object.values(mtfStatus)'))
 
 Write-Host "=================================================" -ForegroundColor Cyan
 Write-Host " ALL $passCount / $totalTests TESTS PASSED SUCCESSFULLY! " -ForegroundColor Green

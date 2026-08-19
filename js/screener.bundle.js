@@ -961,12 +961,12 @@
      4c. FINANCIAL MODELING PREP (FMP) INSTITUTIONAL API ENGINE
      ========================================================================== */
   const FinancialModelingPrepService = {
-    apiKey: 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ',
+    apiKey: '',
     cache: new Map(),
 
     loadStoredApiKey() {
       try {
-        this.apiKey = localStorage.getItem('fmp_apiKey') || 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ';
+        this.apiKey = localStorage.getItem('fmp_apiKey') || '';
       } catch (e) {}
     },
 
@@ -1114,7 +1114,7 @@
      4d. ANGEL ONE SMARTAPI INSTITUTIONAL CLIENT & STREAMING ENGINE
      ========================================================================== */
   const AngelOneSmartApiService = {
-    apiKey: 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ',
+    apiKey: '',
     clientCode: '',
     password: '',
     totp: '',
@@ -1139,7 +1139,7 @@
 
     loadStoredCredentials() {
       try {
-        this.apiKey = localStorage.getItem('smartapi_apiKey') || 'lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ';
+        this.apiKey = localStorage.getItem('smartapi_apiKey') || '';
         this.clientCode = localStorage.getItem('smartapi_clientCode') || '';
         this.jwtToken = localStorage.getItem('smartapi_jwtToken') || '';
         this.feedToken = localStorage.getItem('smartapi_feedToken') || '';
@@ -2712,6 +2712,8 @@
       this.marketTimer = null;
       this.isFullscreen = false;
       this.nlpFilter = null;
+      this._dataSyncRequestId = 0;
+      this._lastDataSyncErrorAt = 0;
 
       this.filters = {
         searchTerm: '', exchange: 'ALL', sector: 'ALL', sortBy: 'matchCount', sortDir: 'desc',
@@ -3307,19 +3309,16 @@
           fn(v);
           if (this.mainChart) this.mainChart.setFilterParams(this.filters);
           if (this.modalChart) this.modalChart.setFilterParams(this.filters);
-          // runScan() NOT called from live stream (causes DOM rebuild scroll)
+          clearTimeout(this._filterScanTimer);
+          this._filterScanTimer = setTimeout(() => this.runScan(), 100);
         });
       };
 
-      bindRng('rng_salesGrowth', 'val_salesGrowth', v => `${v}%`, v => this.filters.minSalesGrowth = v);
-      bindRng('rng_epsGrowth', 'val_epsGrowth', v => `${v}%`, v => this.filters.minEpsGrowth = v);
-      bindRng('rng_rsi', 'val_rsi', v => `${v}`, v => this.filters.minRsi = v);
-      bindRng('rng_volumeBurst', 'val_volumeBurst', v => `+${v}%`, v => this.filters.minBurstPct = v);
-      bindRng('rng_consolidationRange', 'val_consolidationRange', v => `≤ ${v}%`, v => this.filters.maxConsolidationRange = v);
-      bindRng('rng_maxStopLoss', 'val_maxStopLoss', v => `≤ ${v.toFixed(1)}%`, v => this.filters.maxStopLossPct = v);
-      bindRng('rng_roe', 'val_roe', v => `${v}%`, v => { this.filters.minRoe = v; this.filters.minRoce = v; });
-      bindRng('rng_epsCAGR', 'val_epsCAGR', v => `${v}%`, v => this.filters.minEps3YCAGR = v);
-      bindRng('rng_rsScore', 'val_rsScore', v => `${v}`, v => this.filters.minRsScore = v);
+      bindRng('rng_minSalesGrowth', 'pill_salesGrowth', v => `≥ ${v}%`, v => this.filters.minSalesGrowth = v);
+      bindRng('rng_minRsi', 'pill_rsiLevel', v => `RSI ≥ ${v}`, v => this.filters.minRsi = v);
+      bindRng('rng_minBurstPct', 'pill_burstPct', v => `+${v}% vs SMA20`, v => this.filters.minBurstPct = v);
+      bindRng('rng_maxConsolidationRange', 'pill_baseTightness', v => `≤ ${v}%`, v => this.filters.maxConsolidationRange = v);
+      bindRng('rng_maxStopLossPct', 'pill_maxStopLoss', v => `≤ ${v.toFixed(1)}%`, v => this.filters.maxStopLossPct = v);
       bindRng('rng_mtfGreen', 'val_mtfGreen', v => `${v}/6 Green`, v => this.filters.minMtfGreen = v);
 
       const bindChk = (id, cardId, fn) => {
@@ -3331,7 +3330,8 @@
           fn(e.target.checked);
           if (this.mainChart) this.mainChart.setFilterParams(this.filters);
           if (this.modalChart) this.modalChart.setFilterParams(this.filters);
-          // runScan() NOT called from live stream (causes DOM rebuild scroll)
+          clearTimeout(this._filterScanTimer);
+          this._filterScanTimer = setTimeout(() => this.runScan(), 100);
         });
       };
 
@@ -4428,9 +4428,10 @@
       if (!stock) return;
       const targetInterval = interval || this.mainChart?.interval || '1D';
       const livePill = document.getElementById('livePillIndicator');
+      const requestId = ++this._dataSyncRequestId;
 
       const applyCandles = (candles, label, badgeColor = '#10b981') => {
-        if (!candles || candles.length < 5) return false;
+        if (requestId !== this._dataSyncRequestId || !candles || candles.length < 5) return false;
         const lastCandle = candles[candles.length - 1];
         const newLtp = lastCandle.close;
 
@@ -4506,7 +4507,15 @@
           applyCandles(liveData.candles, 'REAL-TIME (NSE/BSE)', '#10b981');
         }
       } catch (err) {
-        // Safe fallback
+        if (requestId === this._dataSyncRequestId && Date.now() - this._lastDataSyncErrorAt > 15000) {
+          this._lastDataSyncErrorAt = Date.now();
+          if (livePill) {
+            livePill.innerHTML = '<span class="live-dot" style="background:#f59e0b;"></span> DATA UNAVAILABLE';
+            livePill.style.color = '#f59e0b';
+            livePill.style.borderColor = 'rgba(245,158,11,0.45)';
+          }
+          this.showToast('Live market data is unavailable. Showing the last valid series.', 'warn');
+        }
       }
     }
 

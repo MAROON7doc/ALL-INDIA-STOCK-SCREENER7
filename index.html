@@ -349,6 +349,15 @@
                 <input type="text" class="watchlist-search-input" id="txtWatchlistSearch" placeholder="🔍 Search stocks...">
               </div>
 
+              <div class="sidebar-mtf-pills" id="sidebarMtfPills" aria-label="Multi-timeframe trend">
+                <span class="mtf-chip" id="chip_5m">5m</span>
+                <span class="mtf-chip" id="chip_15m">15m</span>
+                <span class="mtf-chip" id="chip_1H">1H</span>
+                <span class="mtf-chip" id="chip_4H">4H</span>
+                <span class="mtf-chip" id="chip_1D">1D</span>
+                <span class="mtf-chip" id="chip_1W">1W</span>
+              </div>
+
               <div class="watchlist-stock-list" id="tradeoneWatchlistList">
                 <!-- Dynamically populated from universe (BEL, PREMIERENE, HAL, SOLARINDS, KAYNES, TRENT, etc.) -->
               </div>
@@ -426,6 +435,20 @@
                 <input type="range" class="stitch-range-slider" id="rng_maxStopLossPct" min="3.0" max="15.0" step="0.5" value="8.0">
                 <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
                   <span>3.0%</span><span>Stop Loss</span><span>15.0%</span>
+                </div>
+              </div>
+              <div class="protocol-slider-card active" id="card_p10">
+                <div class="protocol-slider-header">
+                  <label class="protocol-slider-title" for="chk_p10">P10: Multi-Timeframe Green Alignment</label>
+                  <label class="switch" title="Require the minimum number of bullish timeframes">
+                    <input type="checkbox" id="chk_p10" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="protocol-slider-val" id="val_mtfGreen">6/6 Green</div>
+                <input type="range" class="stitch-range-slider" id="rng_mtfGreen" min="1" max="6" step="1" value="6">
+                <div style="display:flex; justify-content:space-between; font-size:9px; color:#64748b; margin-top:2px;">
+                  <span>1</span><span>Minimum bullish timeframes</span><span>6</span>
                 </div>
               </div>
             </div>
@@ -1473,7 +1496,7 @@
         <div class="calc-grid" style="grid-template-columns: 1fr 1fr; gap:12px; margin-bottom:14px;">
           <div class="calc-field">
             <label class="calc-label" for="txtSmartApiKey">SmartAPI Key (App Key):</label>
-            <input type="text" class="calc-input" id="txtSmartApiKey" value="lc9wasWaXiCdN28p9LC2rIQFyZhS1szZ" placeholder="e.g. your_smartapi_key_here">
+            <input type="password" class="calc-input" id="txtSmartApiKey" value="" autocomplete="off" placeholder="Enter your SmartAPI app key">
           </div>
           <div class="calc-field">
             <label class="calc-label" for="txtSmartApiClientCode">Angel One Client Code (ID):</label>
